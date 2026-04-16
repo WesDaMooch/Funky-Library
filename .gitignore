@@ -1,0 +1,66 @@
+## Visual Studio cache / temp
+
+.vs/
+*.VC.db
+*.VC.opendb
+
+## User-specific files
+
+*.vcxproj.user
+*.vcxproj.user.*
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Build results
+
+Debug/
+Release/
+x64/
+x86/
+out/
+build/
+
+## Compiled files
+
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.lib
+*.exp
+
+## Logs
+
+*.log
+
+## CMake (if used)
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+## Visual Studio generated files
+
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+
+## IntelliSense
+
+*.ipch
+
+## OS files
+
+.DS_Store
+Thumbs.db
+
+## ini
+
+imgui.ini
