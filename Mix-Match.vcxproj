@@ -77,12 +77,17 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)external\imgui;
-$(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
+$(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -93,12 +98,17 @@ $(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)external\imgui;
-$(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
+$(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -107,13 +117,17 @@ $(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)external\imgui;
-$(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
+$(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -124,12 +138,17 @@ $(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)external\imgui;
-$(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
+$(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib;dxgi.lib;d3dcompiler.lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="external\imgui\backends\imgui_impl_dx11.h" />
@@ -141,6 +160,8 @@ $(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
     <ClInclude Include="external\imgui\imstb_textedit.h" />
     <ClInclude Include="external\imgui\imstb_truetype.h" />
     <ClInclude Include="external\imgui\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="external\json\json.hpp" />
+    <ClInclude Include="include\catalogueManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="external\imgui\backends\imgui_impl_dx11.cpp" />
@@ -151,12 +172,24 @@ $(ProjectDir)external\imgui\backends;</AdditionalIncludeDirectories>
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="external\imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="src\catalogueManager.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="external\imgui\misc\debuggers\imgui.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="catalogue.json">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
     <None Include="external\imgui\misc\debuggers\imgui.natstepfilter" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

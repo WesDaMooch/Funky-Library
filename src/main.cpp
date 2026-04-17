@@ -19,8 +19,7 @@
 #include <d3d11.h>
 #include <tchar.h>
 
-//#include "thing.hpp"
-//#include "catalogueManager.hpp"
+#include "../include/catalogueManager.hpp"
 
 // Data
 static ID3D11Device* g_pd3dDevice = nullptr;
@@ -103,10 +102,8 @@ int main(int, char**)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
-    //CatalogueManager manager;
-    //manager.load();
-    //Thing thing;
-    //thing.foo();
+    CatalogueManager manager;
+    manager.load();
 
     // Search 
     static char searchBuffer[64] = "";
@@ -154,6 +151,8 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+        //const std::vector<Track>& c = manager.getCatalogue();
+
         // Search catagolue
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x / 2, io.DisplaySize.y));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -169,17 +168,28 @@ int main(int, char**)
 
         if (ImGui::Button("Refresh"))
         {
-            // Reload Json
+            manager.load();
         }
 
-        /*
+
+        // Text
+        //for (const Track& t : c)
+        //{
+        //    ImGui::Text("%s", t.artistName.c_str());
+        //    ImGui::Text("%s", t.trackName.c_str());
+        //}
+
+        
+        ImGui::Text("Tracks: %d", (int)manager.getCatalogue().size());
+
         for (const auto& track : manager.getCatalogue())
         {
             ImGui::Text("%s - %s",
                 track.artistName.c_str(),
-                track.trackName.c_str());
+                track.trackName.c_str()
+            );
         }
-        */
+        
 
         ImGui::End();
         //ImGui::Text(searchBuffer);

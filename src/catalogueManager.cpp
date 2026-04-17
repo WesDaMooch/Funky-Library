@@ -1,6 +1,7 @@
-#include "catalogueManager.hpp"
+#include "../include/catalogueManager.hpp"
 #include <iostream>
 #include <fstream>
+
 
 // ADL 
 void to_json(json& j, const Track& t)
@@ -31,9 +32,11 @@ void CatalogueManager::load()
 
     if (!file.is_open())
         return;
-
+   
     json j;
     file >> j;
+
+    file.close();
 
     catalogue = j.value("tracks", std::vector<Track>{});
 }
@@ -45,11 +48,15 @@ void CatalogueManager::save() const
 
     std::ofstream file("catalogue.json");
     file << j.dump(4);
+
+    file.close();
 }
 
 void CatalogueManager::addTrack(const Track& track)
 {
     catalogue.push_back(track);
+    //save();
+    //load();
 }
 
 const std::vector<Track>& CatalogueManager::getCatalogue() const

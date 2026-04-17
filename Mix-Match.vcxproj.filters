@@ -42,6 +42,12 @@
     <ClInclude Include="external\imgui\misc\cpp\imgui_stdlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\catalogueManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="external\json\json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="external\imgui\imgui.cpp">
@@ -71,11 +77,15 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\catalogueManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="external\imgui\misc\debuggers\imgui.natvis" />
   </ItemGroup>
   <ItemGroup>
     <None Include="external\imgui\misc\debuggers\imgui.natstepfilter" />
+    <None Include="catalogue.json" />
   </ItemGroup>
 </Project>
