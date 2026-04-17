@@ -105,12 +105,22 @@ int main(int, char**)
     CatalogueManager manager;
     manager.load();
 
-    // Search 
-    static char searchBuffer[64] = "";
+    int activeTrackId = -1;
 
-    // Add
-    static char addTrackName[64] = "";
-    static char addArtistName[64] = "";
+    // Search window
+    static int searchWindowHeight = 50;
+    static char mainSearchBuffer[64] = "";
+    bool showSearchResultWindow = false;
+    //static ImGuiTextFilter searchFilter;
+   
+    // Add window
+    bool showAddTrackWindow = false;
+    static char newTrackName[64] = "";
+    static char newArtistName[64] = "";
+
+    // Track view / edit
+    bool showAddMixWindow = false;
+    static char mixSearchBuffer[64] = "";
 
     bool done = false;
     bool open = true;
@@ -151,70 +161,261 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        //const std::vector<Track>& c = manager.getCatalogue();
+        //ImGui::ShowDemoWindow();
 
-        // Search catagolue
-        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x / 2, io.DisplaySize.y));
+        //const std::vector<Track>& catalogue = manager.getCatalogue();
+        
+        // Search Bar
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, searchWindowHeight));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::Begin("Search Catagolue", &open,
+        ImGui::Begin("Search", &open,
             ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoMove |
             ImGuiWindowFlags_NoTitleBar |
-            ImGuiWindowFlags_NoCollapse); //ImGuiWindowFlags_NoTitleBar
+            ImGuiWindowFlags_NoCollapse);
 
-        ImGui::InputText("Search", searchBuffer, sizeof(searchBuffer));
+        ImGui::InputText("Search", mainSearchBuffer, sizeof(mainSearchBuffer));
+        if (ImGui::IsItemActive())
+        {
+            showSearchResultWindow = true;
+            // TODO: get this working
+            /*
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+                showSearchResultWindow = false;    
+            */
+        }
 
         ImGui::SameLine();
 
+        if (ImGui::Button("Add"))
+            showAddTrackWindow = true;
+        
+        ImGui::SameLine();
+
         if (ImGui::Button("Refresh"))
-        {
-            manager.load();
-        }
-
-
-        // Text
-        //for (const Track& t : c)
-        //{
-        //    ImGui::Text("%s", t.artistName.c_str());
-        //    ImGui::Text("%s", t.trackName.c_str());
-        //}
-
+            manager.refresh();
         
-        ImGui::Text("Tracks: %d", (int)manager.getCatalogue().size());
-
-        for (const auto& track : manager.getCatalogue())
-        {
-            ImGui::Text("%s - %s",
-                track.artistName.c_str(),
-                track.trackName.c_str()
-            );
-        }
-        
-
+        if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+            !ImGui::IsAnyItemActive())
+            showSearchResultWindow = false;
+       
         ImGui::End();
-        //ImGui::Text(searchBuffer);
 
-        // Track Viewer / Editor
 
-        // Track Adder
-        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x / 2, io.DisplaySize.y / 2));
-        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2, io.DisplaySize.y / 2));
-        ImGui::Begin("Track Adder", &open,
+        if (showAddTrackWindow)
+        {
+            showSearchResultWindow = false;
+            ImGui::Begin("Add New Track", &showAddTrackWindow,
+                ImGuiWindowFlags_NoCollapse);
+
+            ImGui::InputText("Artist Name", newArtistName, sizeof(newArtistName));
+            ImGui::InputText("Track Name", newTrackName, sizeof(newTrackName));
+
+            if (ImGui::Button("Save"))
+            {
+                Track newTrack;
+                newTrack.artistName = newArtistName;
+                newTrack.trackName = newTrackName;
+                bool trackAdded = manager.addTrack(newTrack);
+
+                if (trackAdded)
+                {
+                    if (!manager.getCatalogue().empty())
+                        activeTrackId = manager.getCatalogue().back().id;
+
+                    newArtistName[0] = '\0';
+                    newTrackName[0] = '\0';
+
+                    showAddTrackWindow = false;
+                }   
+            }
+            ImGui::End();
+        }
+
+        if (showSearchResultWindow)
+        {
+            ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0));
+            ImGui::Begin("Search Result", &showSearchResultWindow,
+                ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoCollapse |
+                ImGuiWindowFlags_NoFocusOnAppearing);
+
+            std::string mainSearchString = manager.toLower(mainSearchBuffer);
+            auto mainSearchWords = manager.splitWords(mainSearchString);
+
+            for (const Track& t : manager.getCatalogue())
+            {
+                if (mainSearchBuffer[0] != '\0')
+                {
+                    std::string artist = manager.toLower(t.artistName);
+                    std::string track = manager.toLower(t.trackName);
+
+                    bool match = false;
+                    for (const auto& word : mainSearchWords)
+                    {
+                        if (artist.find(word) != std::string::npos ||
+                            track.find(word) != std::string::npos)
+                        {
+                            match = true;
+                            break;
+                        }
+                    }
+
+                    if (!match)
+                        continue;
+                }
+
+                std::string trackDisplayText = t.artistName + " - " + t.trackName;
+                if (ImGui::Button(trackDisplayText.c_str(), ImVec2(300, 0)))
+                {
+                    activeTrackId = t.id;
+                    mainSearchBuffer[0] = '\0';
+                    showSearchResultWindow = false;
+                }
+            }
+            ImGui::End();   
+        }
+
+        // Viewer / Editor
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - searchWindowHeight));
+        ImGui::SetNextWindowPos(ImVec2(0, searchWindowHeight));
+        ImGui::Begin("Track Viewer And Editor", &open,
+            ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoCollapse);
+            ImGuiWindowFlags_NoCollapse |
+            ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        ImGui::InputText("Artist Name", addArtistName, sizeof(addArtistName));
+        bool removeActiveTrack = false;
+        
+        const Track* activeTrack = manager.getTrack(activeTrackId);
 
-        //ImGui::SameLine();
-        ImGui::InputText("Track Name", addTrackName, sizeof(addTrackName));
+        if (activeTrack == nullptr)
+            activeTrackId = -1;
+
+        // Display active track
+        if (activeTrackId > -1)
         {
+            std::string displayLabel = activeTrack->artistName + " - " + activeTrack->trackName;
+            ImGui::Text(displayLabel.c_str());
+
+            if (ImGui::Button("Remove"))
+                removeActiveTrack = true;
+
+            ImGui::Text("Mixes");
+            ImGui::SameLine();
+
+            if (ImGui::Button("Add"))
+                showAddMixWindow = true;
+
+            if (showAddMixWindow)
+            {
+                // Add new mix search
+                ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0));
+                ImGui::SetNextWindowPos(ImVec2(0, 200));
+                ImGui::Begin("Mix Search", &showAddMixWindow,
+                    ImGuiWindowFlags_NoResize |
+                    ImGuiWindowFlags_NoMove |
+                    ImGuiWindowFlags_NoTitleBar |
+                    ImGuiWindowFlags_NoCollapse);
+
+                ImGui::InputText("##MixSearch", mixSearchBuffer, sizeof(mixSearchBuffer));
+
+                std::string search = manager.toLower(mixSearchBuffer);
+                auto words = manager.splitWords(search);
+
+                for (const auto& t : manager.getCatalogue())
+                {
+                    if (activeTrackId == t.id)
+                        continue;
+
+                    bool mixFound = false;
+                    for (int mixId : activeTrack->mixIds)
+                    {
+                        if (mixId == t.id)
+                        {
+                            mixFound = true;
+                            break;
+                        }
+                    }
+
+                    if (mixFound)
+                        continue;
+
+                    if (mixSearchBuffer[0] != '\0')
+                    {
+                        std::string artist = manager.toLower(t.artistName);
+                        std::string track = manager.toLower(t.trackName);
+
+                        bool match = false;
+                        for (const auto& word : words)
+                        {
+                            if (artist.find(word) != std::string::npos ||
+                                track.find(word) != std::string::npos)
+                            {
+                                match = true;
+                                break;
+                            }
+                        }
+
+                        if (!match)
+                            continue;
+                    }
+
+                    std::string trackDisplayText = t.artistName + " - " + t.trackName;
+                    // Add mix to active track
+                    if (ImGui::Button(trackDisplayText.c_str(), ImVec2(300, 0)))
+                    {
+                        manager.addMix(activeTrackId, t.id);
+                        showAddMixWindow = false;
+                    }
+
+                }
+
+                if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+                    !ImGui::IsAnyItemActive())
+                    showAddMixWindow = false;
+
+                ImGui::End();
+            }
 
         }
 
-        if (ImGui::Button("Save"))
+        // Display mixes
+        if (activeTrackId > -1 && activeTrack != nullptr)
         {
-            //manager.addTrack()
+            int removeMixId = -1;
+            for (int mixId : activeTrack->mixIds)
+            {
+                const Track* mixTrack = manager.getTrack(mixId);
+
+                if (mixTrack == nullptr)
+                    continue;
+
+                std::string label = mixTrack->artistName + " - " + mixTrack->trackName;
+
+                if (ImGui::Button(label.c_str(), ImVec2(300, 0)))
+                    activeTrackId = mixTrack->id;
+
+                ImGui::SameLine();
+
+                std::string buttonId = "Remove##" + std::to_string(mixId);
+
+                if (ImGui::Button(buttonId.c_str()))
+                    removeMixId = mixId;
+            }
+
+            if (removeMixId != -1)
+                manager.removeMix(activeTrackId, removeMixId);
+        }
+
+        if (removeActiveTrack == true)
+        {
+            manager.removeTrack(activeTrackId);
+            activeTrack = nullptr;
+            activeTrackId = -1;
         }
 
         ImGui::End();

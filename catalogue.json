@@ -1,12 +1,20 @@
 {
-  "tracks": [
-    {
-      "artistName": "Wes",
-      "trackName": "Da Mooch"
-    },
-    {
-      "artistName": "John B",
-      "trackName": "Up All Night"
-    }
-  ]
+    "tracks": [
+        {
+            "artistName": "John B",
+            "id": 1,
+            "mixIds": [
+                7
+            ],
+            "trackName": "Amniesia"
+        },
+        {
+            "artistName": "Name",
+            "id": 7,
+            "mixIds": [
+                1
+            ],
+            "trackName": "Name"
+        }
+    ]
 }
