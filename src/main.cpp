@@ -98,6 +98,12 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
     //IM_ASSERT(font != nullptr);
 
+    style.FontSizeBase = 20.f;
+    ImFont* mainFont =  io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Bahnschrift.ttf");
+
+    // Style
+    //style.FrameRounding = 10.f;
+
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -108,7 +114,7 @@ int main(int, char**)
     int activeTrackId = -1;
 
     // Search window
-    static int searchWindowHeight = 50;
+    //static int searchWindowHeight = 50;
     static char mainSearchBuffer[64] = "";
     bool showSearchResultWindow = false;
     //static ImGuiTextFilter searchFilter;
@@ -163,10 +169,14 @@ int main(int, char**)
 
         //ImGui::ShowDemoWindow();
 
-        //const std::vector<Track>& catalogue = manager.getCatalogue();
+        ImGui::PushFont(mainFont);
+        ImGui::PopFont();
+
+        /*              Search                 */
+
         
-        // Search Bar
-        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, searchWindowHeight));
+
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::Begin("Search", &open,
             ImGuiWindowFlags_NoResize |
@@ -174,7 +184,10 @@ int main(int, char**)
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoCollapse);
 
-        ImGui::InputText("Search", mainSearchBuffer, sizeof(mainSearchBuffer));
+        ImVec2 searchBarWindowSize = ImGui::GetWindowSize();
+
+        // Search bar
+        ImGui::InputText("##MainSearchInput", mainSearchBuffer, sizeof(mainSearchBuffer));
         if (ImGui::IsItemActive())
         {
             showSearchResultWindow = true;
@@ -187,11 +200,13 @@ int main(int, char**)
 
         ImGui::SameLine();
 
+        // Add new track button
         if (ImGui::Button("Add"))
             showAddTrackWindow = true;
         
         ImGui::SameLine();
 
+        // Refresh catalogue button
         if (ImGui::Button("Refresh"))
             manager.refresh();
         
@@ -201,7 +216,7 @@ int main(int, char**)
        
         ImGui::End();
 
-
+        // Add new track window
         if (showAddTrackWindow)
         {
             showSearchResultWindow = false;
@@ -232,6 +247,8 @@ int main(int, char**)
             ImGui::End();
         }
 
+        // Search result window
+        // TODO: put this inside of the seach bar window
         if (showSearchResultWindow)
         {
             ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0));
@@ -242,6 +259,7 @@ int main(int, char**)
                 ImGuiWindowFlags_NoCollapse |
                 ImGuiWindowFlags_NoFocusOnAppearing);
 
+            // Text search logic
             std::string mainSearchString = manager.toLower(mainSearchBuffer);
             auto mainSearchWords = manager.splitWords(mainSearchString);
 
@@ -267,20 +285,32 @@ int main(int, char**)
                         continue;
                 }
 
+                // Track select button
                 std::string trackDisplayText = t.artistName + " - " + t.trackName;
-                if (ImGui::Button(trackDisplayText.c_str(), ImVec2(300, 0)))
+
+                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(60, 60, 60, 80));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(60, 60, 60, 120));
+
+                if (ImGui::Button(trackDisplayText.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0)))
                 {
                     activeTrackId = t.id;
                     mainSearchBuffer[0] = '\0';
                     showSearchResultWindow = false;
                 }
+
+                ImGui::PopStyleColor(3);
+
+                
             }
             ImGui::End();   
         }
 
-        // Viewer / Editor
-        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - searchWindowHeight));
-        ImGui::SetNextWindowPos(ImVec2(0, searchWindowHeight));
+
+        /*              Viewer / Editor             */
+
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0)); //io.DisplaySize.y - searchWindowHeight
+        //ImGui::SetNextWindowPos(ImVec2(0, searchWindowHeight));
         ImGui::Begin("Track Viewer And Editor", &open,
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoResize |
@@ -291,25 +321,84 @@ int main(int, char**)
         bool removeActiveTrack = false;
         
         const Track* activeTrack = manager.getTrack(activeTrackId);
-
         if (activeTrack == nullptr)
             activeTrackId = -1;
 
         // Display active track
         if (activeTrackId > -1)
         {
-            std::string displayLabel = activeTrack->artistName + " - " + activeTrack->trackName;
-            ImGui::Text(displayLabel.c_str());
+            // Banner
+            // ImGui::GetContentRegionAvail().x
+            // io.DisplaySize.x
+    
+            ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+
+            ImVec2 bannerPos(
+                cursorPos.x,
+                cursorPos.y + style.WindowPadding.y);
+
+            ImVec2 bannerSize(ImGui::GetContentRegionAvail().x, 200);
+            float bannerPadding = 15;
+
+            ImDrawList* draw = ImGui::GetWindowDrawList();
+
+            // Background
+            draw->AddRectFilled(
+                bannerPos,
+                ImVec2(bannerPos.x + bannerSize.x, bannerPos.y + bannerSize.y),
+                IM_COL32(50, 50, 70, 255),
+                6.0f);
+
+            // Artist name
+            std::string artistName = activeTrack->artistName;
+            ImVec2 artistSize = ImGui::CalcTextSize(artistName.c_str());
+
+            draw->AddText(
+                ImVec2(
+                    bannerPos.x + bannerPadding,
+                    bannerPos.y + bannerSize.y * 0.33f - artistSize.y * 0.5f),
+                IM_COL32(255, 255, 255, 255),
+                artistName.c_str());
+
+            // Track name
+            std::string trackName = activeTrack->trackName;
+            ImVec2 trackSize = ImGui::CalcTextSize(trackName.c_str());
+
+            draw->AddText(
+                ImVec2(
+                    bannerPos.x + bannerPadding,
+                    bannerPos.y + bannerSize.y * 0.66f - trackSize.y * 0.5f),
+                IM_COL32(255, 255, 255, 255),
+                trackName.c_str());
+
+
+            // Remove active track button
+            ImVec2 buttonText = ImGui::CalcTextSize("Remove");
+            ImVec2 buttonSize(
+                buttonText.x + style.FramePadding.x * 2.0f,
+                buttonText.y + style.FramePadding.y * 2.0f);
+
+            ImGui::SetCursorScreenPos(
+                ImVec2(
+                    bannerPos.x + bannerSize.x - buttonSize.x - bannerPadding,
+                    bannerPos.y + bannerSize.y - buttonSize.y - bannerPadding));
 
             if (ImGui::Button("Remove"))
                 removeActiveTrack = true;
+            
+            ImGui::SetCursorScreenPos(bannerPos);
+            ImGui::Dummy(bannerSize);
 
+            // Mixes
             ImGui::Text("Mixes");
+
             ImGui::SameLine();
 
+            // Add new mix button
             if (ImGui::Button("Add"))
                 showAddMixWindow = true;
 
+            // Add new mix search window
             if (showAddMixWindow)
             {
                 // Add new mix search
@@ -365,7 +454,7 @@ int main(int, char**)
                     }
 
                     std::string trackDisplayText = t.artistName + " - " + t.trackName;
-                    // Add mix to active track
+                    // Add mix select button
                     if (ImGui::Button(trackDisplayText.c_str(), ImVec2(300, 0)))
                     {
                         manager.addMix(activeTrackId, t.id);
@@ -417,10 +506,10 @@ int main(int, char**)
             activeTrack = nullptr;
             activeTrackId = -1;
         }
-
         ImGui::End();
 
         ImGui::EndFrame();
+
 
         // Rendering
         ImGui::Render();
