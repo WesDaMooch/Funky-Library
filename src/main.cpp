@@ -19,7 +19,10 @@
 #include <d3d11.h>
 #include <tchar.h>
 
+#include "../include/mixMatchApp.hpp"
+
 #include "../include/catalogueManager.hpp"
+#include "../include/icons.hpp"
 
 // Data
 static ID3D11Device* g_pd3dDevice = nullptr;
@@ -98,26 +101,66 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
     //IM_ASSERT(font != nullptr);
 
-    style.FontSizeBase = 20.f;
-    ImFont* mainFont =  io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Bahnschrift.ttf");
-
-    // Style
-    //style.FrameRounding = 10.f;
-
     // Our state
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    // My app
+    MixMatchApp app;
+
+
+    float fontSize = 25.f;
+    style.FontSizeBase = fontSize;
+    ImFont* mainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Bahnschrift.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
+    
+    // Merge icon font into main font atlas
+    ImFontConfig fontConfig;
+    fontConfig.MergeMode = true;
+    fontConfig.PixelSnapH = true;
+    fontConfig.GlyphOffset = ImVec2(0.0f, 3.0f);
+
+    static const ImWchar icon_ranges[] = { 0xE000, 0xF8FF, 0 };
+
+    ImFont* iconFont = io.Fonts->AddFontFromFileTTF(
+        "font/MaterialIcons-Regular.ttf",
+        fontSize,
+        &fontConfig,
+        icon_ranges
+    );
+
+    // Colours
+    //ImVec4 COL_LEVEL = ImVec4(0.f, 0.1f, 0.25f, 1.f);
+    //ImVec4 COL_GRAY_DARK = ImVec4(60 / 255.f, 60 / 255.f, 60 / 255.f, 120 / 255.f);
+    //ImVec4 COL_GRAY_LIGHT = ImVec4(60 / 255.f, 60 / 255.f, 60 / 255.f, 240 / 255.f);
+
+    //ImVec4 COL_DEFAULT = ImVec4(200 / 255.f, 200 / 255.f, 200 / 255.f, 1.f);
+
+    //// Style
+    //// Window
+    //style.WindowBorderSize = 0.f;
+    //style.Colors[ImGuiCol_WindowBg] = ImVec4(20 / 255.f, 20 / 255.f, 20 / 255.f, 1.f);
+
+    //// Button
+    //style.Colors[ImGuiCol_Button] = ImVec4(COL_LEVEL.x, COL_LEVEL.x, COL_LEVEL.x, COL_LEVEL.x);
+    //style.Colors[ImGuiCol_ButtonHovered] = ImVec4(COL_DEFAULT.x, COL_DEFAULT.y, COL_DEFAULT.z, COL_LEVEL.y);
+    //style.Colors[ImGuiCol_ButtonActive] = ImVec4(COL_DEFAULT.x, COL_DEFAULT.y, COL_DEFAULT.z, COL_LEVEL.z);
+
+    // Frame
+    style.FrameBorderSize = 0.f;
+    style.FrameRounding = 0.f;
+    //style.Colors[ImGuiCol_FrameBg] = COL_GRAY_DARK;
+
+
 
     // Main loop
     CatalogueManager manager;
     manager.load();
 
+    /*
     int activeTrackId = -1;
 
     // Search window
-    //static int searchWindowHeight = 50;
     static char mainSearchBuffer[64] = "";
     bool showSearchResultWindow = false;
-    //static ImGuiTextFilter searchFilter;
    
     // Add window
     bool showAddTrackWindow = false;
@@ -128,8 +171,10 @@ int main(int, char**)
     bool showAddMixWindow = false;
     static char mixSearchBuffer[64] = "";
 
-    bool done = false;
     bool open = true;
+    */
+
+    bool done = false;
     while (!done)
     {
         // Poll and handle messages (inputs, window resize, etc.)
@@ -167,14 +212,14 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        //ImGui::ShowDemoWindow();
-
         ImGui::PushFont(mainFont);
         ImGui::PopFont();
-
-        /*              Search                 */
-
         
+        //ImGui::ShowDemoWindow();
+
+        app.RunFrame();
+
+        /*
 
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0));
         ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -187,27 +232,46 @@ int main(int, char**)
         ImVec2 searchBarWindowSize = ImGui::GetWindowSize();
 
         // Search bar
-        ImGui::InputText("##MainSearchInput", mainSearchBuffer, sizeof(mainSearchBuffer));
+
+        ImGui::PushItemWidth(-100);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(25, 5));
+
+        ImGui::InputText("##MainSeachInput", mainSearchBuffer, sizeof(mainSearchBuffer));
+
         if (ImGui::IsItemActive())
         {
             showSearchResultWindow = true;
             // TODO: get this working
-            /*
-            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-                showSearchResultWindow = false;    
-            */
+            //
+            //if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+            //    showSearchResultWindow = false;
+            //
+        }
+
+        ImGui::PopStyleVar();
+        ImGui::PopItemWidth();
+
+        // Search icon
+        if (!ImGui::IsItemActive())
+        {
+            ImVec2 p = ImGui::GetItemRectMin();
+            ImGui::GetWindowDrawList()->AddText(
+                ImVec2(p.x + 8, p.y + 8), //TODO: put in middle of bar
+                IM_COL32(255, 255, 255, 255),
+                ICON_SEARCH
+            );
         }
 
         ImGui::SameLine();
 
         // Add new track button
-        if (ImGui::Button("Add"))
+        if (ImGui::Button(ICON_ADD))
             showAddTrackWindow = true;
         
         ImGui::SameLine();
 
         // Refresh catalogue button
-        if (ImGui::Button("Refresh"))
+        if (ImGui::Button(ICON_REFRESH))
             manager.refresh();
         
         if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
@@ -226,7 +290,7 @@ int main(int, char**)
             ImGui::InputText("Artist Name", newArtistName, sizeof(newArtistName));
             ImGui::InputText("Track Name", newTrackName, sizeof(newTrackName));
 
-            if (ImGui::Button("Save"))
+            if (ImGui::Button(ICON_SAVE))
             {
                 Track newTrack;
                 newTrack.artistName = newArtistName;
@@ -288,26 +352,15 @@ int main(int, char**)
                 // Track select button
                 std::string trackDisplayText = t.artistName + " - " + t.trackName;
 
-                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(0, 0, 0, 0));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(60, 60, 60, 80));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(60, 60, 60, 120));
-
                 if (ImGui::Button(trackDisplayText.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0)))
                 {
                     activeTrackId = t.id;
                     mainSearchBuffer[0] = '\0';
                     showSearchResultWindow = false;
                 }
-
-                ImGui::PopStyleColor(3);
-
-                
             }
             ImGui::End();   
         }
-
-
-        /*              Viewer / Editor             */
 
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0)); //io.DisplaySize.y - searchWindowHeight
         //ImGui::SetNextWindowPos(ImVec2(0, searchWindowHeight));
@@ -328,9 +381,6 @@ int main(int, char**)
         if (activeTrackId > -1)
         {
             // Banner
-            // ImGui::GetContentRegionAvail().x
-            // io.DisplaySize.x
-    
             ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 
             ImVec2 bannerPos(
@@ -338,64 +388,114 @@ int main(int, char**)
                 cursorPos.y + style.WindowPadding.y);
 
             ImVec2 bannerSize(ImGui::GetContentRegionAvail().x, 200);
-            float bannerPadding = 15;
+            float bannerPadding = style.FramePadding.x;
 
             ImDrawList* draw = ImGui::GetWindowDrawList();
+
+            //ImVec4 colour = ImVec4(activeTrack->colour);
+
+            static ImVec4 color(
+                114 / 255.0f,
+                144 / 255.0f,
+                154 / 255.0f,
+                1.0f
+            );
 
             // Background
             draw->AddRectFilled(
                 bannerPos,
                 ImVec2(bannerPos.x + bannerSize.x, bannerPos.y + bannerSize.y),
-                IM_COL32(50, 50, 70, 255),
-                6.0f);
+                ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, COL_LEVEL.z)),
+                0.f
+            );
 
-            // Artist name
-            std::string artistName = activeTrack->artistName;
-            ImVec2 artistSize = ImGui::CalcTextSize(artistName.c_str());
+            // Colour
+            float colourButtonSize = bannerSize.y * 0.75f;
+            float colourButtonPad = (bannerSize.y - colourButtonSize) * 0.5f;
+
+            ImVec2 colourButtonPos(
+                bannerPos.x + colourButtonPad,
+                bannerPos.y + colourButtonPad
+            );
+
+            ImGui::SetCursorScreenPos(colourButtonPos);
+
+            if (ImGui::ColorButton(
+                "##BannerColor",
+                color,
+                ImGuiColorEditFlags_NoTooltip |
+                ImGuiColorEditFlags_NoBorder,
+                ImVec2(colourButtonSize, colourButtonSize)))
+            {
+                ImGui::OpenPopup("BannerColorPicker");
+            }
+
+            if (ImGui::BeginPopup("BannerColorPicker"))
+            {
+                ImGui::ColorPicker3("##ColourPicker", 
+                    (float*)&color,
+                    ImGuiColorEditFlags_NoSmallPreview |
+                    ImGuiColorEditFlags_NoLabel |
+                    ImGuiColorEditFlags_NoSidePreview
+                );
+                ImGui::EndPopup();
+            }
+            
+
+
+            // Shared text X start
+            float textX =
+                colourButtonPos.x +
+                colourButtonSize +
+                colourButtonPad;
+
+            // Artist & track name
+            std::string trackLabel = activeTrack->artistName + " - " + activeTrack->trackName;
+            ImVec2 trackLabelSize = ImGui::CalcTextSize(trackLabel.c_str());
 
             draw->AddText(
                 ImVec2(
-                    bannerPos.x + bannerPadding,
-                    bannerPos.y + bannerSize.y * 0.33f - artistSize.y * 0.5f),
+                    textX,
+                    bannerPos.y + bannerSize.y * 0.33f - trackLabelSize.y * 0.5f),
                 IM_COL32(255, 255, 255, 255),
-                artistName.c_str());
+                trackLabel.c_str()
+            );
 
-            // Track name
-            std::string trackName = activeTrack->trackName;
-            ImVec2 trackSize = ImGui::CalcTextSize(trackName.c_str());
+            
+            // Info
+            std::string infoLabel = "Label";
+            ImVec2 infoSize = ImGui::CalcTextSize(infoLabel.c_str());
 
             draw->AddText(
                 ImVec2(
-                    bannerPos.x + bannerPadding,
-                    bannerPos.y + bannerSize.y * 0.66f - trackSize.y * 0.5f),
+                    textX,
+                    bannerPos.y + bannerSize.y * 0.66f - infoSize.y * 0.5f),
                 IM_COL32(255, 255, 255, 255),
-                trackName.c_str());
-
-
+                infoLabel.c_str()
+            );
+            
             // Remove active track button
-            ImVec2 buttonText = ImGui::CalcTextSize("Remove");
+            ImVec2 buttonText = ImGui::CalcTextSize(ICON_DELETE);
             ImVec2 buttonSize(
-                buttonText.x + style.FramePadding.x * 2.0f,
-                buttonText.y + style.FramePadding.y * 2.0f);
+                buttonText.x + style.FramePadding.x * 2.f,
+                buttonText.y + style.FramePadding.y * 2.f);
 
             ImGui::SetCursorScreenPos(
                 ImVec2(
                     bannerPos.x + bannerSize.x - buttonSize.x - bannerPadding,
                     bannerPos.y + bannerSize.y - buttonSize.y - bannerPadding));
 
-            if (ImGui::Button("Remove"))
+            if (ImGui::Button(ICON_DELETE))
                 removeActiveTrack = true;
             
             ImGui::SetCursorScreenPos(bannerPos);
             ImGui::Dummy(bannerSize);
 
+
             // Mixes
-            ImGui::Text("Mixes");
-
-            ImGui::SameLine();
-
+       
             // Add new mix button
-            if (ImGui::Button("Add"))
+            if (ImGui::Button(ICON_ADD))
                 showAddMixWindow = true;
 
             // Add new mix search window
@@ -476,6 +576,9 @@ int main(int, char**)
         if (activeTrackId > -1 && activeTrack != nullptr)
         {
             int removeMixId = -1;
+
+            ImGuiStyle& style = ImGui::GetStyle();
+
             for (int mixId : activeTrack->mixIds)
             {
                 const Track* mixTrack = manager.getTrack(mixId);
@@ -483,17 +586,33 @@ int main(int, char**)
                 if (mixTrack == nullptr)
                     continue;
 
-                std::string label = mixTrack->artistName + " - " + mixTrack->trackName;
+                std::string mixTrackLabel = mixTrack->artistName + " - " + mixTrack->trackName;
 
-                if (ImGui::Button(label.c_str(), ImVec2(300, 0)))
+                ImGui::PushID(mixTrack->id);
+
+                // right button size
+                float removeWidth = ImGui::GetFrameHeight();
+
+                // remaining width for track button
+                float trackWidth =
+                    ImGui::GetContentRegionAvail().x
+                    - removeWidth
+                    - style.ItemSpacing.x;
+
+                // left align text inside buttons
+                ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
+
+                if (ImGui::Button(mixTrackLabel.c_str(), ImVec2(trackWidth, 0)))
                     activeTrackId = mixTrack->id;
+
+                ImGui::PopStyleVar();
 
                 ImGui::SameLine();
 
-                std::string buttonId = "Remove##" + std::to_string(mixId);
-
-                if (ImGui::Button(buttonId.c_str()))
+                if (ImGui::Button(ICON_REMOVE, ImVec2(removeWidth, 0)))
                     removeMixId = mixId;
+
+                ImGui::PopID();
             }
 
             if (removeMixId != -1)
@@ -502,11 +621,13 @@ int main(int, char**)
 
         if (removeActiveTrack == true)
         {
+            // TODO: Open Yes / No window
             manager.removeTrack(activeTrackId);
             activeTrack = nullptr;
             activeTrackId = -1;
         }
         ImGui::End();
+        */
 
         ImGui::EndFrame();
 
