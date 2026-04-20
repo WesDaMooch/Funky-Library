@@ -8,8 +8,11 @@ void to_json(json& j, const Track& t)
 {
     j = {
         {"id", t.id},
-        {"artistName", t.artistName},
-        {"trackName", t.trackName},
+        {"artist", t.artist},
+        {"title", t.title},
+        {"label", t.label},
+        {"bpm", t.bpm},
+        {"colour", t.colour},
         {"mixIds", t.mixIds}
     };
 }
@@ -18,9 +21,12 @@ void from_json(const json& j, Track& t)
 {
     try
     {
-        t.id = j.at("id").get<int>();
-        t.artistName = j.at("artistName").get<std::string>();
-        t.trackName = j.at("trackName").get<std::string>();
+        t.id     = j.at("id").get<int>();
+        t.artist = j.at("artist").get<std::string>();
+        t.title  = j.at("title").get<std::string>();
+        t.label  = j.at("label").get<std::string>();
+        t.bpm    = j.at("bpm").get<int>();
+        t.colour = j.at("colour").get<std::array<uint8_t, 3>>();
         t.mixIds = j.value("mixIds", std::vector<int>{});
     }
     catch (const std::exception& e)
@@ -73,17 +79,20 @@ bool CatalogueManager::addTrack(const Track& newTrack)
 {
     // TODO: Check the data is good
 
-    if (newTrack.artistName.empty() || newTrack.trackName.empty())
+    if (newTrack.artist.empty() || newTrack.title.empty())
         return false;
 
-    // Dont allow duplicates (not case sensative) to be added
-    std::string newArtistName = toLower(newTrack.artistName);
-    std::string newTrackName = toLower(newTrack.trackName);
+    // Dont allow duplicates names (not case sensative) to be added
+    std::string newArtist = toLower(newTrack.artist);
+    std::string newTitle = toLower(newTrack.title);
+    std::string newLabel = toLower(newTrack.label);
 
     for (const Track& track : catalogue)
     {
-        if (toLower(track.artistName) == newArtistName &&
-            toLower(track.trackName) == newTrackName)
+        if (toLower(track.artist) == newArtist &&
+            toLower(track.title) == newTitle &&
+            toLower(track.label) == newLabel)
+
             return false; 
     }
 
@@ -91,9 +100,34 @@ bool CatalogueManager::addTrack(const Track& newTrack)
     trackToAdd.id = lastTrackId++;
     trackToAdd.mixIds.clear();
 
-    catalogue.push_back(trackToAdd);
+    catalogue.emplace_back(trackToAdd);
     refresh();
 
+    return true;
+}
+
+bool CatalogueManager::editTrack(const Track& editedTrack)
+{
+    // TODO: trim whitespace if (trim(editedTrack.artist).empty())
+    if (editedTrack.artist.empty() || editedTrack.title.empty())
+        return false;
+
+    auto foundTrack = std::find_if(catalogue.begin(), catalogue.end(),
+        [&editedTrack](const Track& t)
+        {
+            return t.id == editedTrack.id;
+        });
+
+    if (foundTrack == catalogue.end())
+        return false;
+
+    foundTrack->artist = editedTrack.artist;
+    foundTrack->title = editedTrack.title;
+    foundTrack->label = editedTrack.label;
+    foundTrack->bpm = std::max(editedTrack.bpm, 0);
+    foundTrack->colour = editedTrack.colour;
+
+    refresh();
     return true;
 }
 
@@ -113,7 +147,7 @@ void CatalogueManager::addMix(int trackId, int mixId)
                 track.mixIds.end(),
                 mixId) == track.mixIds.end())
             {
-                track.mixIds.push_back(mixId);
+                track.mixIds.emplace_back(mixId);
             }
 
             trackFound = true;
@@ -125,7 +159,7 @@ void CatalogueManager::addMix(int trackId, int mixId)
                 track.mixIds.end(),
                 trackId) == track.mixIds.end())
             {
-                track.mixIds.push_back(trackId);
+                track.mixIds.emplace_back(trackId);
             }
 
             mixFound = true;

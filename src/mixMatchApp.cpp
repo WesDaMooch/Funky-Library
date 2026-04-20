@@ -5,48 +5,88 @@ MixMatchApp::MixMatchApp()
 	manager.load();
 }
 
-void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode, const Track* track)
+void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode)
 {
-    // TODO: only one inputWindow can be open at a time
     bool* open = mode == ADD ? &showAddTrackWindow : &showEditTrackWindow;
     const char* title = mode == ADD ? "Add New Track" : "Edit Track";
 
+    // Close edit window if active track changes
+    if (mode == EDIT && data.id != activeTrackId)
+        *open = false;
+
     ImGui::Begin(title, open, ImGuiWindowFlags_NoCollapse);
-    
-    ImGui::InputText("Artist", data.artist, sizeof(data.artist));
-    ImGui::InputText("Title", data.title, sizeof(data.title));
-    // Label
-    // BPM
 
-    // Colour buttons
-    float colourButtonSize = 100.f;
-
-    if (ImGui::ColorButton(
-        "##ColourButton",
-        data.colour,
-        ImGuiColorEditFlags_NoTooltip |
-        ImGuiColorEditFlags_NoBorder,
-        ImVec2(colourButtonSize, colourButtonSize)))
+    if (ImGui::BeginTable("track_table", 3, ImGuiTableFlags_SizingFixedFit))
     {
-        ImGui::OpenPopup("BannerColorPicker");
+        float fieldWidth = 500.0f;
+        float fieldHeight = ImGui::GetFrameHeight();
+
+        ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthStretch);
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Artist");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputText("##Artist", data.artist, sizeof(data.artist));
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Title");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputText("##Title", data.title, sizeof(data.title));
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Label");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputText("##Label", data.label, sizeof(data.label));
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("BPM");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputInt("##BPM", &data.bpm);
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Colour");
+        ImGui::TableSetColumnIndex(1);
+        if (ImGui::ColorButton(
+            "##ColourButton",
+            data.colour,
+            ImGuiColorEditFlags_NoTooltip |
+            ImGuiColorEditFlags_NoBorder,
+            ImVec2(fieldWidth, fieldHeight)))
+        {
+            ImGui::OpenPopup("##ColorPickerPopup");
+        }
+        if (ImGui::BeginPopup("##ColorPickerPopup"))
+        {
+            ImGui::ColorPicker3("##ColourPicker",
+                (float*)&data.colour,
+                ImGuiColorEditFlags_NoSmallPreview |
+                ImGuiColorEditFlags_NoLabel |
+                ImGuiColorEditFlags_NoSidePreview
+            );
+            ImGui::EndPopup();
+        }
+
+        ImGui::EndTable();
     }
 
-    if (ImGui::BeginPopup("BannerColorPicker"))
-    {
-        ImGui::ColorPicker3("##ColourPicker",
-            (float*)&data.colour,
-            ImGuiColorEditFlags_NoSmallPreview |
-            ImGuiColorEditFlags_NoLabel |
-            ImGuiColorEditFlags_NoSidePreview
-        );
-        ImGui::EndPopup();
-    }
-
-    if (ImGui::Button(ICON_SAVE))
+    if (ImGui::Button(UI::ICON_SAVE))
     {
         Track t;
-        t.artistName = data.artist;
-        t.trackName = data.title;
+        t.artist = data.artist;
+        t.title = data.title;
+        t.label = data.label;
+        t.bpm = data.bpm;
+        t.colour = ImVec4ToRgb(data.colour);
 
         bool success = false;
 
@@ -60,19 +100,16 @@ void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode, const T
                     activeTrackId = manager.getCatalogue().back().id;
             }
         }
-        else if (mode == EDIT && track != nullptr)
+        else if (mode == EDIT)
         {
-            t.id = track->id;
+            t.id = activeTrackId;
             
-            //trackEdited = manager.editTrack(t);
+            success = manager.editTrack(t);
         }
 
         if (success)
         {
             data = {};
-            //inputArtistBuffer[0] = '\0';
-            //inputTrackBuffer[0] = '\0';
-            //inputTrackColour = DEFAULT_COL;
             *open = false;
         }
     }
@@ -128,14 +165,14 @@ void MixMatchApp::RunFrame()
         ImGui::GetWindowDrawList()->AddText(
             ImVec2(p.x + 8, p.y + 8), //TODO: put in middle of bar
             IM_COL32(255, 255, 255, 255),
-            ICON_SEARCH
+            UI::ICON_SEARCH
         );
     }
 
     ImGui::SameLine();
 
     // Add new track button
-    if (ImGui::Button(ICON_ADD) && !showAddTrackWindow)
+    if (ImGui::Button(UI::ICON_ADD) && !showAddTrackWindow)
     {
         addData = {};
 
@@ -146,7 +183,7 @@ void MixMatchApp::RunFrame()
     ImGui::SameLine();
 
     // Refresh catalogue button
-    if (ImGui::Button(ICON_REFRESH))
+    if (ImGui::Button(UI::ICON_REFRESH))
         manager.refresh();
 
     if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
@@ -179,8 +216,8 @@ void MixMatchApp::RunFrame()
         {
             if (mainSearchBuffer[0] != '\0')
             {
-                std::string artist = manager.toLower(t.artistName);
-                std::string track = manager.toLower(t.trackName);
+                std::string artist = manager.toLower(t.artist);
+                std::string track = manager.toLower(t.title);
 
                 bool match = false;
                 for (const auto& word : mainSearchWords)
@@ -198,7 +235,7 @@ void MixMatchApp::RunFrame()
             }
 
             // Track select button
-            std::string trackDisplayText = t.artistName + " - " + t.trackName;
+            std::string trackDisplayText = t.artist + " - " + t.title;
 
             if (ImGui::Button(trackDisplayText.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0)))
             {
@@ -243,96 +280,78 @@ void MixMatchApp::RunFrame()
 
         ImDrawList* draw = ImGui::GetWindowDrawList();
 
-        //ImVec4 colour = ImVec4(activeTrack->colour);
-
-        ImVec4 color = ImVec4(
-            COL_DEFAULT_RGB[0] / 255.f,
-            COL_DEFAULT_RGB[1] / 255.f,
-            COL_DEFAULT_RGB[2] / 255.f,
-            1.f
+        ImU32 bannerColour = IM_COL32(
+            activeTrack->colour[0],
+            activeTrack->colour[1],
+            activeTrack->colour[2],
+            (int)(UI::ALPHA_DEFAULT * 255.0f)
         );
-
+     
         // Background
         draw->AddRectFilled(
             bannerPos,
             ImVec2(bannerPos.x + bannerSize.x, bannerPos.y + bannerSize.y),
-            ImGui::ColorConvertFloat4ToU32(ImVec4(color.x, color.y, color.z, ALPHA_DEFAULT)),
+            bannerColour,
             0.f
         );
 
         // Colour
-        float colourButtonSize = bannerSize.y * 0.75f;
-        float colourButtonPad = (bannerSize.y - colourButtonSize) * 0.5f;
+        //float colourButtonSize = bannerSize.y * 0.75f;
+        //float colourButtonPad = (bannerSize.y - colourButtonSize) * 0.5f;
 
-        ImVec2 colourButtonPos(
-            bannerPos.x + colourButtonPad,
-            bannerPos.y + colourButtonPad
-        );
+        //ImVec2 colourButtonPos(
+        //    bannerPos.x + colourButtonPad,
+        //    bannerPos.y + colourButtonPad
+        //);
 
-        ImGui::SetCursorScreenPos(colourButtonPos);
+        //// Shared text X start
+        //float textX =
+        //    colourButtonPos.x +
+        //    colourButtonSize +
+        //    colourButtonPad;
 
-        if (ImGui::ColorButton(
-            "##BannerColor",
-            color,
-            ImGuiColorEditFlags_NoTooltip |
-            ImGuiColorEditFlags_NoBorder,
-            ImVec2(colourButtonSize, colourButtonSize)))
-        {
-            ImGui::OpenPopup("BannerColorPicker");
-        }
+        //// Artist & track name
+        //std::string trackLabel = activeTrack->artist + " - " + activeTrack->title;
+        //ImVec2 trackLabelSize = ImGui::CalcTextSize(trackLabel.c_str());
 
-        if (ImGui::BeginPopup("BannerColorPicker"))
-        {
-            ImGui::ColorPicker3("##ColourPicker",
-                (float*)&color,
-                ImGuiColorEditFlags_NoSmallPreview |
-                ImGuiColorEditFlags_NoLabel |
-                ImGuiColorEditFlags_NoSidePreview
-            );
-            ImGui::EndPopup();
-        }
+        //draw->AddText(
+        //    ImVec2(
+        //        textX,
+        //        bannerPos.y + bannerSize.y * 0.33f - trackLabelSize.y * 0.5f),
+        //    IM_COL32(255, 255, 255, 255),
+        //    trackLabel.c_str()
+        //);
 
 
-        // Shared text X start
-        float textX =
-            colourButtonPos.x +
-            colourButtonSize +
-            colourButtonPad;
+        //// Info
+        //std::string infoLabel = "Label";
+        //ImVec2 infoSize = ImGui::CalcTextSize(infoLabel.c_str());
 
-        // Artist & track name
-        std::string trackLabel = activeTrack->artistName + " - " + activeTrack->trackName;
-        ImVec2 trackLabelSize = ImGui::CalcTextSize(trackLabel.c_str());
+        //draw->AddText(
+        //    ImVec2(
+        //        textX,
+        //        bannerPos.y + bannerSize.y * 0.66f - infoSize.y * 0.5f),
+        //    IM_COL32(255, 255, 255, 255),
+        //    infoLabel.c_str()
+        //);
 
-        draw->AddText(
-            ImVec2(
-                textX,
-                bannerPos.y + bannerSize.y * 0.33f - trackLabelSize.y * 0.5f),
-            IM_COL32(255, 255, 255, 255),
-            trackLabel.c_str()
-        );
-
-
-        // Info
-        std::string infoLabel = "Label";
-        ImVec2 infoSize = ImGui::CalcTextSize(infoLabel.c_str());
-
-        draw->AddText(
-            ImVec2(
-                textX,
-                bannerPos.y + bannerSize.y * 0.66f - infoSize.y * 0.5f),
-            IM_COL32(255, 255, 255, 255),
-            infoLabel.c_str()
-        );
+        std::string trackLabel = activeTrack->artist + " - " + activeTrack->title;
+        ImGui::Text(trackLabel.c_str());
+        ImGui::Text(activeTrack->label.c_str());
 
         // Edit active track button
-        if (ImGui::Button(ICON_EDIT) && !showEditTrackWindow)
+        if (ImGui::Button(UI::ICON_EDIT) && !showEditTrackWindow)
         {
-            // TODO: if active track changes, this button needs to work again
-            // maybe there is a way to only have one of ethe windows open at a time
-            // using ImGui.
             editData = {};
-            strcpy_s(editData.artist, activeTrack->artistName.c_str());
-            strcpy_s(editData.title, activeTrack->trackName.c_str());
+            
+            // TODO: could get activeTrack here
+
+            editData.id = activeTrackId;
+            strcpy_s(editData.artist, activeTrack->artist.c_str());
+            strcpy_s(editData.title, activeTrack->title.c_str());
+            strcpy_s(editData.label , activeTrack->label.c_str());
+            editData.bpm = activeTrack->bpm;
+            editData.colour = RgbToImVec4(activeTrack->colour);
 
             showAddTrackWindow = false;
             showEditTrackWindow = true;
@@ -340,7 +359,7 @@ void MixMatchApp::RunFrame()
             
 
         // Remove active track button
-        ImVec2 buttonText = ImGui::CalcTextSize(ICON_DELETE);
+        ImVec2 buttonText = ImGui::CalcTextSize(UI::ICON_DELETE);
         ImVec2 buttonSize(
             buttonText.x + style.FramePadding.x * 2.f,
             buttonText.y + style.FramePadding.y * 2.f);
@@ -350,7 +369,7 @@ void MixMatchApp::RunFrame()
                 bannerPos.x + bannerSize.x - buttonSize.x - bannerPadding,
                 bannerPos.y + bannerSize.y - buttonSize.y - bannerPadding));
 
-        if (ImGui::Button(ICON_DELETE))
+        if (ImGui::Button(UI::ICON_DELETE))
             deletActiveTrack = true;
 
         ImGui::SetCursorScreenPos(bannerPos);
@@ -360,7 +379,7 @@ void MixMatchApp::RunFrame()
         // Mixes
 
         // Add new mix button
-        if (ImGui::Button(ICON_ADD))
+        if (ImGui::Button(UI::ICON_ADD))
         {
             showAddMixWindow = true;
         }
@@ -403,8 +422,8 @@ void MixMatchApp::RunFrame()
 
                 if (mixSearchBuffer[0] != '\0')
                 {
-                    std::string artist = manager.toLower(t.artistName);
-                    std::string track = manager.toLower(t.trackName);
+                    std::string artist = manager.toLower(t.artist);
+                    std::string track = manager.toLower(t.title);
 
                     bool match = false;
                     for (const auto& word : words)
@@ -421,7 +440,7 @@ void MixMatchApp::RunFrame()
                         continue;
                 }
 
-                std::string trackDisplayText = t.artistName + " - " + t.trackName;
+                std::string trackDisplayText = t.artist + " - " + t.title;
                 // Add mix select button
                 if (ImGui::Button(trackDisplayText.c_str(), ImVec2(300, 0)))
                 {
@@ -454,7 +473,7 @@ void MixMatchApp::RunFrame()
             if (mixTrack == nullptr)
                 continue;
 
-            std::string mixTrackLabel = mixTrack->artistName + " - " + mixTrack->trackName;
+            std::string mixTrackLabel = mixTrack->artist + " - " + mixTrack->title;
 
             ImGui::PushID(mixTrack->id);
 
@@ -477,7 +496,7 @@ void MixMatchApp::RunFrame()
 
             ImGui::SameLine();
 
-            if (ImGui::Button(ICON_REMOVE, ImVec2(removeWidth, 0)))
+            if (ImGui::Button(UI::ICON_REMOVE, ImVec2(removeWidth, 0)))
                 removeMixId = mixId;
 
             ImGui::PopID();
@@ -488,7 +507,7 @@ void MixMatchApp::RunFrame()
     }
 
     if (showEditTrackWindow)
-        TrackInputWindow(editData, TrackInputMode::EDIT, activeTrack);
+        TrackInputWindow(editData, TrackInputMode::EDIT);
     
 
     if (deletActiveTrack)

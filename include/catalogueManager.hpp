@@ -1,7 +1,10 @@
 #pragma once
 
 #include "../external/json/json.hpp"
+#include "UiConstants.hpp"
+
 #include <string>
+#include <array>
 #include <vector>
 #include <sstream>
 #include <algorithm>
@@ -10,10 +13,14 @@ using json = nlohmann::json;
 
 struct Track
 {
-    int id = 0; 
-    std::string artistName = "";
-    std::string trackName = "";
-    std::vector<int> mixIds = {}; // Holds the id of other tracks
+    int id = -1;
+    std::string artist = {};
+    std::string title = {};
+    std::string label = {};
+    int bpm = 0;
+    std::array<uint8_t, 3> colour = UI::RGB_DEFAULT;
+    std::vector<int> mixIds = {}; 
+
 };
 
 void to_json(json& j, const Track& t);
@@ -26,8 +33,9 @@ public:
     void save() const;
     void refresh();
     bool addTrack(const Track& newTrack);
-    void addMix(int trackId, int mixId);
+    bool editTrack(const Track& editedTrack);
     void removeTrack(int id);
+    void addMix(int trackId, int mixId);
     void removeMix(int trackId, int mixId);
 
     const Track* getTrack(int id);

@@ -48,10 +48,10 @@
     <ClInclude Include="external\json\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\icons.hpp">
+    <ClInclude Include="include\mixMatchApp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\mixMatchApp.hpp">
+    <ClInclude Include="include\UiConstants.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

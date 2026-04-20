@@ -21,9 +21,6 @@
 
 #include "../include/mixMatchApp.hpp"
 
-#include "../include/catalogueManager.hpp"
-#include "../include/icons.hpp"
-
 // Data
 static ID3D11Device* g_pd3dDevice = nullptr;
 static ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;

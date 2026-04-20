@@ -162,8 +162,8 @@ $(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalInclu
     <ClInclude Include="external\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="external\json\json.hpp" />
     <ClInclude Include="include\catalogueManager.hpp" />
-    <ClInclude Include="include\icons.hpp" />
     <ClInclude Include="include\mixMatchApp.hpp" />
+    <ClInclude Include="include\UiConstants.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="external\imgui\backends\imgui_impl_dx11.cpp" />

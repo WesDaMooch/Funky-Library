@@ -1,46 +1,30 @@
 {
     "tracks": [
         {
-            "artistName": "Matrix",
-            "id": 8,
-            "mixIds": [
-                10,
-                11,
-                12
+            "artist": "Bob",
+            "bpm": 0,
+            "colour": [
+                18,
+                73,
+                188
             ],
-            "trackName": "Mute"
-        },
-        {
-            "artistName": "Kenny Larkin",
-            "id": 10,
-            "mixIds": [
-                8
-            ],
-            "trackName": "Loop 2"
-        },
-        {
-            "artistName": "John B",
-            "id": 11,
-            "mixIds": [
-                12,
-                8
-            ],
-            "trackName": "Secrets"
-        },
-        {
-            "artistName": "John B",
-            "id": 12,
-            "mixIds": [
-                11,
-                8
-            ],
-            "trackName": "Up All Night"
-        },
-        {
-            "artistName": "Dave",
-            "id": 14,
+            "id": 1,
+            "label": "",
             "mixIds": [],
-            "trackName": "Track 1"
+            "title": "Man"
+        },
+        {
+            "artist": "Lads",
+            "bpm": 174,
+            "colour": [
+                255,
+                14,
+                14
+            ],
+            "id": 2,
+            "label": "CIA",
+            "mixIds": [],
+            "title": "Jungle Tune"
         }
     ]
 }
