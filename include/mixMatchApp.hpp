@@ -19,35 +19,46 @@ private:
     bool open = true;
 
     // Main search bar and result window
-    char mainSearchBuffer[64] = "";
+    char mainSearchBuffer[64]{};
     bool showSearchResultWindow = false;
 
     // Add new track window
     bool showAddTrackWindow = false;
 
-    char inputArtistBuffer[64]{};
-    char inputTrackBuffer[64]{};
-
     // Track view / edit
     bool showEditTrackWindow = false;
     bool showAddMixWindow = false;
-    char mixSearchBuffer[64] = "";
+    char mixSearchBuffer[64]{};
 
     // Style
-    static constexpr float ALPHA_HOVER = 0.1f;
+    static constexpr ImVec4 COL_DEFAULT = ImVec4(200 / 255.f, 200 / 255.f, 200 / 255.f, 1.f);
     static constexpr float ALPHA_DEFAULT = 0.25f;
+    static constexpr float ALPHA_HOVER = 0.1f;
+
 
     // TODO: could use uint8,
     // and make static const
-    std::array<int, 3> DEFAULT_COL_RGB = {200, 200, 200};
+    std::array<int, 3> COL_DEFAULT_RGB = {200, 200, 200}; // TODO: remove
 
-    // TODO: could pass const Track* track where nullptr means add track + mode for safetly,
-    // void TrackInputWindow(TrackInputMode mode, Track* track = nullptr);
+
+
+    // Input track window
     enum TrackInputMode { 
         ADD, 
         EDIT 
     };
-    void TrackInputWindow(TrackInputMode mode, Track* track = nullptr);
+
+    struct InputData
+    {
+        char artist[64]{};
+        char title[64]{};
+        ImVec4 colour = COL_DEFAULT;
+    };
+
+    InputData addData;
+    InputData editData;
+
+    void TrackInputWindow(InputData& data, TrackInputMode mode, const Track* track = nullptr);
 
     //void TrackSearchBar??
 

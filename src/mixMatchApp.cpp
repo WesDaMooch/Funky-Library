@@ -5,21 +5,48 @@ MixMatchApp::MixMatchApp()
 	manager.load();
 }
 
-void MixMatchApp::TrackInputWindow(TrackInputMode mode, Track* track)
+void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode, const Track* track)
 {
+    // TODO: only one inputWindow can be open at a time
     bool* open = mode == ADD ? &showAddTrackWindow : &showEditTrackWindow;
     const char* title = mode == ADD ? "Add New Track" : "Edit Track";
 
     ImGui::Begin(title, open, ImGuiWindowFlags_NoCollapse);
     
-    ImGui::InputText("Artist", inputArtistBuffer, sizeof(inputArtistBuffer));
-    ImGui::InputText("Track", inputTrackBuffer, sizeof(inputTrackBuffer));
-    
+    ImGui::InputText("Artist", data.artist, sizeof(data.artist));
+    ImGui::InputText("Title", data.title, sizeof(data.title));
+    // Label
+    // BPM
+
+    // Colour buttons
+    float colourButtonSize = 100.f;
+
+    if (ImGui::ColorButton(
+        "##ColourButton",
+        data.colour,
+        ImGuiColorEditFlags_NoTooltip |
+        ImGuiColorEditFlags_NoBorder,
+        ImVec2(colourButtonSize, colourButtonSize)))
+    {
+        ImGui::OpenPopup("BannerColorPicker");
+    }
+
+    if (ImGui::BeginPopup("BannerColorPicker"))
+    {
+        ImGui::ColorPicker3("##ColourPicker",
+            (float*)&data.colour,
+            ImGuiColorEditFlags_NoSmallPreview |
+            ImGuiColorEditFlags_NoLabel |
+            ImGuiColorEditFlags_NoSidePreview
+        );
+        ImGui::EndPopup();
+    }
+
     if (ImGui::Button(ICON_SAVE))
     {
         Track t;
-        t.artistName = inputArtistBuffer;
-        t.trackName = inputTrackBuffer;
+        t.artistName = data.artist;
+        t.trackName = data.title;
 
         bool success = false;
 
@@ -31,32 +58,26 @@ void MixMatchApp::TrackInputWindow(TrackInputMode mode, Track* track)
             {
                 if (!manager.getCatalogue().empty())
                     activeTrackId = manager.getCatalogue().back().id;
-
-                //showAddTrackWindow = false;
             }
         }
         else if (mode == EDIT && track != nullptr)
         {
             t.id = track->id;
-
+            
             //trackEdited = manager.editTrack(t);
-
-            //if (success)
-            //{
-            //    showEditTrackWindow = false;
-            //}
         }
 
         if (success)
         {
-            inputArtistBuffer[0] = '\0';
-            inputTrackBuffer[0] = '\0';
+            data = {};
+            //inputArtistBuffer[0] = '\0';
+            //inputTrackBuffer[0] = '\0';
+            //inputTrackColour = DEFAULT_COL;
             *open = false;
         }
     }
     
     //ImGui::SameLine();
-    
     //ImGui::Text(warningText.c_str());
 
     ImGui::End();
@@ -66,12 +87,6 @@ void MixMatchApp::RunFrame()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuiStyle& style = ImGui::GetStyle();
-	
-
-    // When edit track pressed
-    //strcpy_s(inputArtistBuffer, track->artistName.c_str());
-    //strcpy_s(inputTrackBuffer, track->trackName.c_str());
-    //showEditTrackWindow = true;
 
     /*              Main Search             */
 
@@ -106,6 +121,7 @@ void MixMatchApp::RunFrame()
     ImGui::PopItemWidth();
 
     // Search icon
+    // TODO: put to the right of search bar
     if (!ImGui::IsItemActive())
     {
         ImVec2 p = ImGui::GetItemRectMin();
@@ -119,9 +135,14 @@ void MixMatchApp::RunFrame()
     ImGui::SameLine();
 
     // Add new track button
-    if (ImGui::Button(ICON_ADD))
-        showAddTrackWindow = true;
+    if (ImGui::Button(ICON_ADD) && !showAddTrackWindow)
+    {
+        addData = {};
 
+        showEditTrackWindow = false;
+        showAddTrackWindow = true;
+    }
+        
     ImGui::SameLine();
 
     // Refresh catalogue button
@@ -136,13 +157,8 @@ void MixMatchApp::RunFrame()
 
     // Add new track window
     if (showAddTrackWindow)
-    {
-        inputArtistBuffer[0] = '\0';
-        inputTrackBuffer[0] = '\0';
-        TrackInputWindow(TrackInputMode::ADD);
-    }
-        
-
+        TrackInputWindow(addData, TrackInputMode::ADD);
+    
     // Search result window
     // TODO: put this inside of the seach bar window
     if (showSearchResultWindow)
@@ -206,7 +222,7 @@ void MixMatchApp::RunFrame()
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-    bool removeActiveTrack = false;
+    bool deletActiveTrack = false;
 
     const Track* activeTrack = manager.getTrack(activeTrackId);
     if (activeTrack == nullptr)
@@ -230,9 +246,9 @@ void MixMatchApp::RunFrame()
         //ImVec4 colour = ImVec4(activeTrack->colour);
 
         ImVec4 color = ImVec4(
-            DEFAULT_COL_RGB[0] / 255.f,
-            DEFAULT_COL_RGB[1] / 255.f,
-            DEFAULT_COL_RGB[2] / 255.f,
+            COL_DEFAULT_RGB[0] / 255.f,
+            COL_DEFAULT_RGB[1] / 255.f,
+            COL_DEFAULT_RGB[2] / 255.f,
             1.f
         );
 
@@ -277,7 +293,6 @@ void MixMatchApp::RunFrame()
         }
 
 
-
         // Shared text X start
         float textX =
             colourButtonPos.x +
@@ -309,6 +324,21 @@ void MixMatchApp::RunFrame()
             infoLabel.c_str()
         );
 
+        // Edit active track button
+        if (ImGui::Button(ICON_EDIT) && !showEditTrackWindow)
+        {
+            // TODO: if active track changes, this button needs to work again
+            // maybe there is a way to only have one of ethe windows open at a time
+            // using ImGui.
+            editData = {};
+            strcpy_s(editData.artist, activeTrack->artistName.c_str());
+            strcpy_s(editData.title, activeTrack->trackName.c_str());
+
+            showAddTrackWindow = false;
+            showEditTrackWindow = true;
+        }
+            
+
         // Remove active track button
         ImVec2 buttonText = ImGui::CalcTextSize(ICON_DELETE);
         ImVec2 buttonSize(
@@ -321,7 +351,7 @@ void MixMatchApp::RunFrame()
                 bannerPos.y + bannerSize.y - buttonSize.y - bannerPadding));
 
         if (ImGui::Button(ICON_DELETE))
-            removeActiveTrack = true;
+            deletActiveTrack = true;
 
         ImGui::SetCursorScreenPos(bannerPos);
         ImGui::Dummy(bannerSize);
@@ -331,7 +361,10 @@ void MixMatchApp::RunFrame()
 
         // Add new mix button
         if (ImGui::Button(ICON_ADD))
+        {
             showAddMixWindow = true;
+        }
+            
 
         // Add new mix search window
         if (showAddMixWindow)
@@ -454,7 +487,11 @@ void MixMatchApp::RunFrame()
             manager.removeMix(activeTrackId, removeMixId);
     }
 
-    if (removeActiveTrack == true)
+    if (showEditTrackWindow)
+        TrackInputWindow(editData, TrackInputMode::EDIT, activeTrack);
+    
+
+    if (deletActiveTrack)
     {
         // TODO: Open Yes / No window
         manager.removeTrack(activeTrackId);
@@ -462,7 +499,4 @@ void MixMatchApp::RunFrame()
         activeTrackId = -1;
     }
     ImGui::End();
-
-
-
 }
