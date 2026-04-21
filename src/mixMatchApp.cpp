@@ -5,121 +5,6 @@ MixMatchApp::MixMatchApp()
 	manager.load();
 }
 
-void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode)
-{
-    bool* open = mode == ADD ? &showAddTrackWindow : &showEditTrackWindow;
-    const char* title = mode == ADD ? "Add New Track" : "Edit Track";
-
-    // Close edit window if active track changes
-    if (mode == EDIT && data.id != activeTrackId)
-        *open = false;
-
-    ImGui::Begin(title, open, ImGuiWindowFlags_NoCollapse);
-
-    if (ImGui::BeginTable("track_table", 3, ImGuiTableFlags_SizingFixedFit))
-    {
-        float fieldWidth = 500.0f;
-        float fieldHeight = ImGui::GetFrameHeight();
-
-        ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthStretch);
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Artist");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Artist", data.artist, sizeof(data.artist));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Title");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Title", data.title, sizeof(data.title));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Label");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Label", data.label, sizeof(data.label));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("BPM");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputInt("##BPM", &data.bpm);
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Colour");
-        ImGui::TableSetColumnIndex(1);
-        if (ImGui::ColorButton(
-            "##ColourButton",
-            data.colour,
-            ImGuiColorEditFlags_NoTooltip |
-            ImGuiColorEditFlags_NoBorder,
-            ImVec2(fieldWidth, fieldHeight)))
-        {
-            ImGui::OpenPopup("##ColorPickerPopup");
-        }
-        if (ImGui::BeginPopup("##ColorPickerPopup"))
-        {
-            ImGui::ColorPicker3("##ColourPicker",
-                (float*)&data.colour,
-                ImGuiColorEditFlags_NoSmallPreview |
-                ImGuiColorEditFlags_NoLabel |
-                ImGuiColorEditFlags_NoSidePreview
-            );
-            ImGui::EndPopup();
-        }
-
-        ImGui::EndTable();
-    }
-
-    if (ImGui::Button(UI::ICON_SAVE))
-    {
-        Track t;
-        t.artist = data.artist;
-        t.title = data.title;
-        t.label = data.label;
-        t.bpm = data.bpm;
-        t.colour = ImVec4ToRgb(data.colour);
-
-        bool success = false;
-
-        if (mode == ADD)
-        {
-            success = manager.addTrack(t);
-
-            if (success)
-            {
-                if (!manager.getCatalogue().empty())
-                    activeTrackId = manager.getCatalogue().back().id;
-            }
-        }
-        else if (mode == EDIT)
-        {
-            t.id = activeTrackId;
-            
-            success = manager.editTrack(t);
-        }
-
-        if (success)
-        {
-            data = {};
-            *open = false;
-        }
-    }
-    
-    //ImGui::SameLine();
-    //ImGui::Text(warningText.c_str());
-
-    ImGui::End();
-}
-
 void MixMatchApp::RunFrame()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -209,15 +94,15 @@ void MixMatchApp::RunFrame()
             ImGuiWindowFlags_NoFocusOnAppearing);
 
         // Text search logic
-        std::string mainSearchString = manager.toLower(mainSearchBuffer);
-        auto mainSearchWords = manager.splitWords(mainSearchString);
+        std::string mainSearchString = StringUtil::toLower(mainSearchBuffer);
+        auto mainSearchWords = StringUtil::splitWords(mainSearchString);
 
-        for (const Track& t : manager.getCatalogue())
+        for (const Track& t : manager.getCatalogueForDisplay())
         {
             if (mainSearchBuffer[0] != '\0')
             {
-                std::string artist = manager.toLower(t.artist);
-                std::string track = manager.toLower(t.title);
+                std::string artist = StringUtil::toLower(t.artist);
+                std::string track = StringUtil::toLower(t.title);
 
                 bool match = false;
                 for (const auto& word : mainSearchWords)
@@ -248,8 +133,10 @@ void MixMatchApp::RunFrame()
     }
 
 
-    /*              Viewer / Editor             */
 
+
+    /*              Viewer / Editor             */
+    /*
     ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0)); //io.DisplaySize.y - searchWindowHeight
     //ImGui::SetNextWindowPos(ImVec2(0, searchWindowHeight));
     ImGui::Begin("Track Viewer And Editor", &open,
@@ -261,7 +148,7 @@ void MixMatchApp::RunFrame()
 
     bool deletActiveTrack = false;
 
-    const Track* activeTrack = manager.getTrack(activeTrackId);
+    const Track* activeTrack = manager.getTrackForDisplay(activeTrackId);
     if (activeTrack == nullptr)
         activeTrackId = -1;
 
@@ -399,10 +286,10 @@ void MixMatchApp::RunFrame()
 
             ImGui::InputText("##MixSearch", mixSearchBuffer, sizeof(mixSearchBuffer));
 
-            std::string search = manager.toLower(mixSearchBuffer);
-            auto words = manager.splitWords(search);
+            std::string search = StringUtil::toLower(mixSearchBuffer);
+            auto words = StringUtil::splitWords(search);
 
-            for (const auto& t : manager.getCatalogue())
+            for (const auto& t : manager.getCatalogueForDisplay())
             {
                 if (activeTrackId == t.id)
                     continue;
@@ -422,8 +309,8 @@ void MixMatchApp::RunFrame()
 
                 if (mixSearchBuffer[0] != '\0')
                 {
-                    std::string artist = manager.toLower(t.artist);
-                    std::string track = manager.toLower(t.title);
+                    std::string artist = StringUtil::toLower(t.artist);
+                    std::string track = StringUtil::toLower(t.title);
 
                     bool match = false;
                     for (const auto& word : words)
@@ -468,7 +355,7 @@ void MixMatchApp::RunFrame()
 
         for (int mixId : activeTrack->mixIds)
         {
-            const Track* mixTrack = manager.getTrack(mixId);
+            const Track* mixTrack = manager.getTrackForDisplay(mixId);
 
             if (mixTrack == nullptr)
                 continue;
@@ -517,5 +404,122 @@ void MixMatchApp::RunFrame()
         activeTrack = nullptr;
         activeTrackId = -1;
     }
+    ImGui::End();
+    */
+}
+
+
+void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode)
+{
+    bool* open = mode == ADD ? &showAddTrackWindow : &showEditTrackWindow;
+    const char* title = mode == ADD ? "Add New Track" : "Edit Track";
+
+    // Close edit window if active track changes
+    if (mode == EDIT && data.id != activeTrackId)
+        *open = false;
+
+    ImGui::Begin(title, open, ImGuiWindowFlags_NoCollapse);
+
+    if (ImGui::BeginTable("track_table", 3, ImGuiTableFlags_SizingFixedFit))
+    {
+        float fieldWidth = 500.0f;
+        float fieldHeight = ImGui::GetFrameHeight();
+
+        ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthStretch);
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Artist");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputText("##Artist", data.artist, sizeof(data.artist));
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Title");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputText("##Title", data.title, sizeof(data.title));
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Label");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputText("##Label", data.label, sizeof(data.label));
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("BPM");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::SetNextItemWidth(fieldWidth);
+        ImGui::InputFloat("##BPM", &data.bpm, 1.f, 10.f, "%.2f");
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Colour");
+        ImGui::TableSetColumnIndex(1);
+        if (ImGui::ColorButton(
+            "##ColourButton",
+            data.colour,
+            ImGuiColorEditFlags_NoTooltip |
+            ImGuiColorEditFlags_NoBorder,
+            ImVec2(fieldWidth, fieldHeight)))
+        {
+            ImGui::OpenPopup("##ColorPickerPopup");
+        }
+        if (ImGui::BeginPopup("##ColorPickerPopup"))
+        {
+            ImGui::ColorPicker3("##ColourPicker",
+                (float*)&data.colour,
+                ImGuiColorEditFlags_NoSmallPreview |
+                ImGuiColorEditFlags_NoLabel |
+                ImGuiColorEditFlags_NoSidePreview
+            );
+            ImGui::EndPopup();
+        }
+
+        ImGui::EndTable();
+    }
+
+    if (ImGui::Button(UI::ICON_SAVE))
+    {
+        Track t;
+        t.artist = data.artist;
+        t.title = data.title;
+        t.label = data.label;
+        t.bpm = data.bpm;
+        t.colour = ImVec4ToRgb(data.colour);
+
+        bool success = false;
+
+        if (mode == ADD)
+        {
+            success = manager.addTrack(t);
+
+            if (success)
+            {
+                if (!manager.getCatalogueForDisplay().empty())
+                    activeTrackId = manager.getCatalogueForDisplay().back().id;
+            }
+        }
+        else if (mode == EDIT)
+        {
+            t.id = activeTrackId;
+
+            success = manager.editTrack(t);
+        }
+
+        if (success)
+        {
+            data = {};
+            *open = false;
+        }
+    }
+
+    //ImGui::SameLine();
+    //ImGui::Text(warningText.c_str());
+
     ImGui::End();
 }

@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "UiConstants.hpp"
+#include "StringUtils.hpp"
 #include "catalogueManager.hpp"
 
 #include <array>
@@ -46,7 +47,7 @@ private:
         char artist[64]{};
         char title[64]{};
         char label[64]{};
-        int bpm = 0;
+        float bpm = 0;
         ImVec4 colour = UI::COL_DEFAULT;
     };
 

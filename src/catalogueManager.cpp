@@ -3,7 +3,7 @@
 #include <fstream>
 
 
-// ADL 
+// ADL serialization
 void to_json(json& j, const Track& t)
 {
     j = {
@@ -25,7 +25,7 @@ void from_json(const json& j, Track& t)
         t.artist = j.at("artist").get<std::string>();
         t.title  = j.at("title").get<std::string>();
         t.label  = j.at("label").get<std::string>();
-        t.bpm    = j.at("bpm").get<int>();
+        t.bpm    = j.at("bpm").get<float>();
         t.colour = j.at("colour").get<std::array<uint8_t, 3>>();
         t.mixIds = j.value("mixIds", std::vector<int>{});
     }
@@ -78,54 +78,42 @@ void CatalogueManager::refresh()
 bool CatalogueManager::addTrack(const Track& newTrack)
 {
     // TODO: Check the data is good
+    Track track = newTrack;
 
-    if (newTrack.artist.empty() || newTrack.title.empty())
+    if (!validateTrackData(track))
         return false;
 
-    // Dont allow duplicates names (not case sensative) to be added
-    std::string newArtist = toLower(newTrack.artist);
-    std::string newTitle = toLower(newTrack.title);
-    std::string newLabel = toLower(newTrack.label);
+    track.id = lastTrackId++;
+    track.mixIds.clear();
 
-    for (const Track& track : catalogue)
-    {
-        if (toLower(track.artist) == newArtist &&
-            toLower(track.title) == newTitle &&
-            toLower(track.label) == newLabel)
-
-            return false; 
-    }
-
-    Track trackToAdd = newTrack;
-    trackToAdd.id = lastTrackId++;
-    trackToAdd.mixIds.clear();
-
-    catalogue.emplace_back(trackToAdd);
+    // TODO: use std::move? catalogue.emplace_back(std::move(t));
+    catalogue.emplace_back(track);
     refresh();
-
     return true;
 }
 
 bool CatalogueManager::editTrack(const Track& editedTrack)
 {
-    // TODO: trim whitespace if (trim(editedTrack.artist).empty())
-    if (editedTrack.artist.empty() || editedTrack.title.empty())
-        return false;
+    
+    Track track = editedTrack;
 
+    if (!validateTrackData(track))
+        return false;
+    
     auto foundTrack = std::find_if(catalogue.begin(), catalogue.end(),
-        [&editedTrack](const Track& t)
+        [&track](const Track& t)
         {
-            return t.id == editedTrack.id;
+            return t.id == track.id;
         });
 
     if (foundTrack == catalogue.end())
         return false;
 
-    foundTrack->artist = editedTrack.artist;
-    foundTrack->title = editedTrack.title;
-    foundTrack->label = editedTrack.label;
-    foundTrack->bpm = std::max(editedTrack.bpm, 0);
-    foundTrack->colour = editedTrack.colour;
+    foundTrack->artist = track.artist;
+    foundTrack->title = track.title;
+    foundTrack->label = track.label;
+    foundTrack->bpm = track.bpm;
+    foundTrack->colour = track.colour;
 
     refresh();
     return true;
@@ -233,7 +221,7 @@ void CatalogueManager::removeMix(int trackId, int mixId)
         refresh();
 }
 
-const Track* CatalogueManager::getTrack(int id)
+const Track* CatalogueManager::getTrackForDisplay(int id)
 {
     for (const Track& t : catalogue)
     {
@@ -244,7 +232,46 @@ const Track* CatalogueManager::getTrack(int id)
     return nullptr;
 }
 
-const std::vector<Track>& CatalogueManager::getCatalogue() const
+const std::vector<Track>& CatalogueManager::getCatalogueForDisplay() const
 {
     return catalogue;
+}
+
+// TODO: Could return an emum entry like data OK or MISSING_X...
+bool CatalogueManager::validateTrackData(Track& track)
+{
+    // Remove white spaces.
+    track.artist = StringUtil::trim(track.artist);
+    track.title = StringUtil::trim(track.title);
+    track.label = StringUtil::trim(track.label);
+
+    // Ensure artist and title fields are filled.
+    if (track.artist.empty() || track.title.empty())
+        return false;
+
+    // Don't allow duplicate names (case-insensitive).
+    std::string artist = StringUtil::toLower(track.artist);
+    std::string title = StringUtil::toLower(track.title);
+    std::string label = StringUtil::toLower(track.label);
+
+    // TODO: Check if mix ids are legit?
+    for (const Track& t : catalogue)
+    {
+        if (t.id == track.id)
+            continue;
+
+        if (StringUtil::toLower(t.artist) == artist &&
+            StringUtil::toLower(t.title) == title &&
+            StringUtil::toLower(t.label) == label)
+        {
+            return false;
+        }
+    }
+
+    // TODO: Validate mixIds?
+
+    // Ensure bpm is not negative.
+    track.bpm = std::max(0.f, track.bpm);
+    
+    return true;
 }

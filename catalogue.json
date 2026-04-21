@@ -2,20 +2,22 @@
     "tracks": [
         {
             "artist": "Bob",
-            "bpm": 0,
+            "bpm": 120.0,
             "colour": [
-                18,
-                73,
-                188
+                135,
+                98,
+                54
             ],
             "id": 1,
             "label": "",
-            "mixIds": [],
+            "mixIds": [
+                4
+            ],
             "title": "Man"
         },
         {
             "artist": "Lads",
-            "bpm": 174,
+            "bpm": 174.0,
             "colour": [
                 255,
                 14,
@@ -23,8 +25,26 @@
             ],
             "id": 2,
             "label": "CIA",
-            "mixIds": [],
+            "mixIds": [
+                4
+            ],
             "title": "Jungle Tune"
+        },
+        {
+            "artist": "A",
+            "bpm": 0.0,
+            "colour": [
+                123,
+                39,
+                39
+            ],
+            "id": 4,
+            "label": "C",
+            "mixIds": [
+                2,
+                1
+            ],
+            "title": "B"
         }
     ]
 }
