@@ -17,7 +17,7 @@ namespace UI
     static constexpr ImVec4 COL_DEFAULT = ImVec4(200 / 255.f, 200 / 255.f, 200 / 255.f, 1.f);
 
     static constexpr float ALPHA_DEFAULT = 0.25f;
-    static constexpr float ALPHA_HOVER = 0.10f;
+    static constexpr float ALPHA_HOVER = 0.5f;
 
     static constexpr const char* ICON_ADD       = u8"\uE145";
     static constexpr const char* ICON_REMOVE    = u8"\uE5CD";

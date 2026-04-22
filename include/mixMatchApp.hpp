@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "UiConstants.hpp"
 #include "StringUtils.hpp"
 #include "catalogueManager.hpp"
@@ -21,7 +22,8 @@ private:
 
     // Main search bar and result window
     char mainSearchBuffer[64]{};
-    bool showSearchResultWindow = false;
+    bool showMainLibary = false;
+    bool showSearchResultWindow = false; //TODO: Remove
 
     // Add new track window
     bool showAddTrackWindow = false;
@@ -55,19 +57,19 @@ private:
     InputData editData;
 
     void TrackInputWindow(InputData& data, TrackInputMode mode);
+    void TrackInfoCard(int id);
 
     //void TrackSearchBar??
 
-    // TODO: add toLower and splitWords from manager
-
+    // TODO: Put in Utils
     // TODO: clamp input
-    inline ImVec4 RgbToImVec4(const std::array<uint8_t, 3>& c)
+    inline ImVec4 RgbToImVec4(const std::array<uint8_t, 3>& c, float alpha)
     {
         return ImVec4(
             c[0] / 255.0f,
             c[1] / 255.0f,
             c[2] / 255.0f,
-            1.0f
+            alpha
         );
     }
 

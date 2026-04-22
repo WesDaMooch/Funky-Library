@@ -237,6 +237,17 @@ const std::vector<Track>& CatalogueManager::getCatalogueForDisplay() const
     return catalogue;
 }
 
+std::vector<int> CatalogueManager::getIdLibrary() const
+{
+    std::vector<int> idLibrary;
+    idLibrary.reserve(catalogue.size());
+
+    for (const Track& track : catalogue)
+        idLibrary.emplace_back(track.id);
+
+    return idLibrary;
+}
+
 // TODO: Could return an emum entry like data OK or MISSING_X...
 bool CatalogueManager::validateTrackData(Track& track)
 {

@@ -10,8 +10,66 @@ void MixMatchApp::RunFrame()
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuiStyle& style = ImGui::GetStyle();
 
-    /*              Main Search             */
+    // Main Search Bar //   
+       
+    ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0));
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
 
+    ImGui::Begin("##Main Search", &open,
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse);
+
+    float frameHeight = ImGui::GetFrameHeight();
+    ImVec2 mainSearchBarButtonSize = ImVec2(frameHeight, frameHeight);
+
+    // Show main libary button
+    if (ImGui::Button(UI::ICON_SEARCH, mainSearchBarButtonSize))
+        showMainLibary = !showMainLibary;
+
+    ImGui::SameLine();
+        
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::PushItemWidth(-(frameHeight * 2) - (style.ItemSpacing.x * 2));
+    ImGui::InputText("##MainSeachInput", mainSearchBuffer, sizeof(mainSearchBuffer));
+
+    ImGui::SameLine();
+
+    // Add new track button
+    if (ImGui::Button(UI::ICON_ADD, mainSearchBarButtonSize) && !showAddTrackWindow)
+    {
+        addData = {};
+        showEditTrackWindow = false;
+        showAddTrackWindow = true;
+    }
+
+    ImGui::SameLine();
+
+    // Refresh libary button
+    if (ImGui::Button(UI::ICON_REFRESH, mainSearchBarButtonSize))
+        manager.refresh();
+
+    // Main libary
+    //showMainLibary = true;
+    if (showMainLibary)
+    {
+        ImGui::Separator();
+
+
+        // TODO: search
+
+        std::vector<int> idLibary = manager.getIdLibrary();
+        for (const int id : idLibary)
+        {
+            // Search stuff
+            TrackInfoCard(id);
+        }
+    }
+
+    ImGui::End();
+
+    /*
     ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, 0));
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::Begin("Search", &open,
@@ -33,10 +91,10 @@ void MixMatchApp::RunFrame()
     {
         showSearchResultWindow = true;
         // TODO: get this working
-        /*
-        if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-            showSearchResultWindow = false;
-        */
+        
+        //if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+        //    showSearchResultWindow = false;
+        
     }
 
     ImGui::PopStyleVar();
@@ -131,6 +189,7 @@ void MixMatchApp::RunFrame()
         }
         ImGui::End();
     }
+    */
 
 
 
@@ -518,8 +577,66 @@ void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode)
         }
     }
 
+    // TODO: Add warning text, put saveButtonPressCount in inputData??
     //ImGui::SameLine();
     //ImGui::Text(warningText.c_str());
 
     ImGui::End();
+}
+
+void MixMatchApp::TrackInfoCard(int id)
+{
+    const Track* track = manager.getTrackForDisplay(id);
+
+    if (track == nullptr)
+        return;
+
+    std::string artistAndTitle = track->artist + " - " + track->title;
+
+    //ImGui::PushStyleColor(ImGuiCol_Header, RgbToImVec4(track->colour, UI::ALPHA_DEFAULT));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, RgbToImVec4(track->colour, UI::ALPHA_HOVER));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, RgbToImVec4(track->colour, 1.f));
+
+
+    if (ImGui::Selectable(artistAndTitle.c_str(), false))
+    {
+        activeTrackId = id;
+        //showMainLibary = false;
+    }
+
+    ImGui::PopStyleColor(2);
+
+    
+    
+    //ImGui::Text(artistAndTitle.c_str());
+
+
+
+    // TODO: plots with same should be alined regardless of plot size
+    /*
+    ImGui::SameLine();
+    if (track->bpm > 0.f)
+    {
+        static float samples[100];
+
+        float bpm = static_cast<float>(track->bpm);
+        float beatsPerSec = bpm / 120.0f;
+
+        float time = static_cast<float>(ImGui::GetTime());
+
+        for (int i = 0; i < IM_ARRAYSIZE(samples); ++i)
+        {
+            float x = (float)i / (IM_ARRAYSIZE(samples) - 1);
+
+            samples[i] = sinf((x * 6.0f * IM_PI) - (time * beatsPerSec * 2.0f * IM_PI));
+        }
+
+        std::string plotLabel = "##BpmSine" + std::to_string(id);
+        ImGui::PlotLines(plotLabel.c_str(), samples, IM_ARRAYSIZE(samples), 0, nullptr, -1.0f, 1.0f);
+    }
+    */
+    
+
+
+
 }

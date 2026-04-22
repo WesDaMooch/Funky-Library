@@ -42,6 +42,7 @@ public:
 
     const Track* getTrackForDisplay(int id);
     const std::vector<Track>& getCatalogueForDisplay() const;
+    std::vector<int> getIdLibrary() const;
 
 protected:
     std::vector<Track> catalogue;

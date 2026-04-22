@@ -104,16 +104,15 @@ int main(int, char**)
     // My app
     MixMatchApp app;
 
-
     float fontSize = 25.f;
     style.FontSizeBase = fontSize;
-    ImFont* mainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Bahnschrift.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
+    ImFont* mainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
     
     // Merge icon font into main font atlas
     ImFontConfig fontConfig;
     fontConfig.MergeMode = true;
     fontConfig.PixelSnapH = true;
-    fontConfig.GlyphOffset = ImVec2(0.0f, 3.0f);
+    fontConfig.GlyphOffset = ImVec2(0.0f, 4.0f);
 
     static const ImWchar icon_ranges[] = { 0xE000, 0xF8FF, 0 };
 
@@ -193,7 +192,7 @@ int main(int, char**)
         ImGui::PushFont(mainFont);
         ImGui::PopFont();
         
-        //ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
 
         app.RunFrame();
         ImGui::EndFrame();
