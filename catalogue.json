@@ -45,6 +45,19 @@
                 1
             ],
             "title": "B"
+        },
+        {
+            "artist": "John B",
+            "bpm": 174.0,
+            "colour": [
+                197,
+                0,
+                0
+            ],
+            "id": 5,
+            "label": "MetalHeadz",
+            "mixIds": [],
+            "title": "Up All Night"
         }
     ]
 }

@@ -57,28 +57,8 @@ private:
     InputData editData;
 
     void TrackInputWindow(InputData& data, TrackInputMode mode);
+    void TrackCardTable();
     void TrackInfoCard(int id);
 
     //void TrackSearchBar??
-
-    // TODO: Put in Utils
-    // TODO: clamp input
-    inline ImVec4 RgbToImVec4(const std::array<uint8_t, 3>& c, float alpha)
-    {
-        return ImVec4(
-            c[0] / 255.0f,
-            c[1] / 255.0f,
-            c[2] / 255.0f,
-            alpha
-        );
-    }
-
-    inline std::array<uint8_t, 3> ImVec4ToRgb(const ImVec4& c)
-    {
-        return {
-            (uint8_t)(c.x * 255.f),
-            (uint8_t)(c.y * 255.f),
-            (uint8_t)(c.z * 255.f)
-        };
-    }
 };

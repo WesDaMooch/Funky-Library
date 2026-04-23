@@ -112,7 +112,7 @@ int main(int, char**)
     ImFontConfig fontConfig;
     fontConfig.MergeMode = true;
     fontConfig.PixelSnapH = true;
-    fontConfig.GlyphOffset = ImVec2(0.0f, 4.0f);
+    fontConfig.GlyphOffset = ImVec2(0.f, UI::GLYPH_OFFSET);
 
     static const ImWchar icon_ranges[] = { 0xE000, 0xF8FF, 0 };
 
@@ -123,29 +123,22 @@ int main(int, char**)
         icon_ranges
     );
 
-    // Colours
-    //ImVec4 COL_LEVEL = ImVec4(0.f, 0.1f, 0.25f, 1.f);
-    //ImVec4 COL_GRAY_DARK = ImVec4(60 / 255.f, 60 / 255.f, 60 / 255.f, 120 / 255.f);
-    //ImVec4 COL_GRAY_LIGHT = ImVec4(60 / 255.f, 60 / 255.f, 60 / 255.f, 240 / 255.f);
-
-    //ImVec4 COL_DEFAULT = ImVec4(200 / 255.f, 200 / 255.f, 200 / 255.f, 1.f);
-
     //// Style
-    //// Window
-    //style.WindowBorderSize = 0.f;
-    //style.Colors[ImGuiCol_WindowBg] = ImVec4(20 / 255.f, 20 / 255.f, 20 / 255.f, 1.f);
+    // Window style
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.f, 0.f, 0.f, 1.0f);
 
-    //// Button
-    //style.Colors[ImGuiCol_Button] = ImVec4(COL_LEVEL.x, COL_LEVEL.x, COL_LEVEL.x, COL_LEVEL.x);
-    //style.Colors[ImGuiCol_ButtonHovered] = ImVec4(COL_DEFAULT.x, COL_DEFAULT.y, COL_DEFAULT.z, COL_LEVEL.y);
-    //style.Colors[ImGuiCol_ButtonActive] = ImVec4(COL_DEFAULT.x, COL_DEFAULT.y, COL_DEFAULT.z, COL_LEVEL.z);
+    // Button style
+    style.Colors[ImGuiCol_Button] = ImVec4(0.f, 0.f, 0.f, 0.0f);
+    style.Colors[ImGuiCol_ButtonHovered] = ColourUtil::RgbToImVec4(UI::RGB_DEFAULT, UI::ALPHA_HOVER);
+    style.Colors[ImGuiCol_ButtonActive] = ColourUtil::RgbToImVec4(UI::RGB_DEFAULT, 1.f);
 
-    // Frame
+    // Frame style
     style.FrameBorderSize = 0.f;
     style.FrameRounding = 0.f;
-    //style.Colors[ImGuiCol_FrameBg] = COL_GRAY_DARK;
 
-
+    style.Colors[ImGuiCol_FrameBg] = ColourUtil::RgbToImVec4(UI::RGB_DEFAULT, UI::ALPHA_HOVER);
+    //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.22f, 0.22f, 0.28f, 1.0f);
+    //style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.28f, 0.28f, 0.34f, 1.0f);
 
     // Main loop
     CatalogueManager manager;
@@ -192,7 +185,7 @@ int main(int, char**)
         ImGui::PushFont(mainFont);
         ImGui::PopFont();
         
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
 
         app.RunFrame();
         ImGui::EndFrame();
