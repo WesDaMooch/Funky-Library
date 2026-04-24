@@ -2,9 +2,9 @@
 #include "imgui.h"
 #include <array>
 
-//TODO: Rename to hpp to Constants
+//TODO: Rename to hpp to Constants ?
 
-namespace UI
+namespace Ui
 {
     //TODO: remove
     static constexpr ImVec4 COL_DEFAULT = ImVec4(200 / 255.f, 200 / 255.f, 200 / 255.f, 1.f);
@@ -20,7 +20,7 @@ namespace UI
     static constexpr const char* ICON_EDIT      = u8"\uE3C9";
 
     // Colour
-    static constexpr float ALPHA_BG = 0.33f;
+    static constexpr float ALPHA_BG = 0.25f;
     static constexpr float ALPHA_HOVER = 0.5f;
     static constexpr std::array<uint8_t, 3> RGB_DEFAULT = { 75, 75, 75 };
 }

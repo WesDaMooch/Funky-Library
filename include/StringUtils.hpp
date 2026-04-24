@@ -8,7 +8,7 @@
 
 //TODO: Rename hpp to Utils
 
-namespace StringUtil
+namespace TextUtil
 {
     inline std::string toLower(std::string s)
     {
@@ -36,7 +36,7 @@ namespace StringUtil
     }
 
     // TODO: reserve some vector space, most titles and names are a few words long...
-    inline std::vector<std::string> splitWords(const std::string& s)
+    inline std::vector<std::string> split(const std::string& s)
     {
         std::stringstream ss(s);
         std::vector<std::string> words;
@@ -48,6 +48,14 @@ namespace StringUtil
             words.emplace_back(word);
 
         return words;
+    }
+
+    // Call after TableSetColumnIndex & before Text
+    inline void centerJustifyTableText(const std::string& text)
+    {
+        float columnWidth = ImGui::GetColumnWidth();
+        float textWidth = ImGui::CalcTextSize(text.c_str()).x;
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (columnWidth - textWidth) * 0.5f);
     }
 }
 

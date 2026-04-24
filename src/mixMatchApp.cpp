@@ -35,7 +35,7 @@ void MixMatchApp::RunFrame()
     //    showMainLibary = !showMainLibary;
 
     // Add new track button
-    if (ImGui::Button(UI::ICON_ADD, mainSearchBarButtonSize) && !showAddTrackWindow)
+    if (ImGui::Button(Ui::ICON_ADD, mainSearchBarButtonSize) && !showAddTrackWindow)
     {
         addData = {};
         showEditTrackWindow = false;
@@ -53,7 +53,7 @@ void MixMatchApp::RunFrame()
     ImGui::SameLine();
 
     // Refresh libary button
-    if (ImGui::Button(UI::ICON_REFRESH, mainSearchBarButtonSize))
+    if (ImGui::Button(Ui::ICON_REFRESH, mainSearchBarButtonSize))
         manager.refresh();
 
     // Main libary
@@ -62,18 +62,8 @@ void MixMatchApp::RunFrame()
     {
         ImGui::Separator();
 
-
-        // TODO: search
-        TrackCardTable();
-
-        /*
-        std::vector<int> idLibary = manager.getIdLibrary();
-        for (const int id : idLibary)
-        {
-            // Search stuff
-            TrackInfoCard(id);
-        }
-        */
+        const std::vector<Track> l = manager.searchAndSort(mainSearchBuffer, LibraryManager::Sort::Artist);
+        TrackCardTable(l);
     }
 
     ImGui::End();
@@ -555,7 +545,7 @@ void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode)
         ImGui::EndTable();
     }
 
-    if (ImGui::Button(UI::ICON_SAVE))
+    if (ImGui::Button(Ui::ICON_SAVE))
     {
         Track t;
         t.artist = data.artist;
@@ -597,80 +587,130 @@ void MixMatchApp::TrackInputWindow(InputData& data, TrackInputMode mode)
     ImGui::End();
 }
 
-void MixMatchApp::TrackCardTable()
+void MixMatchApp::TrackCardTable(const std::vector<Track>& searchLibrary)
 {
- /*   ImGui::PushStyleVar(
+    ImGui::PushStyleVar(
         ImGuiStyleVar_CellPadding,
-        ImVec2(6, 6));*/
+        ImVec2(24, 6)
+    );
 
     if (ImGui::BeginTable(
         "TrackTable",
-        3,
-        ImGuiTableFlags_SizingFixedFit |
+        4,
+        ImGuiTableFlags_SizingFixedFit | 
+        //ImGuiTableFlags_Hideable |
+        //TODO: Setup ImGuiTableFlags_Sortable |
         ImGuiTableFlags_BordersInnerV))
     {
         
+        ImGui::TableSetupColumn(
+            "Artist",
+            ImGuiTableColumnFlags_WidthFixed
+        );
 
         ImGui::TableSetupColumn(
-            "Track",
+            "Title",
             ImGuiTableColumnFlags_WidthFixed
         );
   
-
         ImGui::TableSetupColumn(
             "Label",
             ImGuiTableColumnFlags_WidthFixed
         );
 
         ImGui::TableSetupColumn(
-            "Plot",
+            "BPM",
             ImGuiTableColumnFlags_WidthStretch
         );
 
-        for (const Track& track : manager.getCatalogueForDisplay())
+        for (const Track& track : searchLibrary)
         {
             ImGui::TableNextRow();
-            /*
-            ImGui::TableSetBgColor(
-                ImGuiTableBgTarget_RowBg0,
-                ColourUtil::RgbToU32(track.colour, (uint8_t)(UI::ALPHA_BG * 255))
-            );
-            */
 
             std::string rowId = std::to_string(track.id);
 
-            ImGui::TableSetColumnIndex(0);
+            ImGui::TableSetColumnIndex(0);;
+
+            // Clear selector
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive, IM_COL32(0, 0, 0, 0));
 
             if (ImGui::Selectable(
                 ("##TableSelect" + rowId).c_str(),
-                false, // not visually selected
+                false,
                 ImGuiSelectableFlags_SpanAllColumns))
             {
                 activeTrackId = track.id;
                 showMainLibary = false;
             }
 
+            ImGui::PopStyleColor(2);
+
             ImGui::SameLine();
 
-            // Title
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%s - %s", track.artist.c_str(), track.title.c_str());
+            //if (ImGui::IsItemHovered())
+            //{
+            //    float rectPaddingY = 6.f;
+            //    ImVec2 rectMin = ImGui::GetItemRectMin();
+            //    ImVec2 rectMax = ImGui::GetItemRectMax();
 
-            // Label
-            ImGui::TableSetColumnIndex(1);
-            if (!track.label.empty())
-                ImGui::Text(track.label.c_str());
+            //    rectMin.y -= rectPaddingY;
+            //    rectMax.y += rectPaddingY;
 
-            // BPM Sine
-            ImGui::TableSetColumnIndex(2);
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
-            ImGui::PushStyleColor(
-                ImGuiCol_PlotLines, 
-                ColourUtil::RgbToU32(UI::RGB_DEFAULT, 255)
+            //    ImGui::GetWindowDrawList()->AddRectFilled(
+            //        rectMin,
+            //        rectMax,
+            //        ColourUtil::RgbToU32(track.colour, (uint8_t)(Ui::ALPHA_BG * 255)),
+            //        6.0f
+            //    );
+            //}
+
+            bool hovered = ImGui::IsItemHovered();
+
+            float rectPaddingY = 6.f;
+            ImVec2 rectMin = ImGui::GetItemRectMin();
+            ImVec2 rectMax = ImGui::GetItemRectMax();
+
+            rectMin.y -= rectPaddingY;
+            rectMax.y += rectPaddingY;
+
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                rectMin,
+                rectMax,
+                ColourUtil::RgbToU32(
+                    track.colour, 
+                    (uint8_t)((hovered ? Ui::ALPHA_HOVER : Ui::ALPHA_BG) * 255)
+                ),
+                6.0f
             );
 
+            // Artist
+            ImGui::TableSetColumnIndex(0);
+            TextUtil::centerJustifyTableText(track.artist);
+            ImGui::TextUnformatted(track.artist.c_str());
+
+            // Title
+            ImGui::TableSetColumnIndex(1);
+            TextUtil::centerJustifyTableText(track.title);
+            ImGui::TextUnformatted(track.title.c_str());
+
+            // Label
+            ImGui::TableSetColumnIndex(2);
+            TextUtil::centerJustifyTableText(track.label);
+            ImGui::TextUnformatted(track.label.c_str());
+            //if (!track.label.empty())
+            //    ImGui::Text(track.label.c_str()); //TODO: use unformatedText?
+
+            // BPM Sine
+            ImGui::TableSetColumnIndex(3);
             if (track.bpm > 0.f)
             {
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+                ImGui::PushStyleColor(
+                    ImGuiCol_PlotLines,
+                    ColourUtil::RgbToU32(Ui::RGB_DEFAULT, 255)
+                );
+
                 static float sine[1024];
                 static float beat[1024];
 
@@ -691,13 +731,13 @@ void MixMatchApp::TrackCardTable()
                     beat[i] = (value > 0.95f);
                 }
 
-                
                 ImGui::PlotLines(("##BpmPlot" + rowId).c_str(), sine, IM_ARRAYSIZE(sine), 0, nullptr, -1.0f, 1.0f);
                 //ImGui::PlotLines(("##BpmPlot" + rowId).c_str(), beat, IM_ARRAYSIZE(beat), 0, nullptr, -1.0f, 1.0f);
-            }
-            ImGui::PopStyleColor(2);
 
+                ImGui::PopStyleColor(2);
+            }
         }
+        ImGui::PopStyleVar();
         ImGui::EndTable();
     }
     //ImGui::PopStyleVar();
@@ -706,7 +746,7 @@ void MixMatchApp::TrackCardTable()
 
 
 
-
+// TODO: remove
 void MixMatchApp::TrackInfoCard(int id)
 {
     const Track* track = manager.getTrackForDisplay(id);
@@ -728,10 +768,10 @@ void MixMatchApp::TrackInfoCard(int id)
     ImVec2 rectMin = ImGui::GetItemRectMin();
     ImVec2 rectMax = ImGui::GetItemRectMax();
 
-    uint8_t alpha = (uint8_t)(UI::ALPHA_BG * 255.f);
+    uint8_t alpha = (uint8_t)(Ui::ALPHA_BG * 255.f);
 
     if (ImGui::IsItemHovered())
-        alpha = (uint8_t)(UI::ALPHA_HOVER * 255.f);
+        alpha = (uint8_t)(Ui::ALPHA_HOVER * 255.f);
 
     // Background
     ImDrawList* draw = ImGui::GetWindowDrawList();
@@ -746,7 +786,7 @@ void MixMatchApp::TrackInfoCard(int id)
     draw->AddRect(
         rectMin,
         rectMax,
-        ColourUtil::RgbToU32(UI::RGB_DEFAULT, alpha),
+        ColourUtil::RgbToU32(Ui::RGB_DEFAULT, alpha),
         rectRoundness,
         0,
         1.f
@@ -754,7 +794,7 @@ void MixMatchApp::TrackInfoCard(int id)
    
     float titleTextX = rectMin.x + 24;
     float labelTextX = rectMin.x + 320;
-    float textY = rectMin.y + (cardPaddingY * 0.5f) + UI::GLYPH_OFFSET;
+    float textY = rectMin.y + (cardPaddingY * 0.5f) + Ui::GLYPH_OFFSET;
 
     std::string titleText = track->artist + " - " + track->title;
     draw->AddText(ImVec2(titleTextX, textY), IM_COL32_WHITE, titleText.c_str());

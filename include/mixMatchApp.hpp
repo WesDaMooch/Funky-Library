@@ -15,7 +15,7 @@ public:
     void RunFrame();
 
 private:
-	CatalogueManager manager;
+	LibraryManager manager;
     int activeTrackId = -1;
 
     bool open = true;
@@ -50,14 +50,14 @@ private:
         char title[64]{};
         char label[64]{};
         float bpm = 0;
-        ImVec4 colour = UI::COL_DEFAULT;
+        ImVec4 colour = Ui::COL_DEFAULT;
     };
 
     InputData addData;
     InputData editData;
 
     void TrackInputWindow(InputData& data, TrackInputMode mode);
-    void TrackCardTable();
+    void TrackCardTable(const std::vector<Track>& searchLibrary);
     void TrackInfoCard(int id);
 
     //void TrackSearchBar??
