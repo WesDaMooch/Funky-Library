@@ -21,9 +21,9 @@ private:
     bool open = true;
 
     // Main search bar and result window
+    LibraryManager::TrackSort mainSearchSort = LibraryManager::TrackSort::Artist;
     char mainSearchBuffer[64]{};
     bool showMainLibary = false;
-    bool showSearchResultWindow = false; //TODO: Remove
 
     // Add new track window
     bool showAddTrackWindow = false;
@@ -53,7 +53,7 @@ private:
         char title[64]{};
         char label[64]{};
         float bpm = 0.f;
-        ImVec4 colour = Ui::VEC4_DEFAULT;
+        ImVec4 colour = Ui::Colour::VEC4_DEFAULT;
 
         LibraryManager::TrackValidationResult result =
             LibraryManager::TrackValidationResult::None;

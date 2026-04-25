@@ -79,32 +79,6 @@
             "title": "Hell"
         },
         {
-            "artist": "Wes",
-            "bpm": 150.0,
-            "colour": [
-                60,
-                243,
-                7
-            ],
-            "id": 19,
-            "label": "",
-            "mixIds": [],
-            "title": "The Man"
-        },
-        {
-            "artist": "Wes",
-            "bpm": 0.0,
-            "colour": [
-                75,
-                75,
-                75
-            ],
-            "id": 20,
-            "label": "n",
-            "mixIds": [],
-            "title": "The Man"
-        },
-        {
             "artist": "Cause 4 Concern",
             "bpm": 173.0,
             "colour": [

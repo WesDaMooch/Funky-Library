@@ -35,7 +35,7 @@ void MixMatchApp::RunFrame()
     //    showMainLibary = !showMainLibary;
 
     // Add new track button
-    if (ImGui::Button(Ui::ICON_ADD, mainSearchBarButtonSize) && !showAddTrackWindow)
+    if (ImGui::Button(Ui::Text::ICON_ADD, mainSearchBarButtonSize) && !showAddTrackWindow)
     {
         addData = {};
         showEditTrackWindow = false;
@@ -53,14 +53,14 @@ void MixMatchApp::RunFrame()
     ImGui::SameLine();
 
     // Refresh libary button
-    if (ImGui::Button(Ui::ICON_REFRESH, mainSearchBarButtonSize))
+    if (ImGui::Button(Ui::Text::ICON_REFRESH, mainSearchBarButtonSize))
         manager.refresh();
 
     // Main libary
     showMainLibary = true;
     if (showMainLibary)
     {
-        const std::vector<Track> l = manager.searchAndSort(mainSearchBuffer, LibraryManager::TrackSort::Artist);
+        const std::vector<Track> l = manager.searchAndSort(mainSearchBuffer, mainSearchSort);
         TrackSearchTable(l, tableX, tableWidth);
     }
 
@@ -482,6 +482,7 @@ void MixMatchApp::RemoveTrackWindow(int id)
 
     if (track == nullptr)
         return;
+
     // tint
     ImGui::PushStyleColor(
         ImGuiCol_TitleBg,
@@ -489,9 +490,7 @@ void MixMatchApp::RemoveTrackWindow(int id)
             track->colour[0] * 0.15f,
             track->colour[1] * 0.15f,
             track->colour[2] * 0.15f,
-            1.f
-        )
-    );
+            1.f));
 
     ImGui::PushStyleColor(
         ImGuiCol_TitleBgActive,
@@ -499,9 +498,7 @@ void MixMatchApp::RemoveTrackWindow(int id)
             track->colour[0] * 0.33f,
             track->colour[1] * 0.33f,
             track->colour[2] * 0.33f,
-            1.f
-        )
-    );
+            1.f));
 
     ImGui::Begin("Remove Track", &showRemoveTrackWindow, ImGuiWindowFlags_NoCollapse);
 
@@ -521,9 +518,7 @@ void MixMatchApp::RemoveTrackWindow(int id)
     ImGui::SameLine();
 
     if (ImGui::Button("No"))
-    {
         showRemoveTrackWindow = false;
-    }
 
     ImGui::End();
 }
@@ -537,15 +532,14 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
     if (mode == EDIT && data.id != activeTrackId)
         *open = false;
 
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(data.colour, Ui::TINT_BG));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(data.colour, Ui::TINT_HOVER));
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(data.colour, Ui::Colour::TINT_BG));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(data.colour, Ui::Colour::TINT_HOVER));
 
     ImGui::Begin(
         title, 
         open, 
         ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoResize
-    );
+        ImGuiWindowFlags_NoResize);
 
     if (ImGui::BeginTable("InputTrackTable", 2, ImGuiTableFlags_SizingFixedFit))
     {
@@ -612,11 +606,11 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
 
         ImVec2 saveButtonSize = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 1.f, 0.f, Ui::TINT_BG));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 1.f, 0.f, Ui::TINT_HOVER));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 1.f, 0.f, Ui::TINT_ACTIVE));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 1.f, 0.f, Ui::Colour::ALPHA_BG));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 1.f, 0.f, Ui::Colour::ALPHA_HOVER));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 1.f, 0.f, Ui::Colour::ALPHA_ACTIVE));
 
-        if (ImGui::Button(Ui::ICON_SAVE, saveButtonSize))
+        if (ImGui::Button(Ui::Text::ICON_SAVE, saveButtonSize))
         {
             Track t;
             t.artist = data.artist;
@@ -673,15 +667,13 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
                 break;
             }
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.f, 0.f, Ui::TINT_ACTIVE));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.f, 0.f, Ui::Colour::ALPHA_ACTIVE));
             ImGui::Text(waringText.c_str());
             ImGui::PopStyleColor();
         }
 
         ImGui::EndTable();
     }
-
-  
 
     ImGui::PopStyleColor(2);
     ImGui::End();
@@ -691,15 +683,54 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
 {
     // Header
     ImGui::Separator();
-    //ImGui::SetCursorScreenPos(ImVec2(x, ImGui::GetCursorScreenPos().y));
+    ImGui::SetCursorScreenPos(ImVec2(x, ImGui::GetCursorScreenPos().y));
 
-    //ImGui::PushFont(Ui::Small);
-    ImGui::PushStyleColor(ImGuiCol_Text, Ui::VEC4_DEFAULT);
+    ImGui::PushFont(Ui::Text::SmallFont);
+    ImGui::PushStyleColor(ImGuiCol_Text, Ui::Colour::TEXT_GRAY);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
 
     ImGui::Text("Sort:");
 
-    //ImGui::PopFont();
-    ImGui::PopStyleColor();
+    ImGui::SameLine();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+    ImGui::AlignTextToFramePadding();
+
+    static int trackSortIndex = 0;
+    const char* trackSortOptions[] = { "Artist", "Title", "Label", "BPM"};
+
+    if (ImGui::BeginCombo(
+        "##TrackSortCombo", 
+        trackSortOptions[trackSortIndex],
+        ImGuiComboFlags_WidthFitPreview |
+        ImGuiComboFlags_NoArrowButton))
+    {
+        for (int i = 0; i < IM_ARRAYSIZE(trackSortOptions); i++)
+        {
+            bool isSelected = (trackSortIndex == i);
+
+            if (ImGui::Selectable(trackSortOptions[i], isSelected))
+                trackSortIndex = i;
+
+            if (isSelected)
+                ImGui::SetItemDefaultFocus();
+        }
+
+        ImGui::EndCombo();
+    }
+    ImGui::PopStyleVar(1);
+
+
+    ImGui::SameLine();
+
+    ImGui::Text("| View: All");
+
+    ImGui::PopStyleColor(4);
+    ImGui::PopFont();
+
+    mainSearchSort = static_cast<LibraryManager::TrackSort>(trackSortIndex);
 
     // Table
 
@@ -720,23 +751,19 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
         
         ImGui::TableSetupColumn(
             "Artist",
-            ImGuiTableColumnFlags_WidthFixed
-        );
+            ImGuiTableColumnFlags_WidthFixed);
 
         ImGui::TableSetupColumn(
             "Title",
-            ImGuiTableColumnFlags_WidthFixed
-        );
+            ImGuiTableColumnFlags_WidthFixed);
   
         ImGui::TableSetupColumn(
             "Label",
-            ImGuiTableColumnFlags_WidthFixed
-        );
+            ImGuiTableColumnFlags_WidthFixed);
 
         ImGui::TableSetupColumn(
             "BPM",
-            ImGuiTableColumnFlags_WidthStretch
-        );
+            ImGuiTableColumnFlags_WidthStretch);
 
         for (const Track& track : library)
         {
@@ -778,10 +805,8 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
                 rectMax,
                 ColourUtil::RgbToU32(
                     track.colour, 
-                    (uint8_t)((hovered ? Ui::ALPHA_HOVER : Ui::ALPHA_BG) * 255)
-                ),
-                6.0f
-            );
+                    (uint8_t)((hovered ? Ui::Colour::ALPHA_HOVER : Ui::Colour::ALPHA_BG) * 255)),
+                6.0f);
 
             // Artist
             ImGui::TableSetColumnIndex(0);
@@ -805,10 +830,8 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
                 ImGui::PushStyleColor(
                     ImGuiCol_PlotLines,
-                    IM_COL32_WHITE
-                    //ColourUtil::RgbToU32(Ui::RGB_DEFAULT, 255)
-                );
-
+                    IM_COL32_WHITE); //ColourUtil::RgbToU32(Ui::RGB_DEFAULT, 255)
+                    
                 static float sine[1024];
                 static float beat[1024];
 

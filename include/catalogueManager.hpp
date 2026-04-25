@@ -20,7 +20,7 @@ struct Track
     std::string title = {};
     std::string label = {};
     float bpm = 0;
-    std::array<uint8_t, 3> colour = Ui::RGB_DEFAULT;
+    std::array<uint8_t, 3> colour = Ui::Colour::RGB_DEFAULT;
     std::vector<int> mixIds = {}; 
 
 };

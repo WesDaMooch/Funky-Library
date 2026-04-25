@@ -104,49 +104,59 @@ int main(int, char**)
     // My app
     MixMatchApp app;
 
-    float fontSize = 25.f;
-    style.FontSizeBase = fontSize;
-    //Ui::Main = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
-        
-    ImFont* mainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
+    // Setup font
+    float fontSizeBase = 25.f;
+    style.FontSizeBase = fontSizeBase;
+    Ui::Text::MainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSizeBase); //Bahnschrift.ttf Arial.ttf
 
+    //ImFont* mainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
 
     // Merge icon font into main font atlas
-    ImFontConfig fontConfig;
-    fontConfig.MergeMode = true;
-    fontConfig.PixelSnapH = true;
-    fontConfig.GlyphOffset = ImVec2(0.f, Ui::GLYPH_OFFSET);
+    ImFontConfig mainFontConfig;
+    mainFontConfig.MergeMode = true;
+    mainFontConfig.OversampleH = 2.f;
+    mainFontConfig.OversampleV = 2.f;
+    mainFontConfig.PixelSnapH = true;
+    mainFontConfig.GlyphOffset = ImVec2(0.f, Ui::Text::GLYPH_OFFSET);
 
     static const ImWchar icon_ranges[] = { 0xE000, 0xF8FF, 0 };
 
     ImFont* iconFont = io.Fonts->AddFontFromFileTTF(
         "font/MaterialIcons-Regular.ttf",
-        fontSize,
-        &fontConfig,
+        fontSizeBase,
+        &mainFontConfig,
         icon_ranges
     );
 
-    //Ui::Small = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize * 0.5f);
+    ImFontConfig smallFontConfig;
+    smallFontConfig.MergeMode = false;
+    smallFontConfig.OversampleH = 2.f;
+    smallFontConfig.OversampleV = 2.f;
+    Ui::Text::SmallFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", 15.f, &smallFontConfig);
 
-    //// Style
+    IM_ASSERT(Ui::Text::MainFont != nullptr);
+    IM_ASSERT(Ui::Text::SmallFont != nullptr);
+
+
+    // Style
     // Window style
     style.Colors[ImGuiCol_WindowBg] = ImVec4(0.f, 0.f, 0.f, 1.0f);
-    style.Colors[ImGuiCol_TitleBg] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
-    style.Colors[ImGuiCol_TitleBgActive] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
-    style.Colors[ImGuiCol_TitleBgCollapsed] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBg] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBgActive] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
 
     // Button style
     style.Colors[ImGuiCol_Button] = ImVec4(0.f, 0.f, 0.f, 0.0f);
-    style.Colors[ImGuiCol_ButtonHovered] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, Ui::ALPHA_HOVER);
-    style.Colors[ImGuiCol_ButtonActive] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_ButtonHovered] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, Ui::Colour::ALPHA_HOVER);
+    style.Colors[ImGuiCol_ButtonActive] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
 
     // Frame style
-    style.Colors[ImGuiCol_FrameBg] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, Ui::ALPHA_HOVER);
+    style.Colors[ImGuiCol_FrameBg] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, Ui::Colour::ALPHA_HOVER);
     //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.22f, 0.22f, 0.28f, 1.0f);
     //style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.28f, 0.28f, 0.34f, 1.0f);
 
-    // Navication
-    style.Colors[ImGuiCol_NavHighlight] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
+    // Navigation
+    style.Colors[ImGuiCol_NavHighlight] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
         
 
     // Main loop
@@ -191,10 +201,13 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::PushFont(mainFont);
+        ImGui::PushFont(Ui::Text::MainFont);
         ImGui::PopFont();
         
         //ImGui::ShowDemoWindow();
+
+
+
 
         app.RunFrame();
         ImGui::EndFrame();
