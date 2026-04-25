@@ -1,52 +1,6 @@
 {
     "tracks": [
         {
-            "artist": "Bob",
-            "bpm": 174.0,
-            "colour": [
-                135,
-                98,
-                54
-            ],
-            "id": 1,
-            "label": "",
-            "mixIds": [
-                4
-            ],
-            "title": "Man"
-        },
-        {
-            "artist": "Lads",
-            "bpm": 174.0,
-            "colour": [
-                255,
-                14,
-                14
-            ],
-            "id": 2,
-            "label": "CIA",
-            "mixIds": [
-                4
-            ],
-            "title": "Jungle Tune"
-        },
-        {
-            "artist": "A",
-            "bpm": 173.0,
-            "colour": [
-                123,
-                39,
-                39
-            ],
-            "id": 4,
-            "label": "C",
-            "mixIds": [
-                2,
-                1
-            ],
-            "title": "B"
-        },
-        {
             "artist": "John B",
             "bpm": 174.0,
             "colour": [
@@ -60,19 +14,6 @@
             "title": "Up All Night"
         },
         {
-            "artist": "Ross",
-            "bpm": 0.0,
-            "colour": [
-                200,
-                200,
-                200
-            ],
-            "id": 6,
-            "label": "Hat Films",
-            "mixIds": [],
-            "title": "Slowness"
-        },
-        {
             "artist": "Chris.Su",
             "bpm": 174.0,
             "colour": [
@@ -84,6 +25,97 @@
             "label": "Subtitles",
             "mixIds": [],
             "title": "Solaris Theme"
+        },
+        {
+            "artist": "Konflict",
+            "bpm": 180.0,
+            "colour": [
+                200,
+                200,
+                200
+            ],
+            "id": 9,
+            "label": "Renagard Hardware",
+            "mixIds": [],
+            "title": "Messia"
+        },
+        {
+            "artist": "John B",
+            "bpm": 175.0,
+            "colour": [
+                255,
+                195,
+                0
+            ],
+            "id": 11,
+            "label": "Drum & Bass Arena",
+            "mixIds": [],
+            "title": "Sectets"
+        },
+        {
+            "artist": "Matix",
+            "bpm": 0.0,
+            "colour": [
+                117,
+                150,
+                1
+            ],
+            "id": 13,
+            "label": "Prototype",
+            "mixIds": [],
+            "title": "Mute 98"
+        },
+        {
+            "artist": "Half Time",
+            "bpm": 87.0,
+            "colour": [
+                225,
+                124,
+                0
+            ],
+            "id": 18,
+            "label": "Mooch",
+            "mixIds": [],
+            "title": "Hell"
+        },
+        {
+            "artist": "Wes",
+            "bpm": 150.0,
+            "colour": [
+                60,
+                243,
+                7
+            ],
+            "id": 19,
+            "label": "",
+            "mixIds": [],
+            "title": "The Man"
+        },
+        {
+            "artist": "Wes",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 20,
+            "label": "n",
+            "mixIds": [],
+            "title": "The Man"
+        },
+        {
+            "artist": "Cause 4 Concern",
+            "bpm": 173.0,
+            "colour": [
+                255,
+                79,
+                79
+            ],
+            "id": 21,
+            "label": "",
+            "mixIds": [],
+            "title": "Vaperspace"
         }
     ]
 }

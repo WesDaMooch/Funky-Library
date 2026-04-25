@@ -33,6 +33,9 @@ private:
     bool showAddMixWindow = false;
     char mixSearchBuffer[64]{};
 
+    // Remove track window
+    bool showRemoveTrackWindow = false;
+
 
     // TODO: could use uint8,
     // and make static const
@@ -49,16 +52,17 @@ private:
         char artist[64]{};
         char title[64]{};
         char label[64]{};
-        float bpm = 0;
-        ImVec4 colour = Ui::COL_DEFAULT;
+        float bpm = 0.f;
+        ImVec4 colour = Ui::VEC4_DEFAULT;
+
+        LibraryManager::TrackValidationResult result =
+            LibraryManager::TrackValidationResult::None;
     };
 
     InputData addData;
     InputData editData;
 
-    void TrackInputWindow(InputData& data, TrackInputMode mode);
-    void TrackCardTable(const std::vector<Track>& searchLibrary);
-    void TrackInfoCard(int id);
-
-    //void TrackSearchBar??
+    void RemoveTrackWindow(int id);
+    void InputTrackDataWindow(InputData& data, TrackInputMode mode);
+    void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 };

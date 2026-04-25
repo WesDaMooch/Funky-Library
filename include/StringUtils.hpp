@@ -61,6 +61,19 @@ namespace TextUtil
 
 namespace ColourUtil
 {
+
+    inline ImVec4 TintVec4(const ImVec4& c, float tint)
+    {
+        tint = (std::max)(0.f, (std::min)(tint, 1.f));
+
+        return ImVec4(
+            c.x * tint,
+            c.y * tint,
+            c.z * tint,
+            c.w
+        );
+    }
+
     // TODO: clamp input
     inline ImU32 RgbToU32(const std::array<uint8_t, 3>& c, uint8_t alpha = 255)
     {

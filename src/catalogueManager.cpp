@@ -75,13 +75,14 @@ void LibraryManager::refresh()
     load();
 }
 
-bool LibraryManager::addTrack(const Track& newTrack)
+LibraryManager::TrackValidationResult LibraryManager::addTrack(const Track& newTrack)
 {
-    // TODO: Check the data is good
     Track track = newTrack;
 
-    if (!validateTrackData(track))
-        return false;
+    TrackValidationResult result = validateTrackData(track);
+    
+    if (result != TrackValidationResult::Valid)
+        return result;
 
     track.id = lastTrackId++;
     track.mixIds.clear();
@@ -89,16 +90,18 @@ bool LibraryManager::addTrack(const Track& newTrack)
     // TODO: use std::move? catalogue.emplace_back(std::move(t));
     library.emplace_back(track);
     refresh();
-    return true;
+
+    return result;
 }
 
-bool LibraryManager::editTrack(const Track& editedTrack)
-{
-    
+LibraryManager::TrackValidationResult LibraryManager::editTrack(const Track& editedTrack)
+{ 
     Track track = editedTrack;
 
-    if (!validateTrackData(track))
-        return false;
+    TrackValidationResult result = validateTrackData(track);
+
+    if (result != TrackValidationResult::Valid)
+        return result;
     
     auto foundTrack = std::find_if(library.begin(), library.end(),
         [&track](const Track& t)
@@ -107,7 +110,7 @@ bool LibraryManager::editTrack(const Track& editedTrack)
         });
 
     if (foundTrack == library.end())
-        return false;
+        return TrackValidationResult::TrackNotFound;
 
     foundTrack->artist = track.artist;
     foundTrack->title = track.title;
@@ -116,7 +119,8 @@ bool LibraryManager::editTrack(const Track& editedTrack)
     foundTrack->colour = track.colour;
 
     refresh();
-    return true;
+
+    return result;
 }
 
 void LibraryManager::addMix(int trackId, int mixId)
@@ -249,7 +253,7 @@ std::vector<int> LibraryManager::getIdLibrary() const
 }
 
 // Returns a sorted and searched libary
-std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Sort sort)
+std::vector<Track> LibraryManager::searchAndSort(const std::string& search, TrackSort sort)
 {
     // TODO: Add bpm search
 
@@ -293,7 +297,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Sort
     // Sort
     switch (sort)
     {
-    case Sort::Artist:
+    case TrackSort::Artist:
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
@@ -301,7 +305,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Sort
             });
         break;
 
-    case Sort::Title:
+    case TrackSort::Title:
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
@@ -309,7 +313,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Sort
             });
         break;
 
-    case Sort::Label:
+    case TrackSort::Label:
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
@@ -317,7 +321,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Sort
             });
         break;
 
-    case Sort::BPM: 
+    case TrackSort::BPM: 
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
@@ -330,7 +334,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Sort
 }
 
 // TODO: Could return an emum entry like data OK or MISSING_X...
-bool LibraryManager::validateTrackData(Track& track)
+LibraryManager::TrackValidationResult LibraryManager::validateTrackData(Track& track)
 {
     // Remove white spaces.
     track.artist = TextUtil::trim(track.artist);
@@ -338,8 +342,10 @@ bool LibraryManager::validateTrackData(Track& track)
     track.label = TextUtil::trim(track.label);
 
     // Ensure artist and title fields are filled.
-    if (track.artist.empty() || track.title.empty())
-        return false;
+    if (track.artist.empty())
+        return TrackValidationResult::MissingArtist;
+    else if(track.title.empty())
+        return TrackValidationResult::MissingTitle;
 
     // Don't allow duplicate names (case-insensitive).
     std::string artist = TextUtil::toLower(track.artist);
@@ -356,7 +362,7 @@ bool LibraryManager::validateTrackData(Track& track)
             TextUtil::toLower(t.title) == title &&
             TextUtil::toLower(t.label) == label)
         {
-            return false;
+            return TrackValidationResult::DuplicateTrack;
         }
     }
 
@@ -365,5 +371,5 @@ bool LibraryManager::validateTrackData(Track& track)
     // Ensure bpm is not negative.
     track.bpm = std::max(0.f, track.bpm);
     
-    return true;
+    return TrackValidationResult::Valid;
 }

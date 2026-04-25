@@ -6,11 +6,12 @@
 
 namespace Ui
 {
-    //TODO: remove
-    static constexpr ImVec4 COL_DEFAULT = ImVec4(200 / 255.f, 200 / 255.f, 200 / 255.f, 1.f);
-
     // Text & Font
     static constexpr float GLYPH_OFFSET = 4.f;
+
+    extern ImFont* Small;
+    extern ImFont* Main;
+
     static constexpr const char* ICON_ADD       = u8"\uE145";
     static constexpr const char* ICON_REMOVE    = u8"\uE5CD";
     static constexpr const char* ICON_REFRESH   = u8"\uE627";
@@ -20,7 +21,13 @@ namespace Ui
     static constexpr const char* ICON_EDIT      = u8"\uE3C9";
 
     // Colour
-    static constexpr float ALPHA_BG = 0.25f;
+    static constexpr float ALPHA_BG = 0.15f;
     static constexpr float ALPHA_HOVER = 0.5f;
+    
+    static constexpr float TINT_BG = 0.15f;
+    static constexpr float TINT_HOVER = 0.33f;
+    static constexpr float TINT_ACTIVE = 0.75f;
+
     static constexpr std::array<uint8_t, 3> RGB_DEFAULT = { 75, 75, 75 };
+    static constexpr ImVec4 VEC4_DEFAULT = ImVec4(75 / 255.f, 75 / 255.f, 75 / 255.f, 1.f);
 }

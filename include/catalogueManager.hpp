@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+// TODO: rename library manager
+
 using json = nlohmann::json;
 
 struct Track
@@ -29,11 +31,21 @@ void from_json(const json& j, Track& t);
 class LibraryManager
 {
 public:
+    enum TrackValidationResult
+    {
+        None,
+        Valid,
+        MissingArtist,
+        MissingTitle,
+        TrackNotFound,
+        DuplicateTrack
+    };
+
     void load();
     void save() const;
     void refresh();
-    bool addTrack(const Track& newTrack);
-    bool editTrack(const Track& editedTrack);
+    TrackValidationResult addTrack(const Track& newTrack);
+    TrackValidationResult editTrack(const Track& editedTrack);
     void removeTrack(int id);
     void addMix(int trackId, int mixId);
     void removeMix(int trackId, int mixId);
@@ -42,7 +54,7 @@ public:
     const std::vector<Track>& getCatalogueForDisplay() const;
     std::vector<int> getIdLibrary() const;
 
-    enum Sort
+    enum TrackSort
     {
        Artist,
        Title,
@@ -50,13 +62,13 @@ public:
        BPM
     };
 
-    std::vector<Track> searchAndSort(const std::string& search, Sort sort);
+    std::vector<Track> searchAndSort(const std::string& search, TrackSort sort);
 
 protected:
     std::vector<Track> library;
     int lastTrackId = 0;
 
-    bool validateTrackData(Track& t);
+    TrackValidationResult validateTrackData(Track& t);
 };
 
 

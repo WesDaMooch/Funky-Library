@@ -106,8 +106,11 @@ int main(int, char**)
 
     float fontSize = 25.f;
     style.FontSizeBase = fontSize;
+    //Ui::Main = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
+        
     ImFont* mainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
-    
+
+
     // Merge icon font into main font atlas
     ImFontConfig fontConfig;
     fontConfig.MergeMode = true;
@@ -123,9 +126,14 @@ int main(int, char**)
         icon_ranges
     );
 
+    //Ui::Small = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize * 0.5f);
+
     //// Style
     // Window style
     style.Colors[ImGuiCol_WindowBg] = ImVec4(0.f, 0.f, 0.f, 1.0f);
+    style.Colors[ImGuiCol_TitleBg] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBgActive] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
 
     // Button style
     style.Colors[ImGuiCol_Button] = ImVec4(0.f, 0.f, 0.f, 0.0f);
@@ -133,10 +141,13 @@ int main(int, char**)
     style.Colors[ImGuiCol_ButtonActive] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
 
     // Frame style
-
     style.Colors[ImGuiCol_FrameBg] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, Ui::ALPHA_HOVER);
     //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.22f, 0.22f, 0.28f, 1.0f);
     //style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.28f, 0.28f, 0.34f, 1.0f);
+
+    // Navication
+    style.Colors[ImGuiCol_NavHighlight] = ColourUtil::RgbToImVec4(Ui::RGB_DEFAULT, 1.f);
+        
 
     // Main loop
     LibraryManager manager;
