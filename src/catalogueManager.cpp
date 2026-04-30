@@ -12,6 +12,7 @@ void to_json(json& j, const Track& t)
         {"title", t.title},
         {"label", t.label},
         {"bpm", t.bpm},
+        {"rating", t.rating},
         {"colour", t.colour},
         {"mixIds", t.mixIds}
     };
@@ -26,6 +27,7 @@ void from_json(const json& j, Track& t)
         t.title  = j.at("title").get<std::string>();
         t.label  = j.at("label").get<std::string>();
         t.bpm    = j.at("bpm").get<float>();
+        t.rating = j.at("rating").get<int>();
         t.colour = j.at("colour").get<std::array<uint8_t, 3>>();
         t.mixIds = j.value("mixIds", std::vector<int>{});
     }
@@ -116,6 +118,7 @@ LibraryManager::TrackValidationResult LibraryManager::editTrack(const Track& edi
     foundTrack->title = track.title;
     foundTrack->label = track.label;
     foundTrack->bpm = track.bpm;
+    foundTrack->rating = track.rating;
     foundTrack->colour = track.colour;
 
     refresh();
@@ -328,6 +331,14 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
                 return a.bpm < b.bpm;
             });
         break;
+
+    case TrackSort::Rating:
+        std::sort(outputLibrary.begin(), outputLibrary.end(),
+            [](const Track& a, const Track& b)
+            {
+                return a.rating < b.rating;
+            });
+        break;
     }
     
     return outputLibrary;
@@ -352,7 +363,6 @@ LibraryManager::TrackValidationResult LibraryManager::validateTrackData(Track& t
     std::string title = TextUtil::toLower(track.title);
     std::string label = TextUtil::toLower(track.label);
 
-    // TODO: Check if mix ids are legit?
     for (const Track& t : library)
     {
         if (t.id == track.id)
@@ -370,6 +380,9 @@ LibraryManager::TrackValidationResult LibraryManager::validateTrackData(Track& t
 
     // Ensure bpm is not negative.
     track.bpm = std::max(0.f, track.bpm);
+
+    // Encure rating is between 0 & 5.
+    track.rating = std::clamp(track.rating, 0, 10);
     
     return TrackValidationResult::Valid;
 }

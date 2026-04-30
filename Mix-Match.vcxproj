@@ -165,6 +165,7 @@ $(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalInclu
     <ClInclude Include="external\imgui\imstb_truetype.h" />
     <ClInclude Include="external\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="external\json\json.hpp" />
+    <ClInclude Include="fonts\fonts.h" />
     <ClInclude Include="include\catalogueManager.hpp" />
     <ClInclude Include="include\mixMatchApp.hpp" />
     <ClInclude Include="include\StringUtils.hpp" />

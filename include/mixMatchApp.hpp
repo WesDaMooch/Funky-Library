@@ -53,6 +53,7 @@ private:
         char title[64]{};
         char label[64]{};
         float bpm = 0.f;
+        int rating = 0;
         ImVec4 colour = Ui::Colour::VEC4_DEFAULT;
 
         LibraryManager::TrackValidationResult result =
@@ -64,5 +65,9 @@ private:
 
     void RemoveTrackWindow(int id);
     void InputTrackDataWindow(InputData& data, TrackInputMode mode);
+
+    void TrackSearchTable2(const std::vector<Track>& ibrary, float x, float width);
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
+
+    void DrawActiveTrackDisplay(int id);
 };

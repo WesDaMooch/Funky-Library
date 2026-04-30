@@ -20,6 +20,7 @@ struct Track
     std::string title = {};
     std::string label = {};
     float bpm = 0;
+    int rating = 0;
     std::array<uint8_t, 3> colour = Ui::Colour::RGB_DEFAULT;
     std::vector<int> mixIds = {}; 
 
@@ -59,7 +60,8 @@ public:
        Artist,
        Title,
        Label,
-       BPM
+       BPM,
+       Rating
     };
 
     std::vector<Track> searchAndSort(const std::string& search, TrackSort sort);

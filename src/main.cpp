@@ -19,6 +19,7 @@
 #include <d3d11.h>
 #include <tchar.h>
 
+#include "../fonts/fonts.h"
 #include "../include/mixMatchApp.hpp"
 
 // Data
@@ -105,38 +106,42 @@ int main(int, char**)
     MixMatchApp app;
 
     // Setup font
-    float fontSizeBase = 25.f;
+    float fontSizeBase = 30.f;
     style.FontSizeBase = fontSizeBase;
-    Ui::Text::MainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSizeBase); //Bahnschrift.ttf Arial.ttf
 
-    //ImFont* mainFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", fontSize); //Bahnschrift.ttf Arial.ttf
+    // Default font
+    ImFontConfig defaultFontConfig;
+    defaultFontConfig.FontDataOwnedByAtlas = false;
+    defaultFontConfig.MergeMode = false;
+    defaultFontConfig.RasterizerMultiply = 1.1f;
+    defaultFontConfig.OversampleH = 2;
+    defaultFontConfig.OversampleV = 2;
+    Ui::Text::DefaultFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), fontSizeBase, &defaultFontConfig);
 
     // Merge icon font into main font atlas
-    ImFontConfig mainFontConfig;
-    mainFontConfig.MergeMode = true;
-    mainFontConfig.OversampleH = 2.f;
-    mainFontConfig.OversampleV = 2.f;
-    mainFontConfig.PixelSnapH = true;
-    mainFontConfig.GlyphOffset = ImVec2(0.f, Ui::Text::GLYPH_OFFSET);
+    ImFontConfig iconFontConfig;
+    iconFontConfig.FontDataOwnedByAtlas = false;
+    iconFontConfig.MergeMode = true;
+    iconFontConfig.OversampleH = 2;
+    iconFontConfig.OversampleV = 2;
+    iconFontConfig.PixelSnapH = true;
+    iconFontConfig.GlyphOffset = ImVec2(-1.5f, 6.f);//ImVec2(0.f, Ui::Text::GLYPH_OFFSET);
 
     static const ImWchar icon_ranges[] = { 0xE000, 0xF8FF, 0 };
-
-    ImFont* iconFont = io.Fonts->AddFontFromFileTTF(
-        "font/MaterialIcons-Regular.ttf",
-        fontSizeBase,
-        &mainFontConfig,
-        icon_ranges
-    );
-
+    ImFont* iconFont = io.Fonts->AddFontFromMemoryTTF(materialIconsRegular, sizeof(materialIconsRegular), fontSizeBase, &iconFontConfig, icon_ranges);
+    
+    // Small font
     ImFontConfig smallFontConfig;
+    smallFontConfig.FontDataOwnedByAtlas = false;
     smallFontConfig.MergeMode = false;
-    smallFontConfig.OversampleH = 2.f;
-    smallFontConfig.OversampleV = 2.f;
-    Ui::Text::SmallFont = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/Arial.ttf", 15.f, &smallFontConfig);
+    smallFontConfig.OversampleH = 2;
+    smallFontConfig.OversampleV = 2;
+    Ui::Text::SmallFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 15.f, &smallFontConfig);
 
-    IM_ASSERT(Ui::Text::MainFont != nullptr);
+    IM_ASSERT(Ui::Text::DefaultFont != nullptr);
     IM_ASSERT(Ui::Text::SmallFont != nullptr);
-
+    
+    io.Fonts->Build();
 
     // Style
     // Window style
@@ -201,7 +206,7 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::PushFont(Ui::Text::MainFont);
+        ImGui::PushFont(Ui::Text::DefaultFont);
         ImGui::PopFont();
         
         //ImGui::ShowDemoWindow();

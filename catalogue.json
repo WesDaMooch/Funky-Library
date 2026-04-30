@@ -4,91 +4,102 @@
             "artist": "John B",
             "bpm": 174.0,
             "colour": [
-                197,
-                0,
-                0
+                75,
+                75,
+                75
             ],
             "id": 5,
             "label": "MetalHeadz",
-            "mixIds": [],
+            "mixIds": [
+              9,
+              11, 
+              7
+            ],
+            "rating": 0,
             "title": "Up All Night"
         },
         {
             "artist": "Chris.Su",
             "bpm": 174.0,
             "colour": [
-                0,
-                206,
-                255
+                75,
+                75,
+                75
             ],
             "id": 7,
             "label": "Subtitles",
             "mixIds": [],
+            "rating": 0,
             "title": "Solaris Theme"
         },
         {
             "artist": "Konflict",
             "bpm": 180.0,
             "colour": [
-                200,
-                200,
-                200
+                75,
+                75,
+                75
             ],
             "id": 9,
             "label": "Renagard Hardware",
             "mixIds": [],
+            "rating": 0,
             "title": "Messia"
         },
         {
             "artist": "John B",
             "bpm": 175.0,
             "colour": [
-                255,
-                195,
-                0
+                75,
+                75,
+                75
             ],
             "id": 11,
             "label": "Drum & Bass Arena",
             "mixIds": [],
+            "rating": 0,
             "title": "Sectets"
         },
         {
             "artist": "Matix",
             "bpm": 0.0,
             "colour": [
-                117,
-                150,
-                1
+                75,
+                75,
+                75
             ],
             "id": 13,
             "label": "Prototype",
             "mixIds": [],
+            "rating": 0,
             "title": "Mute 98"
         },
         {
             "artist": "Half Time",
             "bpm": 87.0,
             "colour": [
-                225,
-                124,
-                0
+                75,
+                75,
+                75
             ],
             "id": 18,
             "label": "Mooch",
             "mixIds": [],
+            "rating": 0,
             "title": "Hell"
         },
         {
             "artist": "Cause 4 Concern",
             "bpm": 173.0,
             "colour": [
-                255,
-                79,
-                79
+                75,
+                75,
+                75
             ],
             "id": 21,
             "label": "",
             "mixIds": [],
+            "rating": 0,
             "title": "Vaperspace"
         }
     ]

@@ -8,18 +8,21 @@ namespace Ui
 {
     namespace Text
     {
-        inline ImFont* MainFont = nullptr;
+        inline ImFont* DefaultFont = nullptr;
         inline ImFont* SmallFont = nullptr;
 
-        constexpr float GLYPH_OFFSET = 4.f;
+        constexpr float GLYPH_OFFSET = 5.f; // TODO: Remove not used?
 
         constexpr const char* ICON_ADD = u8"\uE145";
-        constexpr const char* ICON_REMOVE = u8"\uE5CD";
+        constexpr const char* ICON_CLOSE = u8"\uE5CD";
+        constexpr const char* ICON_REMOVE = u8"\uE15B"; 
         constexpr const char* ICON_REFRESH = u8"\uE627";
         constexpr const char* ICON_SAVE = u8"\uE161";
         constexpr const char* ICON_DELETE = u8"\uE872";
         constexpr const char* ICON_SEARCH = u8"\uE8B6";
         constexpr const char* ICON_EDIT = u8"\uE3C9";
+        constexpr const char* ICON_STAR = u8"\uF0EC";
+        constexpr const char* ICON_MINIMIZE = u8"\uE931";
     }
 
     namespace Colour
