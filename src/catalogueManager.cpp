@@ -274,13 +274,13 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
     // Search
     if (doSeach)
     {
-        std::vector<std::string> searchWords = TextUtil::split(TextUtil::toLower(search));
+        std::vector<std::string> searchWords = TextUtil::Split(TextUtil::ToLower(search));
 
         for (const Track& t : library)
         {
-            std::string artist = TextUtil::toLower(t.artist);
-            std::string title = TextUtil::toLower(t.title);
-            std::string label = TextUtil::toLower(t.label);
+            std::string artist = TextUtil::ToLower(t.artist);
+            std::string title = TextUtil::ToLower(t.title);
+            std::string label = TextUtil::ToLower(t.label);
 
             bool match = false;
 
@@ -304,7 +304,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
-                return TextUtil::toLower(a.artist) < TextUtil::toLower(b.artist);
+                return TextUtil::ToLower(a.artist) < TextUtil::ToLower(b.artist);
             });
         break;
 
@@ -312,7 +312,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
-                return TextUtil::toLower(a.title) < TextUtil::toLower(b.title);
+                return TextUtil::ToLower(a.title) < TextUtil::ToLower(b.title);
             });
         break;
 
@@ -320,7 +320,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
-                return TextUtil::toLower(a.label) < TextUtil::toLower(b.label);
+                return TextUtil::ToLower(a.label) < TextUtil::ToLower(b.label);
             });
         break;
 
@@ -348,9 +348,9 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
 LibraryManager::TrackValidationResult LibraryManager::validateTrackData(Track& track)
 {
     // Remove white spaces.
-    track.artist = TextUtil::trim(track.artist);
-    track.title = TextUtil::trim(track.title);
-    track.label = TextUtil::trim(track.label);
+    track.artist = TextUtil::Trim(track.artist);
+    track.title = TextUtil::Trim(track.title);
+    track.label = TextUtil::Trim(track.label);
 
     // Ensure artist and title fields are filled.
     if (track.artist.empty())
@@ -359,18 +359,18 @@ LibraryManager::TrackValidationResult LibraryManager::validateTrackData(Track& t
         return TrackValidationResult::MissingTitle;
 
     // Don't allow duplicate names (case-insensitive).
-    std::string artist = TextUtil::toLower(track.artist);
-    std::string title = TextUtil::toLower(track.title);
-    std::string label = TextUtil::toLower(track.label);
+    std::string artist = TextUtil::ToLower(track.artist);
+    std::string title = TextUtil::ToLower(track.title);
+    std::string label = TextUtil::ToLower(track.label);
 
     for (const Track& t : library)
     {
         if (t.id == track.id)
             continue;
 
-        if (TextUtil::toLower(t.artist) == artist &&
-            TextUtil::toLower(t.title) == title &&
-            TextUtil::toLower(t.label) == label)
+        if (TextUtil::ToLower(t.artist) == artist &&
+            TextUtil::ToLower(t.title) == title &&
+            TextUtil::ToLower(t.label) == label)
         {
             return TrackValidationResult::DuplicateTrack;
         }

@@ -786,7 +786,7 @@ void MixMatchApp::TrackSearchTable2(const std::vector<Track>& library, float x, 
             if (!track.label.empty())
                 trackText += " | " + track.label;
 
-            TextUtil::centerJustifyTableText(trackText);
+            TextUtil::CenterJustifyTableText(trackText);
             ImGui::TextUnformatted(trackText.c_str());
             
     
@@ -970,17 +970,17 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
 
             // Artist
             ImGui::TableSetColumnIndex(1);
-            TextUtil::centerJustifyTableText(track.artist);
+            TextUtil::CenterJustifyTableText(track.artist);
             ImGui::TextUnformatted(track.artist.c_str());
 
             // Title
             ImGui::TableSetColumnIndex(2);
-            TextUtil::centerJustifyTableText(track.title);
+            TextUtil::CenterJustifyTableText(track.title);
             ImGui::TextUnformatted(track.title.c_str());
 
             // Label
             ImGui::TableSetColumnIndex(3);
-            TextUtil::centerJustifyTableText(track.label);
+            TextUtil::CenterJustifyTableText(track.label);
             ImGui::TextUnformatted(track.label.c_str());
 
             // BPM Sine
@@ -1020,7 +1020,7 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
             }
 
             ImGui::TableSetColumnIndex(5);
-            TextUtil::centerJustifyTableText(std::to_string(track.rating));
+            TextUtil::CenterJustifyTableText(std::to_string(track.rating));
             ImGui::TextUnformatted(std::to_string(track.rating).c_str());
         }
         ImGui::EndTable();
@@ -1034,22 +1034,22 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
     if (id == -1)
         return;
 
-    const Track* track = manager.getTrackForDisplay(id);
+    const Track* activeTrack = manager.getTrackForDisplay(id);
 
-    if (track == nullptr)
+    if (activeTrack == nullptr)
         return;
 
     // Main display
-    std::string artistAndTitle = track->artist + " - " + track->title;
+    std::string artistAndTitle = activeTrack->artist + " - " + activeTrack->title;
     ImGui::Text(artistAndTitle.c_str());
 
-    if (!track->label.empty())
-        ImGui::Text(track->label.c_str());
+    if (!activeTrack->label.empty())
+        ImGui::Text(activeTrack->label.c_str());
 
-    if (track->bpm > 0.f)
-        ImGui::Text(std::to_string(track->bpm).c_str());
+    if (activeTrack->bpm > 0.f)
+        ImGui::Text(std::to_string(activeTrack->bpm).c_str());
     
-    ImGui::Text(std::to_string(track->rating).c_str());
+    DrawStarRating(activeTrack->rating);
 
     // Mixes with
     ImGui::SeparatorText("Mixes");
@@ -1066,18 +1066,51 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
         const std::vector<Track> mixSearchLibrary =
             manager.searchAndSort(mixSearchBuffer, LibraryManager::TrackSort::Artist);
 
-        for (const Track& mixSearch : mixSearchLibrary)
-        {
-            if (mixSearch.id == activeTrackId)
-                continue;
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_CellPadding,
+            ImVec2(24, 0)
+        );
 
-            std::string mixSearchArtistAndTitle = mixSearch.artist + " - " + mixSearch.title;
-            ImGui::Text(mixSearchArtistAndTitle.c_str());
+        if (ImGui::BeginTable(
+            "TrackTable",
+            3,
+            ImGuiTableFlags_SizingFixedFit)) //|
+            //ImGuiTableFlags_BordersInnerV))
+        {
+            ImGui::TableSetupColumn("Artist & Title", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+            //ImGui::TableSetupColumn("BPM", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Rating", ImGuiTableColumnFlags_WidthStretch);
+
+            for (const Track& mixSearch : mixSearchLibrary)
+            {
+                if (mixSearch.id == activeTrackId)
+                    continue;
+
+                ImGui::TableNextRow();
+
+                // Artist & title
+                ImGui::TableSetColumnIndex(0);
+                std::string artistAndTitle = mixSearch.artist + " - " + mixSearch.title;
+                TextUtil::CenterJustifyTableText(artistAndTitle);
+                ImGui::TextUnformatted(artistAndTitle.c_str());
+
+                // Label
+                ImGui::TableSetColumnIndex(1);
+                TextUtil::CenterJustifyTableText(mixSearch.label);
+                ImGui::TextUnformatted(mixSearch.label.c_str());
+
+                // Rating
+                ImGui::TableSetColumnIndex(2);
+                DrawStarRating(mixSearch.rating);
+            }
+            ImGui::EndTable();
         }
+        ImGui::PopStyleVar(1);
 
     }
     else {
-        for (const int mixId : track->mixIds)
+        for (const int mixId : activeTrack->mixIds)
         {
             const Track* mixTrack = manager.getTrackForDisplay(mixId);
 

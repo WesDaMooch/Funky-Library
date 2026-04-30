@@ -70,4 +70,30 @@ private:
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 
     void DrawActiveTrackDisplay(int id);
+
+    inline void DrawStarRating(int rating)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            if (rating >= 2)
+            {
+                ImGui::Text(Ui::Text::ICON_STAR);
+                rating -= 2;
+            }
+            else if (rating == 1)
+            {
+                ImGui::Text(Ui::Text::ICON_HALFSTAR);
+                rating -= 1;
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(30, 30, 30, 255));
+                ImGui::Text(Ui::Text::ICON_STAR);;
+                ImGui::PopStyleColor(1);
+            }
+
+            if (i < 4)
+                ImGui::SameLine();
+        }
+    }
 };

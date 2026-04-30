@@ -10,7 +10,7 @@
 
 namespace TextUtil
 {
-    inline std::string toLower(std::string s)
+    inline std::string ToLower(std::string s)
     {
         std::transform(
             s.begin(),
@@ -21,7 +21,7 @@ namespace TextUtil
         return s;
     }
 
-    inline std::string trim(const std::string& s)
+    inline std::string Trim(const std::string& s)
     {
         auto start = std::find_if_not(s.begin(), s.end(),
             [](unsigned char ch) { return std::isspace(ch); });
@@ -36,7 +36,7 @@ namespace TextUtil
     }
 
     // TODO: reserve some vector space, most titles and names are a few words long...
-    inline std::vector<std::string> split(const std::string& s)
+    inline std::vector<std::string> Split(const std::string& s)
     {
         std::stringstream ss(s);
         std::vector<std::string> words;
@@ -51,7 +51,7 @@ namespace TextUtil
     }
 
     // Call after TableSetColumnIndex & before Text
-    inline void centerJustifyTableText(const std::string& text)
+    inline void CenterJustifyTableText(const std::string& text)
     {
         float columnWidth = ImGui::GetColumnWidth();
         float textWidth = ImGui::CalcTextSize(text.c_str()).x;

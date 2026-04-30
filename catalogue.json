@@ -11,11 +11,11 @@
             "id": 5,
             "label": "MetalHeadz",
             "mixIds": [
-              9,
-              11, 
-              7
+                9,
+                11,
+                7
             ],
-            "rating": 0,
+            "rating": 5,
             "title": "Up All Night"
         },
         {
@@ -29,7 +29,7 @@
             "id": 7,
             "label": "Subtitles",
             "mixIds": [],
-            "rating": 0,
+            "rating": 2,
             "title": "Solaris Theme"
         },
         {
@@ -43,7 +43,7 @@
             "id": 9,
             "label": "Renagard Hardware",
             "mixIds": [],
-            "rating": 0,
+            "rating": 9,
             "title": "Messia"
         },
         {
@@ -57,7 +57,7 @@
             "id": 11,
             "label": "Drum & Bass Arena",
             "mixIds": [],
-            "rating": 0,
+            "rating": 10,
             "title": "Sectets"
         },
         {
@@ -85,7 +85,7 @@
             "id": 18,
             "label": "Mooch",
             "mixIds": [],
-            "rating": 0,
+            "rating": 1,
             "title": "Hell"
         },
         {
@@ -99,7 +99,7 @@
             "id": 21,
             "label": "",
             "mixIds": [],
-            "rating": 0,
+            "rating": 4,
             "title": "Vaperspace"
         }
     ]

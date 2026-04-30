@@ -21,7 +21,9 @@ namespace Ui
         constexpr const char* ICON_DELETE = u8"\uE872";
         constexpr const char* ICON_SEARCH = u8"\uE8B6";
         constexpr const char* ICON_EDIT = u8"\uE3C9";
-        constexpr const char* ICON_STAR = u8"\uF0EC";
+        constexpr const char* ICON_STAR = u8"\uE838";
+        constexpr const char* ICON_HALFSTAR = u8"\uE839"; 
+        constexpr const char* ICON_STARBORDER = u8"\uE83A";
         constexpr const char* ICON_MINIMIZE = u8"\uE931";
     }
 
