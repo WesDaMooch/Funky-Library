@@ -51,11 +51,12 @@ namespace TextUtil
     }
 
     // Call after TableSetColumnIndex & before Text
-    inline void CenterJustifyTableText(const std::string& text)
+    inline void DrawCenterJustifyTableText(const std::string& text)
     {
         float columnWidth = ImGui::GetColumnWidth();
         float textWidth = ImGui::CalcTextSize(text.c_str()).x;
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (columnWidth - textWidth) * 0.5f);
+        ImGui::TextUnformatted(text.c_str());
     }
 }
 

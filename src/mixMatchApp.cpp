@@ -3,6 +3,43 @@
 MixMatchApp::MixMatchApp()
 {
 	manager.load();
+
+    float centerX = 500.0f;
+    float centerY = 300.0f;
+
+    const auto& tracks = manager.getCatalogueForDisplay();
+
+    trackNodes.reserve(tracks.size());
+
+    for (int i = 0; i < tracks.size(); i++) {
+        const auto& track = tracks[i];
+
+        idToIndex[track.id] = i;
+
+        SpringGraph::Node node;
+
+        node.pos = ImVec2(
+            centerX + (rand() / (float)RAND_MAX - 0.5f) * 200.0f,
+            centerY + (rand() / (float)RAND_MAX - 0.5f) * 200.0f
+        );
+
+        trackNodes.push_back(node);
+    }
+
+    for (const auto& track : tracks) {
+        for (const auto& mix : track.mix) {
+
+            if (track.id < mix.id) {
+
+                auto itA = idToIndex.find(track.id);
+                auto itB = idToIndex.find(mix.id);
+
+                if (itA != idToIndex.end() && itB != idToIndex.end()) {
+                    trackEdges.push_back({ itA->second, itB->second });
+                }
+            }
+        }
+    }
 }
 
 void MixMatchApp::RunFrame()
@@ -49,9 +86,9 @@ void MixMatchApp::RunFrame()
     ImGui::SameLine();
 
     // Refresh libary button
-    if (ImGui::Button(Ui::Text::ICON_REFRESH, mainSearchBarButtonSize))
-        manager.refresh();
-
+    if (ImGui::Button(Ui::Text::ICON_HALFSTAR, mainSearchBarButtonSize))
+        showSpringDiagram = !showSpringDiagram;
+        
     if (mainSearchBuffer[0] != '\0')
         showMainLibary = true;
 
@@ -67,32 +104,68 @@ void MixMatchApp::RunFrame()
 
     ImGui::End();
 
+    if (showSpringDiagram)
+    {
+        // Active track display
+        ImGui::SetNextWindowPos(ImVec2(0, 75));
+        ImGui::SetNextWindowSize(
+            ImVec2(io.DisplaySize.x, io.DisplaySize.y - 75),
+            ImGuiCond_Always
+        );
+        ImGui::Begin("##Spring", &open,
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoCollapse);
 
-    // Active track display
-    ImGui::SetNextWindowPos(ImVec2(0, 75));
-    ImGui::SetNextWindowSize(
-        ImVec2(io.DisplaySize.x, io.DisplaySize.y - 75),
-        ImGuiCond_Always
-    );
-    ImGui::Begin("##Active Track Display", &open,
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoCollapse);
 
-    DrawActiveTrackDisplay(activeTrackId);
+        springGraph.simulate(trackNodes, trackEdges, ImGui::GetIO().DeltaTime);
 
-    ImGui::End();
+        // Draw
+        auto* draw = ImGui::GetWindowDrawList();
 
+        // draw edges
+        for (const auto& e : trackEdges) {
+            const auto& a = trackNodes[e.a];
+            const auto& b = trackNodes[e.b];
+
+            draw->AddLine(a.pos, b.pos, IM_COL32(100, 100, 100, 255));
+        }
+
+        // draw nodes
+        for (const auto& n : trackNodes) {
+            draw->AddCircleFilled(n.pos, 4.0f, IM_COL32(255, 200, 100, 255));
+        }
+
+        ImGui::End();
+
+    }
+    else
+    {
+        // Active track display
+        ImGui::SetNextWindowPos(ImVec2(0, 75));
+        ImGui::SetNextWindowSize(
+            ImVec2(io.DisplaySize.x, io.DisplaySize.y - 75),
+            ImGuiCond_Always
+        );
+        ImGui::Begin("##Active Track Display", &open,
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoCollapse);
+
+        DrawActiveTrackDisplay(activeTrackId);
+
+        ImGui::End();
+    }
 
     // Add new track window
     if (showAddTrackWindow)
         InputTrackDataWindow(addData, TrackInputMode::ADD);
 
     // Edit track window
-    //if (showEditTrackWindow)
-    //    InputTrackDataWindow(editData, TrackInputMode::EDIT);
-
+    if (showEditTrackWindow)
+        InputTrackDataWindow(editData, TrackInputMode::EDIT);
 
     // Remove track window
     if (showRemoveTrackWindow)
@@ -547,25 +620,23 @@ void MixMatchApp::RemoveTrackWindow(int id)
 
 void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
 {
-    bool* open = mode == ADD ? &showAddTrackWindow : &showEditTrackWindow;
+    bool* windowOpen = mode == ADD ? &showAddTrackWindow : &showEditTrackWindow;
     const char* title = mode == ADD ? "Add New Track" : "Edit Track";
 
     // Close edit window if active track changes
     if (mode == EDIT && data.id != activeTrackId)
-        *open = false;
+        *windowOpen = false;
 
     ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(data.colour, Ui::Colour::TINT_BG));
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(data.colour, Ui::Colour::TINT_HOVER));
 
-    //ImGui::SetNextWindowBgAlpha(0.f);
     ImGui::Begin(
         title, 
-        open, 
+        windowOpen, 
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize);
 
-    // Glass
-    //DrawBetterGlass(ImGui::GetCurrentWindow());
+    ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
     if (ImGui::BeginTable("InputTrackTable", 2, ImGuiTableFlags_SizingFixedFit))
     {
@@ -611,7 +682,7 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
         ImGui::TableSetColumnIndex(1);
         ImGui::SetNextItemWidth(fieldWidth);
         ImGui::InputInt("##Rating", &data.rating, 1, 1);
-        data.rating = std::clamp(data.rating, 0, 10);
+        data.rating = std::clamp(data.rating, 0, 5);
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
@@ -660,7 +731,7 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
             {
                 data.result = manager.addTrack(t);
 
-                if (data.result == LibraryManager::TrackValidationResult::Valid)
+                if (data.result == LibraryManager::ValidationResult::ValidTrack)
                 {
                     if (!manager.getCatalogueForDisplay().empty())
                         activeTrackId = manager.getCatalogueForDisplay().back().id;
@@ -673,33 +744,33 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
                 data.result = manager.editTrack(t);
             }
 
-            if (data.result == LibraryManager::TrackValidationResult::Valid)
+            if (data.result == LibraryManager::ValidationResult::ValidTrack)
             {
                 data = {};
-                *open = false;
+                *windowOpen = false;
             }
         }
         ImGui::PopStyleColor(3);
 
         ImGui::TableSetColumnIndex(1);
         if (data.result !=
-            LibraryManager::TrackValidationResult::None ||
-            LibraryManager::TrackValidationResult::Valid)
+            LibraryManager::ValidationResult::None ||
+            LibraryManager::ValidationResult::ValidTrack)
         {
             std::string waringText = "";
 
             switch (data.result)
             {
-            case LibraryManager::TrackValidationResult::MissingArtist:
+            case LibraryManager::ValidationResult::MissingArtist:
                 waringText = "Missing Artist Entry";
                 break;
-            case LibraryManager::TrackValidationResult::MissingTitle:
+            case LibraryManager::ValidationResult::MissingTitle:
                 waringText = "Missing Title Entry";
                 break;
-            case LibraryManager::TrackValidationResult::TrackNotFound:
+            case LibraryManager::ValidationResult::TrackNotFound:
                 waringText = "Track Not In Library";
                 break;
-            case LibraryManager::TrackValidationResult::DuplicateTrack:
+            case LibraryManager::ValidationResult::DuplicateTrack:
                 waringText = "Track Already In Library";
                 break;
             }
@@ -757,8 +828,8 @@ void MixMatchApp::TrackSearchTable2(const std::vector<Track>& library, float x, 
             }
             //ImGui::PopStyleColor(3);
             bool hovered = ImGui::IsItemHovered();
-
             ImGui::SameLine();
+
             /*
             if (hovered)
             {
@@ -786,9 +857,7 @@ void MixMatchApp::TrackSearchTable2(const std::vector<Track>& library, float x, 
             if (!track.label.empty())
                 trackText += " | " + track.label;
 
-            TextUtil::CenterJustifyTableText(trackText);
-            ImGui::TextUnformatted(trackText.c_str());
-            
+            TextUtil::DrawCenterJustifyTableText(trackText);
     
             //ImGui::TableSetColumnIndex(2);
 
@@ -970,17 +1039,17 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
 
             // Artist
             ImGui::TableSetColumnIndex(1);
-            TextUtil::CenterJustifyTableText(track.artist);
+            TextUtil::DrawCenterJustifyTableText(track.artist);
             ImGui::TextUnformatted(track.artist.c_str());
 
             // Title
             ImGui::TableSetColumnIndex(2);
-            TextUtil::CenterJustifyTableText(track.title);
+            TextUtil::DrawCenterJustifyTableText(track.title);
             ImGui::TextUnformatted(track.title.c_str());
 
             // Label
             ImGui::TableSetColumnIndex(3);
-            TextUtil::CenterJustifyTableText(track.label);
+            TextUtil::DrawCenterJustifyTableText(track.label);
             ImGui::TextUnformatted(track.label.c_str());
 
             // BPM Sine
@@ -1020,7 +1089,7 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
             }
 
             ImGui::TableSetColumnIndex(5);
-            TextUtil::CenterJustifyTableText(std::to_string(track.rating));
+            TextUtil::DrawCenterJustifyTableText(std::to_string(track.rating));
             ImGui::TextUnformatted(std::to_string(track.rating).c_str());
         }
         ImGui::EndTable();
@@ -1051,7 +1120,24 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
     
     DrawStarRating(activeTrack->rating);
 
-    // Mixes with
+    // Edit active track button
+    if (ImGui::Button(Ui::Text::ICON_EDIT) && !showEditTrackWindow)
+    {
+        editData = {};
+
+        editData.id = activeTrackId;
+        strcpy_s(editData.artist, activeTrack->artist.c_str());
+        strcpy_s(editData.title, activeTrack->title.c_str());
+        strcpy_s(editData.label, activeTrack->label.c_str());
+        editData.bpm = activeTrack->bpm;
+        editData.rating = activeTrack->rating;
+        editData.colour = ColourUtil::RgbToImVec4(activeTrack->colour);
+
+        showAddTrackWindow = false;
+        showEditTrackWindow = true;
+    }
+
+    // Mixes
     ImGui::SeparatorText("Mixes");
 
     // Add new mix button
@@ -1060,6 +1146,9 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
 
     if (showAddMixWindow)
     {
+        int mixToAddId = -1;
+
+        // Search for new mix to add
         ImGui::SameLine();
         ImGui::InputText("##Mix Search Input", mixSearchBuffer, sizeof(mixSearchBuffer));
 
@@ -1072,10 +1161,9 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
         );
 
         if (ImGui::BeginTable(
-            "TrackTable",
+            "Mix Search Table",
             3,
-            ImGuiTableFlags_SizingFixedFit)) //|
-            //ImGuiTableFlags_BordersInnerV))
+            ImGuiTableFlags_SizingFixedFit))
         {
             ImGui::TableSetupColumn("Artist & Title", ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
@@ -1087,70 +1175,183 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
                 if (mixSearch.id == activeTrackId)
                     continue;
 
+                bool matchingMix = false;
+                for (const Mix& parentTrackMix : activeTrack->mix)
+                {
+                    if (mixSearch.id == parentTrackMix.id)
+                    {
+                        matchingMix = true;
+                        break;
+                    }
+                }
+
+                if (matchingMix)
+                    continue;
+
                 ImGui::TableNextRow();
+
+                // Track Select
+                ImGui::TableSetColumnIndex(0);
+                ImGui::PushID(mixSearch.id);
+                if (ImGui::Selectable(
+                    "##MixSearchTrackSelect",
+                    false,
+                    ImGuiSelectableFlags_SpanAllColumns))
+                {
+                    mixToAddId = mixSearch.id;
+                }
+                ImGui::PopID();
+                ImGui::SameLine();
 
                 // Artist & title
                 ImGui::TableSetColumnIndex(0);
                 std::string artistAndTitle = mixSearch.artist + " - " + mixSearch.title;
-                TextUtil::CenterJustifyTableText(artistAndTitle);
-                ImGui::TextUnformatted(artistAndTitle.c_str());
+                TextUtil::DrawCenterJustifyTableText(artistAndTitle);
 
                 // Label
                 ImGui::TableSetColumnIndex(1);
-                TextUtil::CenterJustifyTableText(mixSearch.label);
-                ImGui::TextUnformatted(mixSearch.label.c_str());
+                TextUtil::DrawCenterJustifyTableText(mixSearch.label);
 
                 // Rating
                 ImGui::TableSetColumnIndex(2);
-                DrawStarRating(mixSearch.rating);
+                ImGui::Text(std::to_string(mixSearch.rating).c_str());
             }
             ImGui::EndTable();
         }
         ImGui::PopStyleVar(1);
 
+        if (mixToAddId > -1)
+        {
+            manager.addMix(mixToAddId, activeTrackId);
+            showAddMixWindow = false;
+        }
     }
     else {
-        for (const int mixId : activeTrack->mixIds)
+        // Display mixes
+        int mixToRemoveId = -1;
+
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_CellPadding,
+            ImVec2(0, 0)
+        );
+
+        if (ImGui::BeginTable(
+            "Mix Display Table",
+            6,
+            ImGuiTableFlags_SizingFixedFit))
         {
-            const Track* mixTrack = manager.getTrackForDisplay(mixId);
+            ImGui::TableSetupColumn("Direction", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
+            ImGui::TableSetupColumn("Mix Rating", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
+            ImGui::TableSetupColumn("Artist & Title", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
+            //ImGui::TableSetupColumn("BPM", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Rating", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Remove", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
 
-            if (mixTrack == nullptr)
-                continue;
+            for (const Mix& mix : activeTrack->mix)
+            {
+                const Track* mixTrack = manager.getTrackForDisplay(mix.id);
 
-            std::string mixArtistAndTitle = mixTrack->artist + " - " + mixTrack->title;
-            ImGui::Text(mixArtistAndTitle.c_str());
+                if (mixTrack == nullptr)
+                    continue;
+
+                std::string rowId = std::to_string(mixTrack->id);
+
+                ImGui::TableNextRow();
+
+                // Track Select
+                ImGui::TableSetColumnIndex(0);
+                ImGui::PushID(mixTrack->id);
+                if (ImGui::Selectable(
+                    "##Mix Display Track Select",
+                    false,
+                    ImGuiSelectableFlags_SpanAllColumns |
+                    ImGuiSelectableFlags_AllowOverlap))
+                {
+                    activeTrackId = mixTrack->id;
+                }
+                ImGui::PopID();
+                ImGui::SameLine();
+
+                // Direction 
+                ImGui::TableSetColumnIndex(0);
+               
+                std::string directionIcon = "";
+
+                switch (mix.direction)
+                {
+                case MixDirection::In:
+                    directionIcon = Ui::Text::ICON_ARROWFORWARD;
+                    break;
+                case MixDirection::Out:
+                    directionIcon = Ui::Text::ICON_ARROWBACK;
+                    break;
+                case MixDirection::InAndOut: 
+                    directionIcon = Ui::Text::ICON_SYNCALT;
+                    break;
+                }
+                // TODO: Draw two icons on top of each other
+                ImGui::PushID(mixTrack->id);
+                if (ImGui::Button(directionIcon.c_str()))
+                {
+                    int direction = static_cast<int>(mix.direction);
+
+                    direction++;
+                    
+                    if (direction >= static_cast<int>(MixDirection::NumDirections))
+                        direction = 0;
+
+                    Mix editedMix = mix;
+                    editedMix.direction = static_cast<MixDirection>(direction);
+
+                    manager.editMix(editedMix, activeTrackId);
+                }
+                ImGui::PopID();
+
+                // Mix rating
+                ImGui::TableSetColumnIndex(1);
+                int rating = mix.rating;
+                if (ImGui::DragInt(("##Mix Rating" + rowId).c_str(), &rating, 0.25f, 0, 5))
+                {
+                    Mix editedMix = mix;
+                    editedMix.rating = rating;
+                    manager.editMix(editedMix, activeTrackId);
+                }
+
+
+                // Artist & title
+                ImGui::TableSetColumnIndex(2);
+                std::string artistAndTitle = mixTrack->artist + " - " + mixTrack->title;
+                TextUtil::DrawCenterJustifyTableText(artistAndTitle);
+
+                // Label
+                ImGui::TableSetColumnIndex(3);
+                TextUtil::DrawCenterJustifyTableText(mixTrack->label);
+
+                // Rating
+                ImGui::TableSetColumnIndex(4);
+                ImGui::Text(std::to_string(mixTrack->rating).c_str());
+
+                // Remove
+                ImGui::TableSetColumnIndex(5);
+                ImGui::PushID(mixTrack->id);
+                if (ImGui::Button(Ui::Text::ICON_CLOSE))
+                {
+                    mixToRemoveId = mix.id;
+                    
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndTable();
         }
+        ImGui::PopStyleVar(1);
+
+        if (mixToRemoveId > -1)
+            manager.removeMix(activeTrackId, mixToRemoveId);
     }
-
-
-
-
-    /*
-    if (ImGui::BeginTable(
-        "Mix Table",
-        1))    //ImVec2(width, 0))
-    {
-
-        ImGui::TableSetupColumn("Mix Name");
-
-        for (const int mixId : track->mixIds)
-        {
-            const Track* mixTrack = manager.getTrackForDisplay(mixId);
-
-            if (mixTrack == nullptr)
-                continue;
-
-            ImGui::TableNextRow();
-
-            std::string mixArtistAndTitle = mixTrack->artist + " - " + mixTrack->title;
-            ImGui::Text(mixArtistAndTitle.c_str());
-
-        }
-        ImGui::EndTable();
-    }
-    */
 
     // Theads
 
     // Sets
 }
+

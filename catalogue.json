@@ -2,20 +2,32 @@
     "tracks": [
         {
             "artist": "John B",
-            "bpm": 174.0,
+            "bpm": 172.0,
             "colour": [
-                75,
-                75,
-                75
+                178,
+                9,
+                9
             ],
             "id": 5,
             "label": "MetalHeadz",
-            "mixIds": [
-                9,
-                11,
-                7
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "rating": 3
+                },
+                {
+                    "direction": 2,
+                    "id": 18,
+                    "rating": 0
+                },
+                {
+                    "direction": 0,
+                    "id": 11,
+                    "rating": 4
+                }
             ],
-            "rating": 5,
+            "rating": 4,
             "title": "Up All Night"
         },
         {
@@ -28,7 +40,23 @@
             ],
             "id": 7,
             "label": "Subtitles",
-            "mixIds": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 5,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "rating": 3
+                },
+                {
+                    "direction": 1,
+                    "id": 11,
+                    "rating": 2
+                }
+            ],
             "rating": 2,
             "title": "Solaris Theme"
         },
@@ -42,8 +70,8 @@
             ],
             "id": 9,
             "label": "Renagard Hardware",
-            "mixIds": [],
-            "rating": 9,
+            "mix": [],
+            "rating": 0,
             "title": "Messia"
         },
         {
@@ -56,8 +84,24 @@
             ],
             "id": 11,
             "label": "Drum & Bass Arena",
-            "mixIds": [],
-            "rating": 10,
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 7,
+                    "rating": 2
+                },
+                {
+                    "direction": 1,
+                    "id": 5,
+                    "rating": 4
+                },
+                {
+                    "direction": 2,
+                    "id": 13,
+                    "rating": 0
+                }
+            ],
+            "rating": 5,
             "title": "Sectets"
         },
         {
@@ -70,8 +114,14 @@
             ],
             "id": 13,
             "label": "Prototype",
-            "mixIds": [],
-            "rating": 0,
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 11,
+                    "rating": 0
+                }
+            ],
+            "rating": 3,
             "title": "Mute 98"
         },
         {
@@ -84,7 +134,13 @@
             ],
             "id": 18,
             "label": "Mooch",
-            "mixIds": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 5,
+                    "rating": 0
+                }
+            ],
             "rating": 1,
             "title": "Hell"
         },
@@ -97,8 +153,14 @@
                 75
             ],
             "id": 21,
-            "label": "",
-            "mixIds": [],
+            "label": "Metro",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "rating": 2
+                }
+            ],
             "rating": 4,
             "title": "Vaperspace"
         }

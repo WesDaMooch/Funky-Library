@@ -4,6 +4,25 @@
 
 
 // ADL serialization
+void to_json(json& j, const Mix& m)
+{
+    j = {
+        {"id", m.id},
+        {"direction", static_cast<int>(m.direction)},
+        {"rating", m.rating}
+    };
+}
+
+void from_json(const json& j, Mix& m)
+{
+    m.id = j.at("id").get<int>();
+
+    int Jdirection = j.value("direction", static_cast<int>(InAndOut));
+    m.direction = static_cast<MixDirection>(Jdirection);
+
+    m.rating = j.value("rating", 0);
+}
+
 void to_json(json& j, const Track& t)
 {
     j = {
@@ -14,10 +33,12 @@ void to_json(json& j, const Track& t)
         {"bpm", t.bpm},
         {"rating", t.rating},
         {"colour", t.colour},
-        {"mixIds", t.mixIds}
+        //{"mixIds", t.mixIds}
+        {"mix", t.mix}
     };
 }
 
+// TODO: Use value for all but id, artist and title
 void from_json(const json& j, Track& t)
 {
     try
@@ -29,7 +50,8 @@ void from_json(const json& j, Track& t)
         t.bpm    = j.at("bpm").get<float>();
         t.rating = j.at("rating").get<int>();
         t.colour = j.at("colour").get<std::array<uint8_t, 3>>();
-        t.mixIds = j.value("mixIds", std::vector<int>{});
+        //t.mixIds = j.value("mixIds", std::vector<int>{});
+        t.mix = j.value("mix", std::vector<Mix>{});
     }
     catch (const std::exception& e)
     {
@@ -77,17 +99,18 @@ void LibraryManager::refresh()
     load();
 }
 
-LibraryManager::TrackValidationResult LibraryManager::addTrack(const Track& newTrack)
+LibraryManager::ValidationResult LibraryManager::addTrack(const Track& newTrack)
 {
     Track track = newTrack;
 
-    TrackValidationResult result = validateTrackData(track);
+    ValidationResult result = ValidateTrack(track);
     
-    if (result != TrackValidationResult::Valid)
+    if (result != ValidationResult::ValidTrack)
         return result;
 
     track.id = lastTrackId++;
-    track.mixIds.clear();
+    //track.mixIds.clear();
+    track.mix.clear();
 
     // TODO: use std::move? catalogue.emplace_back(std::move(t));
     library.emplace_back(track);
@@ -96,15 +119,32 @@ LibraryManager::TrackValidationResult LibraryManager::addTrack(const Track& newT
     return result;
 }
 
-LibraryManager::TrackValidationResult LibraryManager::editTrack(const Track& editedTrack)
+LibraryManager::ValidationResult LibraryManager::editTrack(const Track& editedTrack)
 { 
+    // TODO: could just use a non const edited track?
     Track track = editedTrack;
 
-    TrackValidationResult result = validateTrackData(track);
+    ValidationResult result = ValidateTrack(track);
 
-    if (result != TrackValidationResult::Valid)
+    if (result != ValidationResult::ValidTrack)
         return result;
     
+    Track* foundTrack = getTrack(editedTrack.id);
+
+    if (foundTrack == nullptr)
+        return ValidationResult::TrackNotFound;
+
+    foundTrack->artist = track.artist;
+    foundTrack->title = track.title;
+    foundTrack->label = track.label;
+    foundTrack->bpm = track.bpm;
+    foundTrack->rating = track.rating;
+    foundTrack->colour = track.colour;
+    
+    save();
+    return result;
+
+    /*
     auto foundTrack = std::find_if(library.begin(), library.end(),
         [&track](const Track& t)
         {
@@ -120,67 +160,211 @@ LibraryManager::TrackValidationResult LibraryManager::editTrack(const Track& edi
     foundTrack->bpm = track.bpm;
     foundTrack->rating = track.rating;
     foundTrack->colour = track.colour;
+    foundTrack->mix = track.mix;
 
     refresh();
-
     return result;
+    */
 }
 
-void LibraryManager::addMix(int trackId, int mixId)
+void LibraryManager::addMix(int mixId, int parentTrackId)
 {
-    if (trackId == mixId)
+    if (mixId == parentTrackId)
+        return;
+
+    Track* parentTrack = getTrack(parentTrackId);
+    Track* childTrack = getTrack(mixId);
+
+    if ((parentTrack == nullptr) || (childTrack == nullptr))
+        return;
+
+    bool changed = false;
+
+    // Add child track to parent mix list
+    bool parentFound = false;
+    for (const Mix& m : parentTrack->mix)
+    {
+        if (m.id == mixId)
+        {
+            parentFound = true;
+            break;
+        }
+    }
+
+    if (!parentFound)
+    {
+        parentTrack->mix.emplace_back(Mix{ mixId, MixDirection::InAndOut, 0 });
+        changed = true;
+    }
+
+    // Add parent track to child mix list
+    bool childFound = false;
+    for (const Mix& m : childTrack->mix)
+    {
+        if (m.id == parentTrackId)
+        {
+            childFound = true;
+            break;
+        }
+    }
+
+    if (!childFound)
+    {
+        childTrack->mix.emplace_back(Mix{ parentTrackId, MixDirection::InAndOut, 0 });
+        changed = true;
+    }
+
+    if (changed)
+        save();
+
+    /*
+    Mix mix{};
+    mix.id = mixId;
+
+    ValidationResult result = ValidateMix(mix, parentTrackId);
+
+    if (result != ValidationResult::ValidMix)
         return;
 
     bool trackFound = false;
     bool mixFound = false;
 
-    for (Track& track : library)
+    for (Track& t : library)
     {
-        if (track.id == trackId)
+        if ((parentTrackId == t.id) && 
+            (mix.direction == MixDirection::Out || mix.direction == MixDirection::InAndOut))
         {
-            if (std::find(track.mixIds.begin(),
-                track.mixIds.end(),
-                mixId) == track.mixIds.end())
+            auto found = std::find_if(
+                t.mix.begin(),
+                t.mix.end(),
+                [&](const Mix& m)
+                {
+                    return m.id == mix.id;
+                });
+
+            if (found == t.mix.end())
             {
-                track.mixIds.emplace_back(mixId);
+                t.mix.emplace_back(mix);
             }
 
             trackFound = true;
         }
 
-        if (track.id == mixId)
+        if ((mix.id == t.id) && 
+            (mix.direction == MixDirection::In || mix.direction == MixDirection::InAndOut))
         {
-            if (std::find(track.mixIds.begin(),
-                track.mixIds.end(),
-                trackId) == track.mixIds.end())
+            auto found = std::find_if(
+                t.mix.begin(),
+                t.mix.end(),
+                [&](const Mix& m)
+                {
+                    return m.id == parentTrackId;
+                });
+
+            if (found == t.mix.end())
             {
-                track.mixIds.emplace_back(trackId);
+                t.mix.emplace_back(Mix{ parentTrackId, InvertMixDirection(mix.direction), mix.rating });
             }
 
             mixFound = true;
         }
 
-        if (trackFound && mixFound)
+        if ((trackFound || mix.direction == MixDirection::In) &&
+            (mixFound || mix.direction == MixDirection::Out))
+        {
             break;
+        }
     }
 
-    if (trackFound && mixFound)
-        refresh();
+    if (trackFound || mixFound)
+        save();
+        */
+}
+
+
+void LibraryManager::editMix(Mix mix, int parentTrackId)
+{
+    ValidationResult result = ValidateMix(mix, parentTrackId);
+
+    if (result != ValidationResult::ValidMix)
+        return;
+
+    Track* parentTrack = getTrack(parentTrackId);
+    Track* childTrack = getTrack(mix.id);
+
+    if ((parentTrack == nullptr) || (childTrack == nullptr))
+        return;
+
+    bool changed = false;
+
+    // Edit parent track mix 
+    bool parentFound = false;
+    for (Mix& m : parentTrack->mix)
+    {
+        if (m.id == mix.id)
+        {
+            m.direction = mix.direction;
+            m.rating = mix.rating;
+            parentFound = true;
+            changed = true;
+            break;
+        }
+    }
+
+    if (!parentFound)
+    {
+        parentTrack->mix.emplace_back(mix);
+        changed = true;
+    }
+
+    // Edit child track mix
+    bool childFound = false;
+    for (Mix& m : childTrack->mix)
+    {
+        if (m.id == parentTrackId)
+        {
+            m.direction = InvertMixDirection(mix.direction);
+
+            if (mix.direction != MixDirection::InAndOut)
+                m.rating = mix.rating;
+
+            childFound = true;
+            changed = true;
+            break;
+        }
+    }
+
+    if (!childFound)
+    {
+        childTrack->mix.emplace_back(Mix{ parentTrackId, InvertMixDirection(mix.direction), 0 });
+        changed = true;
+    }
+
+    if (changed)
+        save();
 }
 
 void LibraryManager::removeTrack(int id)
 {
-    // Remove any refernce of id
+    // Remove any refernce of ID.
     for (Track& track : library)
     {
-        track.mixIds.erase(
-            std::remove(track.mixIds.begin(),
-                track.mixIds.end(),
-                id),
-            track.mixIds.end()
+        if (track.id == id)
+            continue;
+
+        track.mix.erase(
+            std::remove_if(
+                track.mix.begin(),
+                track.mix.end(),
+                [&](const Mix& m)
+                {
+                    return m.id == id;
+                }),
+            track.mix.end()
         );
     }
-    // Remove
+
+    // Remove track.
     library.erase(
         std::remove_if(library.begin(), library.end(),
             [&](const Track& track)
@@ -194,8 +378,22 @@ void LibraryManager::removeTrack(int id)
 
 void LibraryManager::removeMix(int trackId, int mixId)
 {
-    if (trackId == mixId)
+   if (trackId == mixId)
         return;
+
+    auto removeMixFromTrack = [](Track& track, int idToRemove)
+    {
+        track.mix.erase(
+            std::remove_if(
+                track.mix.begin(),
+                track.mix.end(),
+                [&](const Mix& m)
+                {
+                    return m.id == idToRemove;
+                }),
+            track.mix.end()
+        );
+    };
 
     bool trackFound = false;
     bool mixFound = false;
@@ -204,19 +402,13 @@ void LibraryManager::removeMix(int trackId, int mixId)
     {
         if (track.id == trackId)
         {
-            track.mixIds.erase(
-                std::remove(track.mixIds.begin(), track.mixIds.end(), mixId),
-                track.mixIds.end());
-
+            removeMixFromTrack(track, mixId);
             trackFound = true;
         }
 
         if (track.id == mixId)
         {
-            track.mixIds.erase(
-                std::remove(track.mixIds.begin(), track.mixIds.end(), trackId),
-                track.mixIds.end());
-
+            removeMixFromTrack(track, trackId);
             mixFound = true;
         }
 
@@ -231,6 +423,18 @@ void LibraryManager::removeMix(int trackId, int mixId)
 const Track* LibraryManager::getTrackForDisplay(int id)
 {
     for (const Track& t : library)
+    {
+        if (t.id == id)
+            return &t;
+    }
+
+    return nullptr;
+}
+
+Track* LibraryManager::getTrack(int id)
+{
+    // TODO: Use find or find_if?
+    for (Track& t : library)
     {
         if (t.id == id)
             return &t;
@@ -254,6 +458,7 @@ std::vector<int> LibraryManager::getIdLibrary() const
 
     return idLibrary;
 }
+
 
 // Returns a sorted and searched libary
 std::vector<Track> LibraryManager::searchAndSort(const std::string& search, TrackSort sort)
@@ -344,19 +549,51 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
     return outputLibrary;
 }
 
-// TODO: Could return an emum entry like data OK or MISSING_X...
-LibraryManager::TrackValidationResult LibraryManager::validateTrackData(Track& track)
+
+LibraryManager::ValidationResult LibraryManager::ValidateMix(Mix& m, int parentTrackId)
 {
-    // Remove white spaces.
+    // Mix ID is the same as the parent track.
+    if (m.id == parentTrackId)
+        return ValidationResult::InvalidMix;
+
+    // No track found with given mix ID.
+    bool matchingTrackFound = false;
+
+    for (const Track& t : library)
+    {
+        if (m.id == t.id)
+        {
+            matchingTrackFound = true;
+            break;
+        }
+    }
+
+    if (!matchingTrackFound)
+        return ValidationResult::InvalidMix;
+
+    // Ensure direction.
+    int direction = std::clamp(static_cast<int>(m.direction), 0, static_cast<int>(MixDirection::NumDirections) - 1);
+    m.direction = static_cast<MixDirection>(direction);
+
+    // Ensure rating is between 0 & 5.
+    m.rating = std::clamp(m.rating, 0, 5);
+
+    return ValidationResult::ValidMix;
+}
+
+
+LibraryManager::ValidationResult LibraryManager::ValidateTrack(Track& track)
+{
+    // Remove white spaces from text.
     track.artist = TextUtil::Trim(track.artist);
     track.title = TextUtil::Trim(track.title);
     track.label = TextUtil::Trim(track.label);
 
     // Ensure artist and title fields are filled.
     if (track.artist.empty())
-        return TrackValidationResult::MissingArtist;
+        return ValidationResult::MissingArtist;
     else if(track.title.empty())
-        return TrackValidationResult::MissingTitle;
+        return ValidationResult::MissingTitle;
 
     // Don't allow duplicate names (case-insensitive).
     std::string artist = TextUtil::ToLower(track.artist);
@@ -372,17 +609,29 @@ LibraryManager::TrackValidationResult LibraryManager::validateTrackData(Track& t
             TextUtil::ToLower(t.title) == title &&
             TextUtil::ToLower(t.label) == label)
         {
-            return TrackValidationResult::DuplicateTrack;
+            return ValidationResult::DuplicateTrack;
         }
     }
-
-    // TODO: Validate mixIds?
 
     // Ensure bpm is not negative.
     track.bpm = std::max(0.f, track.bpm);
 
-    // Encure rating is between 0 & 5.
-    track.rating = std::clamp(track.rating, 0, 10);
+    // Ensure rating is between 0 & 5.
+    track.rating = std::clamp(track.rating, 0, 5);
+
+    // Validate mix.
+    std::unordered_set<int> uniqueMixIds;
+    for (Mix& mix : track.mix)
+    { 
+        // Duplicate mix
+        if (!uniqueMixIds.insert(mix.id).second)
+            return ValidationResult::InvalidMix;
+
+        ValidationResult mixValidationResult = ValidateMix(mix, track.id);
+
+        if (mixValidationResult != ValidationResult::ValidMix)
+            return mixValidationResult;
+    }
     
-    return TrackValidationResult::Valid;
+    return ValidationResult::ValidTrack;
 }

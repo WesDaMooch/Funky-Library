@@ -60,6 +60,9 @@
     <ClInclude Include="fonts\fonts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\springGraph.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="external\imgui\imgui.cpp">
@@ -93,6 +96,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\mixMatchApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\springGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

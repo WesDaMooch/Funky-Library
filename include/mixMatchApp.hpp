@@ -2,9 +2,11 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
+
 #include "UiConstants.hpp"
 #include "StringUtils.hpp"
 #include "catalogueManager.hpp"
+#include "springGraph.hpp"
 
 #include <array>
 
@@ -18,12 +20,20 @@ private:
 	LibraryManager manager;
     int activeTrackId = -1;
 
+    SpringGraph springGraph;
+    std::vector<SpringGraph::Node> trackNodes;
+    std::vector<SpringGraph::Edge> trackEdges;
+    std::unordered_map<int, int> idToIndex;
+
     bool open = true;
 
     // Main search bar and result window
     LibraryManager::TrackSort mainSearchSort = LibraryManager::TrackSort::Artist;
     char mainSearchBuffer[64]{};
     bool showMainLibary = false;
+
+    // 
+    bool showSpringDiagram = false;
 
     // Add new track window
     bool showAddTrackWindow = false;
@@ -56,15 +66,18 @@ private:
         int rating = 0;
         ImVec4 colour = Ui::Colour::VEC4_DEFAULT;
 
-        LibraryManager::TrackValidationResult result =
-            LibraryManager::TrackValidationResult::None;
+        LibraryManager::ValidationResult result =
+            LibraryManager::ValidationResult::None;
     };
 
     InputData addData;
     InputData editData;
 
-    void RemoveTrackWindow(int id);
+
+
+
     void InputTrackDataWindow(InputData& data, TrackInputMode mode);
+    void RemoveTrackWindow(int id); // TODO pass track
 
     void TrackSearchTable2(const std::vector<Track>& ibrary, float x, float width);
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
@@ -75,21 +88,15 @@ private:
     {
         for (int i = 0; i < 5; i++)
         {
-            if (rating >= 2)
+            if (i < rating)
             {
                 ImGui::Text(Ui::Text::ICON_STAR);
-                rating -= 2;
-            }
-            else if (rating == 1)
-            {
-                ImGui::Text(Ui::Text::ICON_HALFSTAR);
-                rating -= 1;
             }
             else
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(30, 30, 30, 255));
-                ImGui::Text(Ui::Text::ICON_STAR);;
-                ImGui::PopStyleColor(1);
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(80, 80, 80, 255));
+                ImGui::Text(Ui::Text::ICON_STAR);
+                ImGui::PopStyleColor();
             }
 
             if (i < 4)

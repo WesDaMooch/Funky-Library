@@ -25,6 +25,9 @@ namespace Ui
         constexpr const char* ICON_HALFSTAR = u8"\uE839"; 
         constexpr const char* ICON_STARBORDER = u8"\uE83A";
         constexpr const char* ICON_MINIMIZE = u8"\uE931";
+        constexpr const char* ICON_ARROWBACK = u8"\uE5C4"; 
+        constexpr const char* ICON_ARROWFORWARD = u8"\uE5C8";
+        constexpr const char* ICON_SYNCALT = u8"\uEA18"; 
     }
 
     namespace Colour
