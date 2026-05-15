@@ -46,8 +46,9 @@ void MixMatchApp::RunFrame()
     if (ImGui::Button(Ui::Text::ICON_ADD, mainSearchBarButtonSize) && !showAddTrackWindow)
     {
         addData = {};
-        showEditTrackWindow = false;
-        showAddTrackWindow = true;
+        activePopupWindow = ActivePopupWindow::AddTrack;
+        //showEditTrackWindow = false;
+        //showAddTrackWindow = true;
     }
 
     ImGui::SameLine();
@@ -133,6 +134,29 @@ void MixMatchApp::RunFrame()
         ImGui::End();
     }
 
+
+    switch (activePopupWindow)
+    {
+    case ActivePopupWindow::None:
+        break;
+    case ActivePopupWindow::AddTrack:
+        InputTrackDataWindow(addData, TrackInputMode::ADD);
+        break;
+    case ActivePopupWindow::EditTrack:
+        InputTrackDataWindow(editData, TrackInputMode::EDIT);
+        break;
+    case ActivePopupWindow::DeleteTrack:
+        DeleteConformationWindow(deleteTrackData, DeleteConformationMode::TRACK);
+        break;
+    case ActivePopupWindow::AddMix: // not a thing
+        break;
+    case ActivePopupWindow::DeleteMix:
+        DeleteConformationWindow(deleteMixData, DeleteConformationMode::MIX);
+        break;
+    default: break;
+    }
+
+    /*
     if (showAddTrackWindow)
         InputTrackDataWindow(addData, TrackInputMode::ADD);
 
@@ -144,19 +168,25 @@ void MixMatchApp::RunFrame()
     
     if (showDeleteMixWindow)
         DeleteConformationWindow(deleteMixData, DeleteConformationMode::MIX);
+    */
 }
 
 
 void MixMatchApp::DeleteConformationWindow(DeleteData& data, MixMatchApp::DeleteConformationMode mode)
 {
-    bool* windowOpen = mode == DeleteConformationMode::TRACK ? &showDeleteTrackWindow : &showDeleteMixWindow;
+    bool windowOpen = 
+        (mode == DeleteConformationMode::TRACK && activePopupWindow == ActivePopupWindow::DeleteTrack) ||
+        (mode == DeleteConformationMode::MIX && activePopupWindow == ActivePopupWindow::DeleteMix);
+
     const char* title = mode == DeleteConformationMode::TRACK ? "Permanently Delete Track" : " Permanently Remove Mix";
 
     // Close delete window if active track changes
     if (data.trackId != activeTrackId)
-        *windowOpen = false;
+        windowOpen = false;
 
-    ImGui::Begin(title, windowOpen, ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin(title, &windowOpen, ImGuiWindowFlags_NoCollapse);
+
+    ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
     ImGui::Text("Are you sure?");
 
@@ -172,33 +202,39 @@ void MixMatchApp::DeleteConformationWindow(DeleteData& data, MixMatchApp::Delete
             break;
         }
 
-        *windowOpen = false;
+        activePopupWindow = ActivePopupWindow::None;
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("No"))
-        *windowOpen = false;
+        activePopupWindow = ActivePopupWindow::None;
 
     ImGui::End();
+
+    if (!windowOpen)
+        activePopupWindow = ActivePopupWindow::None;
 }
 
 
 void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
 {
-    bool* windowOpen = mode == ADD ? &showAddTrackWindow : &showEditTrackWindow;
-    const char* title = mode == ADD ? "Add New Track" : "Edit Track";
+    bool windowOpen =
+        (mode == TrackInputMode::ADD && activePopupWindow == ActivePopupWindow::AddTrack) ||
+        (mode == TrackInputMode::EDIT && activePopupWindow == ActivePopupWindow::EditTrack);
+
+    const char* title = mode == TrackInputMode::ADD ? "Add New Track" : "Edit Track";
 
     // Close edit window if active track changes
-    if (mode == EDIT && data.id != activeTrackId)
-        *windowOpen = false;
+    if (mode == TrackInputMode::EDIT && data.id != activeTrackId)
+        windowOpen = false;
 
     ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(data.colour, Ui::Colour::TINT_BG));
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(data.colour, Ui::Colour::TINT_HOVER));
 
     ImGui::Begin(
         title, 
-        windowOpen, 
+        &windowOpen, 
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize);
 
@@ -313,7 +349,7 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
             if (data.result == LibraryManager::ValidationResult::ValidTrack)
             {
                 data = {};
-                *windowOpen = false;
+                activePopupWindow = ActivePopupWindow::None;
             }
         }
         ImGui::PopStyleColor(3);
@@ -351,7 +387,11 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
 
     ImGui::PopStyleColor(2);
     ImGui::End();
+
+    if (!windowOpen)
+        activePopupWindow = ActivePopupWindow::None;
 }
+
 
 void MixMatchApp::TrackSearchTable2(const std::vector<Track>& library, float x, float width)
 {
@@ -699,8 +739,10 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
         editData.rating = activeTrack->rating;
         editData.colour = ColourUtil::RgbToImVec4(activeTrack->colour);
 
-        showAddTrackWindow = false;
-        showEditTrackWindow = true;
+        activePopupWindow = ActivePopupWindow::EditTrack;
+
+        //showAddTrackWindow = false;
+        //showEditTrackWindow = true;
     }
 
     // Remove active track button
@@ -708,7 +750,9 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
     {
         deleteTrackData.trackId = activeTrackId;
         deleteTrackData.mixId = -1;
-        showDeleteTrackWindow = true;
+
+        activePopupWindow = ActivePopupWindow::DeleteTrack;
+        //showDeleteTrackWindow = true;
     }
 
     // Mixes //
@@ -802,7 +846,6 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
     }
     else {
         // Display Mixes //
-
         ImGui::PushStyleVar(
             ImGuiStyleVar_CellPadding,
             ImVec2(0, 0)
@@ -911,7 +954,9 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
                 {
                     deleteMixData.trackId = activeTrackId;
                     deleteMixData.mixId = mix.id;
-                    showDeleteMixWindow = true;                    
+
+                    activePopupWindow = ActivePopupWindow::DeleteMix;
+                    //showDeleteMixWindow = true;                    
                 }
                 ImGui::PopID();
             }

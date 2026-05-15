@@ -127,11 +127,6 @@
             "mix": [
                 {
                     "direction": 2,
-                    "id": 21,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
                     "id": 5,
                     "rating": 0
                 }
@@ -154,11 +149,6 @@
                     "direction": 0,
                     "id": 7,
                     "rating": 2
-                },
-                {
-                    "direction": 2,
-                    "id": 18,
-                    "rating": 0
                 }
             ],
             "rating": 4,

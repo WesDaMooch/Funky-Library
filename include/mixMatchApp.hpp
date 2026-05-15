@@ -46,6 +46,19 @@ private:
 
     char mixSearchBuffer[64]{};
 
+
+    enum ActivePopupWindow
+    {
+        None,
+        AddTrack,
+        EditTrack,
+        DeleteTrack,
+        AddMix,
+        DeleteMix
+    };
+
+    ActivePopupWindow activePopupWindow = ActivePopupWindow::None;
+
     // Input Data Window //
     enum TrackInputMode { 
         ADD, 
@@ -89,6 +102,8 @@ private:
 
     void DeleteConformationWindow(DeleteData& data, DeleteConformationMode mode);
     
+
+
     void TrackSearchTable2(const std::vector<Track>& ibrary, float x, float width);
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 
