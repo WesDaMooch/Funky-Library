@@ -174,21 +174,52 @@ void MixMatchApp::RunFrame()
 
 void MixMatchApp::DeleteConformationWindow(DeleteData& data, MixMatchApp::DeleteConformationMode mode)
 {
+    // TODO: Spawn window in center of the screen
     bool windowOpen = 
         (mode == DeleteConformationMode::TRACK && activePopupWindow == ActivePopupWindow::DeleteTrack) ||
         (mode == DeleteConformationMode::MIX && activePopupWindow == ActivePopupWindow::DeleteMix);
 
-    const char* title = mode == DeleteConformationMode::TRACK ? "Permanently Delete Track" : " Permanently Remove Mix";
-
-    // Close delete window if active track changes
+    // Close window if active track changes
     if (data.trackId != activeTrackId)
         windowOpen = false;
 
-    ImGui::Begin(title, &windowOpen, ImGuiWindowFlags_NoCollapse);
+    const char* title = data.label.c_str();
+
+    float titleWidth = ImGui::CalcTextSize(title).x;
+    float minWidth = titleWidth + 70.f; // close 'X' button size
+
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(minWidth, 0.0f),
+        ImVec2(FLT_MAX, FLT_MAX)
+    );
+
+    ImGui::Begin(title, &windowOpen,
+        ImGuiWindowFlags_NoCollapse | 
+        ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+    
+    const char* text = mode == DeleteConformationMode::TRACK ?
+        "Delete track?" :
+        "Remove mix?";
 
-    ImGui::Text("Are you sure?");
+    float windowWidth = ImGui::GetWindowSize().x;
+    float textWidth = ImGui::CalcTextSize(text).x;
+
+    ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+    ImGui::Text("%s", text);
+
+    // Yes / No buttons
+    float buttonWidth = 80.0f;
+    float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+    float totalWidth = buttonWidth * 2.0f + spacing;
+
+    float availableSpace = ImGui::GetContentRegionAvail().x;
+
+    ImGui::SetCursorPosX(
+        ImGui::GetCursorPosX() + (availableSpace - totalWidth) * 0.5f
+    );
 
     if (ImGui::Button("Yes"))
     {
@@ -236,7 +267,7 @@ void MixMatchApp::InputTrackDataWindow(InputData& data, TrackInputMode mode)
         title, 
         &windowOpen, 
         ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoResize);
+        ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
@@ -740,9 +771,6 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
         editData.colour = ColourUtil::RgbToImVec4(activeTrack->colour);
 
         activePopupWindow = ActivePopupWindow::EditTrack;
-
-        //showAddTrackWindow = false;
-        //showEditTrackWindow = true;
     }
 
     // Remove active track button
@@ -750,9 +778,8 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
     {
         deleteTrackData.trackId = activeTrackId;
         deleteTrackData.mixId = -1;
-
+        deleteTrackData.label = activeTrack->artist + " - " + activeTrack->title;
         activePopupWindow = ActivePopupWindow::DeleteTrack;
-        //showDeleteTrackWindow = true;
     }
 
     // Mixes //
@@ -953,10 +980,9 @@ void MixMatchApp::DrawActiveTrackDisplay(int id)
                 if (ImGui::Button(Ui::Text::ICON_CLOSE))
                 {
                     deleteMixData.trackId = activeTrackId;
-                    deleteMixData.mixId = mix.id;
-
-                    activePopupWindow = ActivePopupWindow::DeleteMix;
-                    //showDeleteMixWindow = true;                    
+                    deleteMixData.mixId = mixTrack->id;
+                    deleteMixData.label = artistAndTitle;
+                    activePopupWindow = ActivePopupWindow::DeleteMix;                  
                 }
                 ImGui::PopID();
             }

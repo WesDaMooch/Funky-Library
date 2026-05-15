@@ -95,6 +95,7 @@ private:
     {
         int trackId = -1;
         int mixId = -1;
+        std::string label{};
     };
 
     DeleteData deleteTrackData;
