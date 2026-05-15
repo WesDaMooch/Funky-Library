@@ -12,19 +12,14 @@
             "label": "MetalHeadz",
             "mix": [
                 {
-                    "direction": 2,
-                    "id": 7,
-                    "rating": 3
+                    "direction": 0,
+                    "id": 11,
+                    "rating": 4
                 },
                 {
                     "direction": 2,
                     "id": 18,
                     "rating": 0
-                },
-                {
-                    "direction": 0,
-                    "id": 11,
-                    "rating": 4
                 }
             ],
             "rating": 4,
@@ -42,14 +37,9 @@
             "label": "Subtitles",
             "mix": [
                 {
-                    "direction": 2,
-                    "id": 5,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
+                    "direction": 1,
                     "id": 21,
-                    "rating": 3
+                    "rating": 2
                 },
                 {
                     "direction": 1,
@@ -137,6 +127,11 @@
             "mix": [
                 {
                     "direction": 2,
+                    "id": 21,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
                     "id": 5,
                     "rating": 0
                 }
@@ -156,9 +151,14 @@
             "label": "Metro",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 0,
                     "id": 7,
                     "rating": 2
+                },
+                {
+                    "direction": 2,
+                    "id": 18,
+                    "rating": 0
                 }
             ],
             "rating": 4,

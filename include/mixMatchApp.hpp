@@ -40,17 +40,13 @@ private:
 
     // Track view / edit
     bool showEditTrackWindow = false;
+    bool showDeleteTrackWindow = false;
     bool showAddMixWindow = false;
+    bool showDeleteMixWindow = false;
+
     char mixSearchBuffer[64]{};
 
-    // Remove track window
-    bool showRemoveTrackWindow = false;
-
-
-    // TODO: could use uint8,
-    // and make static const
-
-    // Input track window
+    // Input Data Window //
     enum TrackInputMode { 
         ADD, 
         EDIT 
@@ -73,12 +69,26 @@ private:
     InputData addData;
     InputData editData;
 
-
-
-
     void InputTrackDataWindow(InputData& data, TrackInputMode mode);
-    void RemoveTrackWindow(int id); // TODO pass track
 
+
+    // Delete Conformation Window //
+    enum DeleteConformationMode {
+        TRACK,
+        MIX
+    };
+    
+    struct DeleteData
+    {
+        int trackId = -1;
+        int mixId = -1;
+    };
+
+    DeleteData deleteTrackData;
+    DeleteData deleteMixData;
+
+    void DeleteConformationWindow(DeleteData& data, DeleteConformationMode mode);
+    
     void TrackSearchTable2(const std::vector<Track>& ibrary, float x, float width);
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 

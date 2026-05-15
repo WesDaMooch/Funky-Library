@@ -17,6 +17,9 @@ struct SpringGraph
 		int a, b;
 	};
 
+	// TODO: Calulate static graph on library change
+	// Glue library manager and spring graph together in the app
+
 	void simulate(std::vector<Node>& nodes, const std::vector<Edge> edges, float dt);
 
 	inline float GetLength(const ImVec2& v)
