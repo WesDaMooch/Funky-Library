@@ -1,49 +1,24 @@
 {
     "tracks": [
         {
-            "artist": "John B",
-            "bpm": 172.0,
-            "colour": [
-                178,
-                9,
-                9
-            ],
-            "id": 5,
-            "label": "MetalHeadz",
-            "mix": [
-                {
-                    "direction": 0,
-                    "id": 11,
-                    "rating": 4
-                },
-                {
-                    "direction": 2,
-                    "id": 18,
-                    "rating": 0
-                }
-            ],
-            "rating": 4,
-            "title": "Up All Night"
-        },
-        {
             "artist": "Chris.Su",
             "bpm": 174.0,
             "colour": [
-                75,
-                75,
-                75
+                0,
+                173,
+                255
             ],
             "id": 7,
             "label": "Subtitles",
             "mix": [
                 {
-                    "direction": 1,
+                    "direction": 0,
                     "id": 11,
-                    "rating": 2
+                    "rating": 0
                 },
                 {
                     "direction": 2,
-                    "id": 21,
+                    "id": 18,
                     "rating": 0
                 }
             ],
@@ -74,26 +49,26 @@
             "artist": "John B",
             "bpm": 175.0,
             "colour": [
-                75,
-                75,
-                75
+                200,
+                180,
+                0
             ],
             "id": 11,
             "label": "Drum & Bass Arena",
             "mix": [
                 {
-                    "direction": 0,
-                    "id": 7,
-                    "rating": 2
+                    "direction": 2,
+                    "id": 13,
+                    "rating": 0
                 },
                 {
                     "direction": 1,
-                    "id": 5,
-                    "rating": 4
+                    "id": 7,
+                    "rating": 0
                 },
                 {
-                    "direction": 2,
-                    "id": 13,
+                    "direction": 1,
+                    "id": 21,
                     "rating": 0
                 }
             ],
@@ -138,7 +113,12 @@
             "mix": [
                 {
                     "direction": 2,
-                    "id": 5,
+                    "id": 7,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 21,
                     "rating": 0
                 }
             ],
@@ -149,21 +129,76 @@
             "artist": "Cause 4 Concern",
             "bpm": 173.0,
             "colour": [
-                75,
-                75,
-                75
+                181,
+                22,
+                22
             ],
             "id": 21,
             "label": "Metro",
             "mix": [
                 {
+                    "direction": 0,
+                    "id": 11,
+                    "rating": 0
+                },
+                {
                     "direction": 2,
-                    "id": 7,
+                    "id": 23,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 18,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 24,
                     "rating": 0
                 }
             ],
             "rating": 4,
             "title": "Vaperspace"
+        },
+        {
+            "artist": "Aphex Twin",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 23,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "rating": 0
+                }
+            ],
+            "rating": 0,
+            "title": "808 Fate"
+        },
+        {
+            "artist": "John B",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 24,
+            "label": "MetalHeadz",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "rating": 0
+                }
+            ],
+            "rating": 4,
+            "title": "Up All Night"
         }
     ]
 }

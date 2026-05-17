@@ -17,15 +17,15 @@ public:
     void RunFrame();
 
 private:
+    bool open = true;
+
 	LibraryManager manager;
-    int activeTrackId = -1;
+    int activeTrackId = 0; // =1
 
     SpringGraph springGraph;
     std::vector<SpringGraph::Node> trackNodes;
     std::vector<SpringGraph::Edge> trackEdges;
     std::unordered_map<int, int> idToIndex;
-
-    bool open = true;
 
     // Main search bar and result window
     LibraryManager::TrackSort mainSearchSort = LibraryManager::TrackSort::Artist;
@@ -36,35 +36,22 @@ private:
     bool showSpringDiagram = false;
 
     // Add new track window
-    bool showAddTrackWindow = false;
+    bool showAddTrackPopup = false;
 
     // Track view / edit
-    bool showEditTrackWindow = false;
-    bool showDeleteTrackWindow = false;
+    bool showEditTrackPopup = false;
+    bool showDeleteTrackPopup = false;
     bool showAddMixWindow = false;
-    bool showDeleteMixWindow = false;
+    bool showDeleteMixPopup = false;
 
     char mixSearchBuffer[64]{};
 
-
-    enum ActivePopupWindow
-    {
-        None,
-        AddTrack,
-        EditTrack,
-        DeleteTrack,
-        AddMix,
-        DeleteMix
-    };
-
-    ActivePopupWindow activePopupWindow = ActivePopupWindow::None;
 
     // Input Data Window //
     enum TrackInputMode { 
         ADD, 
         EDIT 
     };
-
     struct InputData
     {
         int id = -1;
@@ -78,38 +65,31 @@ private:
         LibraryManager::ValidationResult result =
             LibraryManager::ValidationResult::None;
     };
-
-    InputData addData;
-    InputData editData;
-
-    void InputTrackDataWindow(InputData& data, TrackInputMode mode);
-
+    InputData addTrackData;
+    InputData editTrackData;
+    void InputTrackDataPopup(InputData& data, TrackInputMode mode);
 
     // Delete Conformation Window //
     enum DeleteConformationMode {
         TRACK,
         MIX
     };
-    
     struct DeleteData
     {
         int trackId = -1;
         int mixId = -1;
         std::string label{};
     };
-
     DeleteData deleteTrackData;
     DeleteData deleteMixData;
-
-    void DeleteConformationWindow(DeleteData& data, DeleteConformationMode mode);
-    
+    void DeleteConformationPopup(DeleteData& data, DeleteConformationMode mode);
 
 
-    void TrackSearchTable2(const std::vector<Track>& ibrary, float x, float width);
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 
     void DrawActiveTrackDisplay(int id);
 
+    // TODO: Remove, only used once so far
     inline void DrawStarRating(int rating)
     {
         for (int i = 0; i < 5; i++)
@@ -128,5 +108,16 @@ private:
             if (i < 4)
                 ImGui::SameLine();
         }
+    }
+
+    inline void SetModalPopupPosAndSize(const char* headerText)
+    {
+        float closeButtonSize = 70.f;
+        float headerTextWidth = ImGui::CalcTextSize(headerText).x;
+        float headerTextMinWidth = headerTextWidth + closeButtonSize;
+        ImGui::SetNextWindowSizeConstraints(ImVec2(headerTextMinWidth, 0.0f), ImVec2(FLT_MAX, FLT_MAX));
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     }
 };
