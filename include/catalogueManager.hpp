@@ -3,6 +3,7 @@
 #include "../external/json/json.hpp"
 #include "UiConstants.hpp"
 #include "StringUtils.hpp"
+//#include "tags.h"
 
 #include <string>
 #include <array>
@@ -32,14 +33,16 @@ struct Mix
 struct Track
 {
     int id = -1;
-    std::string artist = {};
-    std::string title = {};
-    std::string label = {};
+    std::string artist;
+    std::string title;
+    std::string label;
+    std::string release;
+    std::string position;
     float bpm = 0;
     int rating = 0;
     std::array<uint8_t, 3> colour = Ui::Colour::RGB_DEFAULT;
-    std::vector<Mix> mix = {};
-
+    //std::vector<std::string> tag{};
+    std::vector<Mix> mix;
 };
 
 void to_json(json& j, const Mix& m);
@@ -83,6 +86,12 @@ public:
     void removeMix(int trackId, int mixId);
 
     const Track* getTrackForDisplay(int id);
+
+    std::vector<const Track*> getLabel(const std::string& labelString) const;
+    std::vector<const Track*> getRelease(const std::string& releaseString) const;
+    std::vector<const Track*> getTag(const std::string& tagString) const;
+
+
     Track* getTrack(int id);
     const std::vector<Track>& getCatalogueForDisplay() const;
     std::vector<int> getIdLibrary() const;

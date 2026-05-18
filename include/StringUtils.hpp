@@ -107,3 +107,15 @@ namespace ColourUtil
         );
     }
 }
+
+namespace TrackUtil
+{
+    inline std::string FormartTitle(const std::string& artist, const std::string& title)
+    {
+        if (artist.empty() || title.empty())
+            return "";
+
+        return artist + " - " + title;
+    }
+
+}

@@ -20,7 +20,9 @@ private:
     bool open = true;
 
 	LibraryManager manager;
-    int activeTrackId = 0; // =1
+    int activeTrackId = -1;
+    std::string activeLabel{};
+    std::string activeRelease{};
 
     SpringGraph springGraph;
     std::vector<SpringGraph::Node> trackNodes;
@@ -46,9 +48,18 @@ private:
 
     char mixSearchBuffer[64]{};
 
+    enum class MainPage
+    {
+        NONE,
+        ACTIVE_TRACK,
+        LABEL,
+        RELEASE
+    };
+    MainPage mainPage = MainPage::NONE;
 
     // Input Data Window //
-    enum TrackInputMode { 
+    enum class TrackInputMode 
+    { 
         ADD, 
         EDIT 
     };
@@ -58,6 +69,8 @@ private:
         char artist[64]{};
         char title[64]{};
         char label[64]{};
+        char release[64]{};
+        char position[64]{};
         float bpm = 0.f;
         int rating = 0;
         ImVec4 colour = Ui::Colour::VEC4_DEFAULT;
@@ -70,7 +83,8 @@ private:
     void InputTrackDataPopup(InputData& data, TrackInputMode mode);
 
     // Delete Conformation Window //
-    enum DeleteConformationMode {
+    enum class DeleteConformationMode 
+    {
         TRACK,
         MIX
     };
@@ -84,10 +98,14 @@ private:
     DeleteData deleteMixData;
     void DeleteConformationPopup(DeleteData& data, DeleteConformationMode mode);
 
-
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 
-    void DrawActiveTrackDisplay(int id);
+    enum class TrackListMode
+    {
+        LABEL,
+        RELEASE
+    };
+    void DisplayTrackList(std::vector<const Track*> trackList, TrackListMode mode);
 
     // TODO: Remove, only used once so far
     inline void DrawStarRating(int rating)
