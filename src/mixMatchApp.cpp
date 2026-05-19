@@ -838,6 +838,8 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
 
 void MixMatchApp::DisplayTrackList(std::vector<const Track*> trackList, TrackListMode mode)
 {
+    // TODO: need min col width or maybe a way to not draw divers when cols are empty
+
     if (trackList.empty())
         return;
 
@@ -846,23 +848,31 @@ void MixMatchApp::DisplayTrackList(std::vector<const Track*> trackList, TrackLis
     switch (mode)
     {
     case TrackListMode::LABEL:
-        cols = 3;
+        cols = 4;
         break;
     case TrackListMode::RELEASE:
-        cols = 4;
+        cols = 5;
         break;
     default: return;
     }
 
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    float tablePaddingX = 20;
+    float tablePaddingY = 20;
+
+    float bgPaddingY = tablePaddingY - 4;
+
     ImGui::PushStyleVar(
         ImGuiStyleVar_CellPadding,
-        ImVec2(24, 0)
+        ImVec2(tablePaddingX, tablePaddingY)
     );
 
     if (ImGui::BeginTable(
         "Track List Tabel",
         cols,
-        ImGuiTableFlags_SizingFixedFit))
+        ImGuiTableFlags_SizingFixedFit //| ImGuiTableFlags_BordersInnerV
+        ))
     {
 
         if (mode == TrackListMode::RELEASE)
@@ -876,7 +886,17 @@ void MixMatchApp::DisplayTrackList(std::vector<const Track*> trackList, TrackLis
         if (mode == TrackListMode::LABEL)
             ImGui::TableSetupColumn("Release", ImGuiTableColumnFlags_WidthFixed);
 
+        // Tags
+
+        ImGui::TableSetupColumn("BPM", ImGuiTableColumnFlags_WidthFixed);
+
         ImGui::TableSetupColumn("Rating", ImGuiTableColumnFlags_WidthFixed);
+
+
+        ImGuiTable* table = ImGui::GetCurrentTable();
+        float row_width = table->WorkRect.Max.x - table->WorkRect.Min.x;
+        float row_height = ImGui::GetTextLineHeight();
+
 
         for (const Track* track : trackList)
         {
@@ -885,53 +905,105 @@ void MixMatchApp::DisplayTrackList(std::vector<const Track*> trackList, TrackLis
 
             ImGui::TableNextRow();
             ImGui::PushID(track->id);
-
             int colIndex = 0;
-
-            // Track Select
+         
+            // Background
             ImGui::TableSetColumnIndex(colIndex);
 
-            if (ImGui::Selectable(
-                "##Track Select",
-                false,
-                ImGuiSelectableFlags_SpanAllColumns |
-                ImGuiSelectableFlags_AllowOverlap))
+            ImVec2 rowPos = ImGui::GetCursorScreenPos();
+
+            ImVec2 topLeft(rowPos.x, rowPos.y - bgPaddingY);
+            ImVec2 bottomRight(rowPos.x + row_width, rowPos.y + row_height + bgPaddingY);
+
+           ImVec2 mousePos = ImGui::GetMousePos();
+           bool rectHovered = mousePos.x >= topLeft.x && mousePos.x <= bottomRight.x &&
+                mousePos.y >= topLeft.y && mousePos.y <= bottomRight.y;
+
+            draw_list->AddRectFilled(topLeft, bottomRight,
+                ColourUtil::RgbToU32(track->colour, rectHovered ? 48 : 32),
+                6.f);
+
+            draw_list->AddRect(topLeft, bottomRight,
+                ColourUtil::RgbToU32(track->colour, rectHovered ? 64 : 48),
+                6.f, NULL, 1.f);
+
+            if (mode == TrackListMode::RELEASE)
+            {
+                ImGui::TableSetColumnIndex(colIndex);
+                ImGui::Text(track->position.c_str());
+                colIndex++;
+            }
+
+            // Artist & title
+            ImGui::TableSetColumnIndex(colIndex);
+
+            if (ImGui::Selectable("##Track Select",false))
             {
                 activeTrackId = track->id;
                 mainPage = MainPage::ACTIVE_TRACK;
             }
             ImGui::SameLine();
-         
-            if (mode == TrackListMode::RELEASE)
-            {
-                ImGui::TableSetColumnIndex(colIndex);
-                colIndex++;
-                ImGui::Text(track->position.c_str());
-            }
 
-            // Artist & title
             ImGui::TableSetColumnIndex(colIndex);
-            colIndex++;
             ImGui::Text(TrackUtil::FormartTitle(track->artist, track->title).c_str());
+            colIndex++;
+
 
             // Label
             if (mode == TrackListMode::RELEASE)
             {
+                if (!track->label.empty())
+                {
+                    ImGui::TableSetColumnIndex(colIndex);
+
+                    if (ImGui::Selectable("##Label Select", false))
+                    {
+                        activeLabel = track->label;
+                        mainPage = MainPage::LABEL;
+                    }
+                    ImGui::SameLine();
+                }
+
                 ImGui::TableSetColumnIndex(colIndex);
-                colIndex++;
                 ImGui::Text(track->label.c_str());
+                colIndex++;
             }
 
             // Release
             if (mode == TrackListMode::LABEL) 
             {
+                if (!track->release.empty())
+                {
+                    ImGui::TableSetColumnIndex(colIndex);
+
+                    if (ImGui::Selectable("##Release Select", false))
+                    {
+                        activeRelease = track->release;
+                        mainPage = MainPage::RELEASE;
+                    }
+                    ImGui::SameLine();
+                }
+
                 ImGui::TableSetColumnIndex(colIndex);
-                colIndex++;
                 ImGui::Text(track->release.c_str());
+                colIndex++;
             }
+
+            //BPM
+            ImGui::TableSetColumnIndex(colIndex);
+
+            if (track->bpm > 0.f)
+            {
+                ImGui::Text(std::to_string(track->bpm).c_str());
+            }
+            colIndex++;
 
             // Rating
             ImGui::TableSetColumnIndex(colIndex);
+
+            //float colWidth = ImGui::GetColumnWidth();
+            //float contentWidth = 5 * ImGui::CalcTextSize(Ui::Text::ICON_STAR).x + 4 * ImGui::GetStyle().ItemSpacing.x;
+            //ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (colWidth - contentWidth));
             DrawStarRating(track->rating);
 
             ImGui::PopID();

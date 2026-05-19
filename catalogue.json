@@ -4,13 +4,19 @@
             "artist": "Chris.Su",
             "bpm": 0.0,
             "colour": [
-                75,
-                75,
-                75
+                0,
+                171,
+                255
             ],
             "id": 7,
-            "label": "Subtitles",
-            "mix": [],
+            "label": "MetalHeadz",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 0,
             "release": "",
@@ -46,7 +52,7 @@
                 {
                     "direction": 2,
                     "id": 24,
-                    "rating": 3
+                    "rating": 0
                 },
                 {
                     "direction": 2,
@@ -122,6 +128,16 @@
                     "direction": 2,
                     "id": 11,
                     "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 23,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "rating": 0
                 }
             ],
             "position": "",
@@ -138,8 +154,14 @@
                 75
             ],
             "id": 23,
-            "label": "",
-            "mix": [],
+            "label": "MetalHeadz",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 0,
             "release": "",
@@ -149,9 +171,9 @@
             "artist": "John B",
             "bpm": 0.0,
             "colour": [
-                75,
-                75,
-                75
+                215,
+                0,
+                0
             ],
             "id": 24,
             "label": "MetalHeadz",
@@ -167,8 +189,8 @@
                     "rating": 0
                 }
             ],
-            "position": "",
-            "rating": 0,
+            "position": "A",
+            "rating": 5,
             "release": "",
             "title": "Up All Night"
         }

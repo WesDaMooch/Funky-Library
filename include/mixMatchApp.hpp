@@ -53,7 +53,9 @@ private:
         NONE,
         ACTIVE_TRACK,
         LABEL,
-        RELEASE
+        RELEASE,
+        TAG,
+        MAP
     };
     MainPage mainPage = MainPage::NONE;
 
@@ -107,7 +109,6 @@ private:
     };
     void DisplayTrackList(std::vector<const Track*> trackList, TrackListMode mode);
 
-    // TODO: Remove, only used once so far
     inline void DrawStarRating(int rating)
     {
         for (int i = 0; i < 5; i++)
