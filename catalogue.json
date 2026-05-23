@@ -9,7 +9,7 @@
                 255
             ],
             "id": 7,
-            "label": "MetalHeadz",
+            "label": "",
             "mix": [
                 {
                     "direction": 0,
@@ -23,7 +23,7 @@
                 }
             ],
             "position": "",
-            "rating": 0,
+            "rating": 2,
             "release": "",
             "title": "Solaris Theme"
         },
@@ -45,7 +45,7 @@
                 }
             ],
             "position": "",
-            "rating": 0,
+            "rating": 3,
             "release": "",
             "title": "Messia"
         },
@@ -92,7 +92,7 @@
                 }
             ],
             "position": "D",
-            "rating": 4,
+            "rating": 5,
             "release": "The Prototype Years",
             "title": "Sectets"
         },
@@ -114,7 +114,7 @@
                 }
             ],
             "position": "",
-            "rating": 0,
+            "rating": 4,
             "release": "",
             "title": "Mute 98"
         },
@@ -167,7 +167,7 @@
                 }
             ],
             "position": "",
-            "rating": 0,
+            "rating": 3,
             "release": "",
             "title": "Vaperspace"
         },
@@ -180,7 +180,7 @@
                 75
             ],
             "id": 23,
-            "label": "MetalHeadz",
+            "label": "",
             "mix": [
                 {
                     "direction": 2,
@@ -194,7 +194,7 @@
                 }
             ],
             "position": "",
-            "rating": 0,
+            "rating": 4,
             "release": "",
             "title": "808 Fate"
         },

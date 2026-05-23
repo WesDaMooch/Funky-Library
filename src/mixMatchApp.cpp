@@ -208,7 +208,7 @@ void MixMatchApp::RunFrame()
         if (activeTrack->bpm > 0.f)
             ImGui::Text(std::to_string(activeTrack->bpm).c_str());
 
-        DrawStarRating(activeTrack->rating);
+        StarRating(activeTrack);
 
         // Edit active track button
         if (ImGui::Button(Ui::Text::ICON_EDIT))
@@ -990,7 +990,7 @@ void MixMatchApp::DisplayTrackList(std::vector<const Track*> trackList, TrackLis
             // Rating
             ImGui::TableSetColumnIndex(colIndex);
             ImGui::SetCursorPosX(rowWidth - ratingSize);
-            DrawStarRating(track->rating);
+            StarRating(track);
 
             ImGui::PopID();
         }
@@ -1016,7 +1016,7 @@ void MixMatchApp::DisplayMixList(const std::vector<Mix>& mixList)
         "Mix List Table",
         6,
         ImGuiTableFlags_SizingFixedFit
-        //| ImGuiTableFlags_BordersInnerV))
+        //| ImGuiTableFlags_BordersInnerV
         ))
     {
         ImGui::TableSetupColumn("Direction", ImGuiTableColumnFlags_WidthFixed, ImGui::GetFrameHeight());
@@ -1048,7 +1048,9 @@ void MixMatchApp::DisplayMixList(const std::vector<Mix>& mixList)
 
             // Background
             ImGui::TableSetColumnIndex(colIndex);
-            DrawTableBg(drawList, rowWidth, rowHeight, mixTrack->colour, mixTrack->bpm);
+            bool hovered = DrawTableBg(drawList, rowWidth, rowHeight, mixTrack->colour, mixTrack->bpm);
+
+            ImU32 lineColour = ColourUtil::RgbToU32(mixTrack->colour, hovered ? 88 : 64);
 
             // Direction 
             ImGui::TableSetColumnIndex(colIndex);
@@ -1108,6 +1110,7 @@ void MixMatchApp::DisplayMixList(const std::vector<Mix>& mixList)
 
             // Artist & title
             ImGui::TableSetColumnIndex(colIndex);
+
             std::string artistAndTitle = TextUtil::FormartTitle(mixTrack->artist, mixTrack->title);
 
             SetClearSelectableStyle();
@@ -1123,6 +1126,8 @@ void MixMatchApp::DisplayMixList(const std::vector<Mix>& mixList)
 
             ImGui::TableSetColumnIndex(colIndex);
             TextUtil::DrawCenterJustifyTableText(artistAndTitle);
+
+            DrawTableDividerLine(drawList, lineColour, rowHeight, tablePaddingX * 2.5);
             colIndex++;
 
             // Label
@@ -1146,13 +1151,15 @@ void MixMatchApp::DisplayMixList(const std::vector<Mix>& mixList)
                 SetTextColourOnHover(ImGui::IsItemHovered());
                 TextUtil::DrawCenterJustifyTableText(label);
                 ImGui::PopStyleColor();
+
+                DrawTableDividerLine(drawList, lineColour, rowHeight);
             }
             colIndex++;
 
             // Rating
             ImGui::TableSetColumnIndex(colIndex);
             ImGui::SetCursorPosX(rowWidth - ratingSize - removeSize);
-            DrawStarRating(mixTrack->rating);
+            StarRating(mixTrack);
             colIndex++;
 
             // Remove
@@ -1175,6 +1182,8 @@ void MixMatchApp::DisplayMixList(const std::vector<Mix>& mixList)
             SetTextColourOnHover(ImGui::IsItemHovered());
             TextUtil::DrawCenterJustifyTableText(Ui::Text::ICON_CLOSE);
             ImGui::PopStyleColor();
+
+            DrawTableDividerLine(drawList, lineColour, rowHeight);
             
             ImGui::PopID();
         }

@@ -49,7 +49,7 @@ private:
     char mixSearchBuffer[64]{};
 
     // Table drawing
-    const float tablePaddingX = 16;
+    const float tablePaddingX = 6;
     const float tablePaddingY = 16;
 
     const float bgRectGap = 3;
@@ -118,11 +118,38 @@ private:
     void DisplayMixList(const std::vector<Mix>& mixList);
 
 
-    inline void DrawStarRating(int rating)
+    inline void StarRating(const Track* track)
     {
+        if (track == nullptr)
+            return;
+
+        int hoverIndex = -1;
+        ImVec2 starSize = ImGui::CalcTextSize(Ui::Text::ICON_STAR);
+        ImVec2 startPos = ImGui::GetCursorPos();
+        for (int i = 1; i <= 5; i++)
+        {
+            ImGui::PushID(i);
+
+            if (ImGui::InvisibleButton("##Star Button", starSize))
+            {
+                Track editedTrack = *track;
+                editedTrack.rating = i;
+                manager.editTrack(editedTrack);
+            }
+         
+            if (ImGui::IsItemHovered())
+                hoverIndex = i;
+            
+            if (i <= 4)
+                ImGui::SameLine(0.f, 0.f);
+
+            ImGui::PopID();
+        }
+
+        ImGui::SetCursorPos(startPos);
         for (int i = 0; i < 5; i++)
         {
-            if (i < rating)
+            if ((hoverIndex != -1 && hoverIndex > i) || (hoverIndex == -1 && track->rating > i))
             {
                 ImGui::Text(Ui::Text::ICON_STAR);
             }
@@ -167,7 +194,7 @@ private:
     }
 
     // Table helpers
-    inline void DrawTableBg(ImDrawList* drawList, 
+    inline bool DrawTableBg(ImDrawList* drawList, 
         float width, float height, 
         std::array<uint8_t, 3> colour,
         float bpm = 0)
@@ -214,5 +241,18 @@ private:
         drawList->AddRect(topLeft, bottomRight,
             ColourUtil::RgbToU32(colour, colourAlpha + 24),
             10.f, corners, 1.f);
+
+        return rectHovered;
+    }
+
+    inline void DrawTableDividerLine(ImDrawList* drawList, ImU32 colour,
+        float height, float offsetX = 0)
+    {
+        // TODO: use table and the same pos as the inner borderV
+        ImVec2 rowPos = ImGui::GetCursorScreenPos();
+        float posX = rowPos.x - offsetX;
+        float length = height + bgPaddingY - 2;
+
+        drawList->AddLine(ImVec2(posX, rowPos.y), ImVec2(posX, rowPos.y - length), colour);
     }
 };
