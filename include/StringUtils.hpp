@@ -58,6 +58,14 @@ namespace TextUtil
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (columnWidth - textWidth) * 0.5f);
         ImGui::TextUnformatted(text.c_str());
     }
+
+    inline std::string FormartTitle(const std::string& artist, const std::string& title)
+    {
+        if (artist.empty() || title.empty())
+            return "";
+
+        return artist + " - " + title;
+    }
 }
 
 namespace ColourUtil
@@ -106,16 +114,4 @@ namespace ColourUtil
             1.f
         );
     }
-}
-
-namespace TrackUtil
-{
-    inline std::string FormartTitle(const std::string& artist, const std::string& title)
-    {
-        if (artist.empty() || title.empty())
-            return "";
-
-        return artist + " - " + title;
-    }
-
 }

@@ -139,7 +139,10 @@ int main(int, char**)
 
     // Style
     // Window style
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.f, 0.f, 0.f, 1.0f);
+    //style.Colors[ImGuiCol_WindowBg] = ImVec4(15 / 255.f, 15 / 255.f, 15 / 255.f, 1.f); // youtube
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(18 / 255.f, 18 / 255.f, 18 / 255.f, 1.f); // discogs
+
+
     style.Colors[ImGuiCol_TitleBg] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
     style.Colors[ImGuiCol_TitleBgActive] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
     style.Colors[ImGuiCol_TitleBgCollapsed] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
@@ -157,6 +160,12 @@ int main(int, char**)
     // Navigation
     style.Colors[ImGuiCol_NavHighlight] = ColourUtil::RgbToImVec4(Ui::Colour::RGB_DEFAULT, 1.f);
         
+
+    style.FrameRounding = 0.f;
+    style.WindowRounding = 0.f;
+    //style.GrabRounding = 6.f;
+    style.ScrollbarRounding = 0.f;
+    style.ScrollbarSize = 18.f;
 
     // Main loop
     LibraryManager manager;

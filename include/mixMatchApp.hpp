@@ -48,6 +48,13 @@ private:
 
     char mixSearchBuffer[64]{};
 
+    // Table drawing
+    const float tablePaddingX = 16;
+    const float tablePaddingY = 16;
+
+    const float bgRectGap = 3;
+    const float bgPaddingY = tablePaddingY - bgRectGap;
+
     enum class MainPage
     {
         NONE,
@@ -108,6 +115,8 @@ private:
         RELEASE
     };
     void DisplayTrackList(std::vector<const Track*> trackList, TrackListMode mode);
+    void DisplayMixList(const std::vector<Mix>& mixList);
+
 
     inline void DrawStarRating(int rating)
     {
@@ -119,14 +128,31 @@ private:
             }
             else
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(80, 80, 80, 255));
+                ImGui::PushStyleColor(ImGuiCol_Text, ColourUtil::RgbToU32(Ui::Colour::RGB_DEFAULT, 128));
                 ImGui::Text(Ui::Text::ICON_STAR);
                 ImGui::PopStyleColor();
             }
 
             if (i < 4)
-                ImGui::SameLine();
+                ImGui::SameLine(0.f, 0.f);
         }
+    }
+
+    // Requires PopStyleColor(3)
+    inline void SetClearSelectableStyle()
+    {
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0, 0, 0, 0));
+    }
+
+    // Requires PopStyleColor(1)
+    inline void SetTextColourOnHover(bool hover)
+    {
+        if (hover)
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+        else
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.f));
     }
 
     inline void SetModalPopupPosAndSize(const char* headerText)
@@ -138,5 +164,55 @@ private:
 
         ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    }
+
+    // Table helpers
+    inline void DrawTableBg(ImDrawList* drawList, 
+        float width, float height, 
+        std::array<uint8_t, 3> colour,
+        float bpm = 0)
+    {
+        const ImDrawFlags corners = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
+
+        ImVec2 rowPos = ImGui::GetCursorScreenPos();
+
+        ImVec2 topLeft(rowPos.x, rowPos.y - bgPaddingY);
+        ImVec2 bottomRight(rowPos.x + width, rowPos.y + height + bgPaddingY);
+
+        ImVec2 mousePos = ImGui::GetMousePos();
+        bool rectHovered = mousePos.x >= topLeft.x && mousePos.x <= bottomRight.x &&
+            mousePos.y >= topLeft.y && mousePos.y <= bottomRight.y;
+
+        //bool rectClicked = rectHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+
+        // TODO: make the colour darker then have a wider range of alpha to oscillate
+        uint8_t colourAlpha = 40;
+        if (rectHovered)
+        {
+            bpm = 0;
+            if (bpm > 0.f)
+            {
+                float freq = bpm / 240.f;
+                float minB = 32;
+                float maxB = 42;
+
+                float t = ImGui::GetTime();
+
+                colourAlpha = (int)(minB + (maxB - minB) * 0.5f * (1.f + sinf(2.f * 3.14159f * freq * t)));
+            }
+            else
+            {
+                colourAlpha = 64;
+            }
+
+        }
+
+        drawList->AddRectFilled(topLeft, bottomRight,
+            ColourUtil::RgbToU32(colour, colourAlpha),
+            10.f, corners);
+
+        drawList->AddRect(topLeft, bottomRight,
+            ColourUtil::RgbToU32(colour, colourAlpha + 24),
+            10.f, corners, 1.f);
     }
 };

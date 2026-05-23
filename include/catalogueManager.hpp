@@ -91,7 +91,6 @@ public:
     std::vector<const Track*> getRelease(const std::string& releaseString) const;
     std::vector<const Track*> getTag(const std::string& tagString) const;
 
-
     Track* getTrack(int id);
     const std::vector<Track>& getCatalogueForDisplay() const;
     std::vector<int> getIdLibrary() const;

@@ -12,8 +12,13 @@
             "label": "MetalHeadz",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 0,
                     "id": 21,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 11,
                     "rating": 0
                 }
             ],
@@ -26,13 +31,19 @@
             "artist": "Konflict",
             "bpm": 0.0,
             "colour": [
-                75,
-                75,
-                75
+                204,
+                243,
+                3
             ],
             "id": 9,
             "label": "Renagard Hardware",
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 11,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 0,
             "release": "",
@@ -50,18 +61,33 @@
             "label": "MetalHeadz",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 0,
                     "id": 24,
-                    "rating": 0
+                    "rating": 5
                 },
                 {
                     "direction": 2,
                     "id": 21,
+                    "rating": 2
+                },
+                {
+                    "direction": 1,
+                    "id": 13,
                     "rating": 0
                 },
                 {
                     "direction": 2,
-                    "id": 13,
+                    "id": 7,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 9,
+                    "rating": 1
+                },
+                {
+                    "direction": 1,
+                    "id": 23,
                     "rating": 0
                 }
             ],
@@ -82,7 +108,7 @@
             "label": "Prototype",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 0,
                     "id": 11,
                     "rating": 0
                 }
@@ -135,7 +161,7 @@
                     "rating": 0
                 },
                 {
-                    "direction": 2,
+                    "direction": 1,
                     "id": 7,
                     "rating": 0
                 }
@@ -160,6 +186,11 @@
                     "direction": 2,
                     "id": 21,
                     "rating": 0
+                },
+                {
+                    "direction": 0,
+                    "id": 11,
+                    "rating": 0
                 }
             ],
             "position": "",
@@ -169,7 +200,7 @@
         },
         {
             "artist": "John B",
-            "bpm": 0.0,
+            "bpm": 173.0,
             "colour": [
                 215,
                 0,
@@ -179,9 +210,9 @@
             "label": "MetalHeadz",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 1,
                     "id": 11,
-                    "rating": 0
+                    "rating": 5
                 },
                 {
                     "direction": 2,
@@ -191,7 +222,7 @@
             ],
             "position": "A",
             "rating": 5,
-            "release": "",
+            "release": "Rave Night",
             "title": "Up All Night"
         }
     ]
