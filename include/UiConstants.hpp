@@ -9,6 +9,7 @@ namespace Ui
     namespace Text
     {
         inline ImFont* DefaultFont = nullptr;
+        inline ImFont* BigFont = nullptr;
         inline ImFont* SmallFont = nullptr;
 
         constexpr float GLYPH_OFFSET = 5.f; // TODO: Remove not used?

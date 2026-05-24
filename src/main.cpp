@@ -132,10 +132,19 @@ int main(int, char**)
     smallFontConfig.OversampleV = 2;
     Ui::Text::SmallFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 15.f, &smallFontConfig);
 
+    // Big font
+    ImFontConfig bigFontConfig;
+    bigFontConfig.FontDataOwnedByAtlas = false;
+    bigFontConfig.MergeMode = false;
+    bigFontConfig.OversampleH = 2;
+    bigFontConfig.OversampleV = 2;
+    Ui::Text::BigFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 60.f, &bigFontConfig);
+
     IM_ASSERT(Ui::Text::DefaultFont != nullptr);
     IM_ASSERT(Ui::Text::SmallFont != nullptr);
-    
     io.Fonts->Build();
+
+
 
     // Style
     // Window style

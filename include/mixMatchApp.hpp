@@ -49,6 +49,7 @@ private:
     char mixSearchBuffer[64]{};
 
     // Table drawing
+    const float minTableColumnWidth = 120;
     const float tablePaddingX = 6;
     const float tablePaddingY = 16;
 
@@ -109,14 +110,9 @@ private:
 
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 
-    enum class TrackListMode
-    {
-        LABEL,
-        RELEASE
-    };
-    void DisplayTrackList(std::vector<const Track*> trackList, TrackListMode mode);
-    void DisplayMixList(const std::vector<Mix>& mixList);
-
+    void DisplayLabelTable(std::vector<const Track*> trackList);
+    void DisplayReleaseTable(std::vector<const Track*> trackList);
+    void DisplayMixTable(const std::vector<Mix>& mixList);
 
     inline void StarRating(const Track* track)
     {
@@ -245,14 +241,24 @@ private:
         return rectHovered;
     }
 
-    inline void DrawTableDividerLine(ImDrawList* drawList, ImU32 colour,
-        float height, float offsetX = 0)
+    inline void DrawTableDividerLine(ImGuiTable* table, int colIndex, 
+        ImDrawList* drawList, ImU32 colour, float rowHeight)
     {
-        // TODO: use table and the same pos as the inner borderV
+        ImGuiTableColumn* column = &table->Columns[colIndex];
         ImVec2 rowPos = ImGui::GetCursorScreenPos();
-        float posX = rowPos.x - offsetX;
-        float length = height + bgPaddingY - 2;
+        float length = rowHeight + bgPaddingY - 2;
 
-        drawList->AddLine(ImVec2(posX, rowPos.y), ImVec2(posX, rowPos.y - length), colour);
+        drawList->AddLine(ImVec2(column->MaxX, rowPos.y), ImVec2(column->MaxX, rowPos.y - length), colour);
+    }
+
+    inline std::string PadTableText(const std::string& s, int frontSpaces = 0, int backSpaces = 1)
+    {
+        if (frontSpaces < 0)
+            frontSpaces = 0;
+
+        if (backSpaces < 0)
+            backSpaces = 0;
+
+        return std::string(frontSpaces, ' ') + s + std::string(backSpaces, ' ');
     }
 };

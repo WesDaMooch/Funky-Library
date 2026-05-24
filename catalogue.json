@@ -9,21 +9,36 @@
                 255
             ],
             "id": 7,
-            "label": "",
+            "label": "Deformed",
             "mix": [
                 {
-                    "direction": 0,
-                    "id": 21,
+                    "direction": 1,
+                    "id": 23,
+                    "rating": 3
+                },
+                {
+                    "direction": 2,
+                    "id": 25,
                     "rating": 0
                 },
                 {
                     "direction": 2,
-                    "id": 11,
+                    "id": 24,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 13,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 9,
                     "rating": 0
                 }
             ],
             "position": "",
-            "rating": 2,
+            "rating": 3,
             "release": "",
             "title": "Solaris Theme"
         },
@@ -31,9 +46,9 @@
             "artist": "Konflict",
             "bpm": 0.0,
             "colour": [
-                204,
+                105,
                 243,
-                3
+                2
             ],
             "id": 9,
             "label": "Renagard Hardware",
@@ -41,6 +56,11 @@
                 {
                     "direction": 2,
                     "id": 11,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 7,
                     "rating": 0
                 }
             ],
@@ -54,7 +74,7 @@
             "bpm": 174.0,
             "colour": [
                 255,
-                208,
+                245,
                 0
             ],
             "id": 11,
@@ -77,22 +97,17 @@
                 },
                 {
                     "direction": 2,
-                    "id": 7,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
                     "id": 9,
                     "rating": 1
                 },
                 {
-                    "direction": 1,
-                    "id": 23,
+                    "direction": 2,
+                    "id": 25,
                     "rating": 0
                 }
             ],
             "position": "D",
-            "rating": 5,
+            "rating": 4,
             "release": "The Prototype Years",
             "title": "Sectets"
         },
@@ -110,6 +125,11 @@
                 {
                     "direction": 0,
                     "id": 11,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 7,
                     "rating": 0
                 }
             ],
@@ -154,20 +174,10 @@
                     "direction": 2,
                     "id": 11,
                     "rating": 0
-                },
-                {
-                    "direction": 2,
-                    "id": 23,
-                    "rating": 0
-                },
-                {
-                    "direction": 1,
-                    "id": 7,
-                    "rating": 0
                 }
             ],
             "position": "",
-            "rating": 3,
+            "rating": 4,
             "release": "",
             "title": "Vaperspace"
         },
@@ -175,22 +185,17 @@
             "artist": "Aphex Twin",
             "bpm": 0.0,
             "colour": [
-                75,
-                75,
-                75
+                122,
+                0,
+                255
             ],
             "id": 23,
             "label": "",
             "mix": [
                 {
-                    "direction": 2,
-                    "id": 21,
-                    "rating": 0
-                },
-                {
                     "direction": 0,
-                    "id": 11,
-                    "rating": 0
+                    "id": 7,
+                    "rating": 3
                 }
             ],
             "position": "",
@@ -218,12 +223,44 @@
                     "direction": 2,
                     "id": 21,
                     "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "rating": 0
                 }
             ],
             "position": "A",
-            "rating": 5,
+            "rating": 3,
             "release": "Rave Night",
             "title": "Up All Night"
+        },
+        {
+            "artist": "Tune Man",
+            "bpm": 0.0,
+            "colour": [
+                14,
+                58,
+                155
+            ],
+            "id": 25,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 11,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 2,
+            "release": "Heli EP",
+            "title": "ESP"
         }
     ]
 }
