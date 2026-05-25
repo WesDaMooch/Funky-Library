@@ -76,7 +76,7 @@ namespace ColourUtil
         return IM_COL32(c[0], c[1], c[2], alpha);
     }
 
-    inline ImVec4 RgbToImVec4(const std::array<uint8_t, 3>& c, float alpha = 1.f)
+    inline ImVec4 RgbToVec4(const std::array<uint8_t, 3>& c, float alpha = 1.f)
     {
         return ImVec4(
             c[0] / 255.0f,
@@ -86,7 +86,7 @@ namespace ColourUtil
         );
     }
 
-    inline std::array<uint8_t, 3> ImVec4ToRgb(const ImVec4& c)
+    inline std::array<uint8_t, 3> Vec4ToRgb(const ImVec4& c)
     {
         return {
             (uint8_t)(c.x * 255.f),

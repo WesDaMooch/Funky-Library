@@ -85,8 +85,7 @@ private:
         int rating = 0;
         ImVec4 colour = Ui::Colour::VEC4_DEFAULT;
 
-        LibraryManager::ValidationResult result =
-            LibraryManager::ValidationResult::None;
+        LibraryManager::ValidationResult result = LibraryManager::ValidationResult::None;
     };
     InputData addTrackData;
     InputData editTrackData;
@@ -114,24 +113,20 @@ private:
     void DisplayReleaseTable(std::vector<const Track*> trackList);
     void DisplayMixTable(const std::vector<Mix>& mixList);
 
-    inline void StarRating(const Track* track)
+    inline int StarRating(const int rating)
     {
-        if (track == nullptr)
-            return;
-
+        int newRating = -1;
         int hoverIndex = -1;
+
         ImVec2 starSize = ImGui::CalcTextSize(Ui::Text::ICON_STAR);
         ImVec2 startPos = ImGui::GetCursorPos();
+
         for (int i = 1; i <= 5; i++)
         {
             ImGui::PushID(i);
 
             if (ImGui::InvisibleButton("##Star Button", starSize))
-            {
-                Track editedTrack = *track;
-                editedTrack.rating = i;
-                manager.editTrack(editedTrack);
-            }
+                newRating = i;
          
             if (ImGui::IsItemHovered())
                 hoverIndex = i;
@@ -145,7 +140,7 @@ private:
         ImGui::SetCursorPos(startPos);
         for (int i = 0; i < 5; i++)
         {
-            if ((hoverIndex != -1 && hoverIndex > i) || (hoverIndex == -1 && track->rating > i))
+            if ((hoverIndex != -1 && hoverIndex > i) || (hoverIndex == -1 && rating > i))
             {
                 ImGui::Text(Ui::Text::ICON_STAR);
             }
@@ -159,6 +154,8 @@ private:
             if (i < 4)
                 ImGui::SameLine(0.f, 0.f);
         }
+
+        return newRating;
     }
 
     // Requires PopStyleColor(3)
@@ -188,6 +185,76 @@ private:
         ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     }
+
+    // Input data helpers
+    inline void InputDataSaveButton(InputData& data, TrackInputMode mode)
+    {
+        if (ImGui::Button(Ui::Text::ICON_SAVE))
+        {
+            Track t;
+            t.artist = data.artist;
+            t.title = data.title;
+            t.label = data.label;
+            t.release = data.release;
+            t.position = data.position;
+            t.bpm = data.bpm;
+            t.rating = data.rating;
+            t.colour = ColourUtil::Vec4ToRgb(data.colour);
+
+            if (mode == TrackInputMode::ADD)
+            {
+                data.result = manager.addTrack(t);
+
+                if (data.result == LibraryManager::ValidationResult::ValidTrack)
+                {
+                    if (!manager.getCatalogueForDisplay().empty())
+                    {
+                        activeTrackId = manager.getCatalogueForDisplay().back().id;
+                        mainPage = MainPage::ACTIVE_TRACK;
+                    }
+                }
+            }
+            else if (mode == TrackInputMode::EDIT)
+            {
+                t.id = activeTrackId;
+                data.result = manager.editTrack(t);
+            }
+
+            if (data.result == LibraryManager::ValidationResult::ValidTrack)
+            {
+                data = {};
+                ImGui::CloseCurrentPopup();
+            }
+        }
+
+        if (data.result != LibraryManager::ValidationResult::None || LibraryManager::ValidationResult::ValidTrack)
+        {
+            ImGui::SameLine();
+
+            std::string waringText = "";
+
+            switch (data.result)
+            {
+            case LibraryManager::ValidationResult::MissingArtist:
+                waringText = "Missing Artist Entry";
+                break;
+            case LibraryManager::ValidationResult::MissingTitle:
+                waringText = "Missing Title Entry";
+                break;
+            case LibraryManager::ValidationResult::TrackNotFound:
+                waringText = "Track Not In Library";
+                break;
+            case LibraryManager::ValidationResult::DuplicateTrack:
+                waringText = "Track Already In Library";
+                break;
+            }
+
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.f, 0.f, Ui::Colour::ALPHA_ACTIVE));
+            ImGui::Text(waringText.c_str());
+            ImGui::PopStyleColor();
+        }
+    }
+
 
     // Table helpers
     inline bool DrawTableBg(ImDrawList* drawList, 

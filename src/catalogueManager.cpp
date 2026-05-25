@@ -562,7 +562,6 @@ LibraryManager::ValidationResult LibraryManager::ValidateTrack(Track& track)
     // Don't allow duplicate names (case-insensitive).
     std::string artist = TextUtil::ToLower(track.artist);
     std::string title = TextUtil::ToLower(track.title);
-    std::string label = TextUtil::ToLower(track.label);
 
     for (const Track& t : library)
     {
@@ -570,8 +569,7 @@ LibraryManager::ValidationResult LibraryManager::ValidateTrack(Track& track)
             continue;
 
         if (TextUtil::ToLower(t.artist) == artist &&
-            TextUtil::ToLower(t.title) == title &&
-            TextUtil::ToLower(t.label) == label)
+            TextUtil::ToLower(t.title) == title)
         {
             return ValidationResult::DuplicateTrack;
         }

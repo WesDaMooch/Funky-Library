@@ -9,7 +9,7 @@
                 255
             ],
             "id": 7,
-            "label": "Deformed",
+            "label": "Hospital",
             "mix": [
                 {
                     "direction": 1,
@@ -17,24 +17,24 @@
                     "rating": 3
                 },
                 {
-                    "direction": 2,
+                    "direction": 0,
                     "id": 25,
-                    "rating": 0
+                    "rating": 5
                 },
                 {
-                    "direction": 2,
+                    "direction": 0,
                     "id": 24,
-                    "rating": 0
+                    "rating": 3
                 },
                 {
                     "direction": 2,
                     "id": 13,
-                    "rating": 0
+                    "rating": 1
                 },
                 {
                     "direction": 2,
                     "id": 9,
-                    "rating": 0
+                    "rating": 2
                 }
             ],
             "position": "",
@@ -55,11 +55,6 @@
             "mix": [
                 {
                     "direction": 2,
-                    "id": 11,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
                     "id": 7,
                     "rating": 0
                 }
@@ -68,48 +63,6 @@
             "rating": 3,
             "release": "",
             "title": "Messia"
-        },
-        {
-            "artist": "John B",
-            "bpm": 174.0,
-            "colour": [
-                255,
-                245,
-                0
-            ],
-            "id": 11,
-            "label": "MetalHeadz",
-            "mix": [
-                {
-                    "direction": 0,
-                    "id": 24,
-                    "rating": 5
-                },
-                {
-                    "direction": 2,
-                    "id": 21,
-                    "rating": 2
-                },
-                {
-                    "direction": 1,
-                    "id": 13,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
-                    "id": 9,
-                    "rating": 1
-                },
-                {
-                    "direction": 2,
-                    "id": 25,
-                    "rating": 0
-                }
-            ],
-            "position": "D",
-            "rating": 4,
-            "release": "The Prototype Years",
-            "title": "Sectets"
         },
         {
             "artist": "Matix",
@@ -123,13 +76,13 @@
             "label": "Prototype",
             "mix": [
                 {
-                    "direction": 0,
-                    "id": 11,
+                    "direction": 2,
+                    "id": 7,
                     "rating": 0
                 },
                 {
-                    "direction": 2,
-                    "id": 7,
+                    "direction": 1,
+                    "id": 26,
                     "rating": 0
                 }
             ],
@@ -168,11 +121,6 @@
                 {
                     "direction": 2,
                     "id": 24,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
-                    "id": 11,
                     "rating": 0
                 }
             ],
@@ -215,19 +163,14 @@
             "label": "MetalHeadz",
             "mix": [
                 {
-                    "direction": 1,
-                    "id": 11,
-                    "rating": 5
-                },
-                {
                     "direction": 2,
                     "id": 21,
                     "rating": 0
                 },
                 {
-                    "direction": 2,
+                    "direction": 1,
                     "id": 7,
-                    "rating": 0
+                    "rating": 3
                 }
             ],
             "position": "A",
@@ -247,20 +190,37 @@
             "label": "",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 1,
                     "id": 7,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
-                    "id": 11,
-                    "rating": 0
+                    "rating": 5
                 }
             ],
-            "position": "",
+            "position": "1",
             "rating": 2,
             "release": "Heli EP",
             "title": "ESP"
+        },
+        {
+            "artist": "Optical",
+            "bpm": 173.0,
+            "colour": [
+                121,
+                71,
+                255
+            ],
+            "id": 26,
+            "label": "MetalHeadz",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 13,
+                    "rating": 0
+                }
+            ],
+            "position": "A",
+            "rating": 3,
+            "release": "To Shape The Future",
+            "title": "To Shape The Future"
         }
     ]
 }

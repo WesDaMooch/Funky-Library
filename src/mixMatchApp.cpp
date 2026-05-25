@@ -82,8 +82,8 @@ void MixMatchApp::RunFrame()
     // Add track popup window
     SetModalPopupPosAndSize("Add Track");
 
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(addTrackData.colour, Ui::Colour::TINT_BG));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(addTrackData.colour, Ui::Colour::TINT_HOVER));
+    //ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(addTrackData.colour, Ui::Colour::TINT_BG));
+    //ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(addTrackData.colour, Ui::Colour::TINT_HOVER));
 
     if (ImGui::BeginPopupModal("Add Track", &showAddTrackPopup, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -91,7 +91,7 @@ void MixMatchApp::RunFrame()
         ImGui::EndPopup();
     }
 
-    ImGui::PopStyleColor(2);
+    //ImGui::PopStyleColor(2);
 
     ImGui::End();
 
@@ -204,7 +204,7 @@ void MixMatchApp::RunFrame()
             strcpy_s(editTrackData.position, activeTrack->position.c_str());
             editTrackData.bpm = activeTrack->bpm;
             editTrackData.rating = activeTrack->rating;
-            editTrackData.colour = ColourUtil::RgbToImVec4(activeTrack->colour);
+            editTrackData.colour = ColourUtil::RgbToVec4(activeTrack->colour);
 
             showEditTrackPopup = true;
             ImGui::OpenPopup("Edit Track");
@@ -216,32 +216,6 @@ void MixMatchApp::RunFrame()
         ImGui::SetCursorPos(editSelPos);
         SetTextColourOnHover(ImGui::IsItemHovered());
         ImGui::Text(Ui::Text::ICON_EDIT);
-        ImGui::PopStyleColor();
-
-        ImGui::SameLine();
-
-        // Delete track button
-        ImVec2 deleteSelSize = ImGui::CalcTextSize(Ui::Text::ICON_DELETE);
-        ImVec2 deleteSelPos = ImGui::GetCursorPos();
-
-        SetClearSelectableStyle();
-
-        if (ImGui::Selectable("##Delet Select", false, NULL, deleteSelSize))
-        {
-            deleteTrackData.trackId = activeTrackId;
-            deleteTrackData.mixId = -1;
-            deleteTrackData.label = activeTrack->artist + " - " + activeTrack->title;
-
-            showDeleteTrackPopup = true;
-            ImGui::OpenPopup(deleteTrackData.label.c_str());
-        }
-
-        ImGui::PopStyleColor(3);
-        ImGui::SameLine();
-
-        ImGui::SetCursorPos(deleteSelPos);
-        SetTextColourOnHover(ImGui::IsItemHovered());
-        ImGui::Text(Ui::Text::ICON_DELETE);
         ImGui::PopStyleColor();
 
         // Label
@@ -297,34 +271,22 @@ void MixMatchApp::RunFrame()
             ImGui::PopStyleColor();
         }
             
-
-        StarRating(activeTrack);
+        int newRating = StarRating(activeTrack->rating);
+        if (newRating > -1)
+        {
+            Track editedTrack = *activeTrack;
+            editedTrack.rating = newRating;
+            manager.editTrack(editedTrack);
+        }
 
         // Track edit popup
         SetModalPopupPosAndSize("Edit Track");
-
-        ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(editTrackData.colour, Ui::Colour::TINT_BG));
-        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(editTrackData.colour, Ui::Colour::TINT_HOVER));
 
         if (ImGui::BeginPopupModal("Edit Track", &showEditTrackPopup, ImGuiWindowFlags_AlwaysAutoResize))
         {
             InputTrackDataPopup(editTrackData, TrackInputMode::EDIT);
 
             if (!showEditTrackPopup)
-                ImGui::CloseCurrentPopup();
-
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleColor(2);
-
-
-        // Delete track popup
-        SetModalPopupPosAndSize(deleteTrackData.label.c_str());
-        if (ImGui::BeginPopupModal(deleteTrackData.label.c_str(), &showDeleteTrackPopup, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            DeleteConformationPopup(deleteTrackData, DeleteConformationMode::TRACK);
-
-            if (!showDeleteTrackPopup)
                 ImGui::CloseCurrentPopup();
 
             ImGui::EndPopup();
@@ -444,7 +406,10 @@ void MixMatchApp::RunFrame()
         if (labelLibrary.empty())
             break;
 
+        ImGui::PushFont(Ui::Text::BigFont);
         ImGui::Text(activeLabel.c_str());
+        ImGui::PopFont();
+
         DisplayLabelTable(labelLibrary);
         break;
     }
@@ -455,7 +420,10 @@ void MixMatchApp::RunFrame()
         if (releaseLibrary.empty())
             break;
 
+        ImGui::PushFont(Ui::Text::BigFont);
         ImGui::Text(activeRelease.c_str());
+        ImGui::PopFont();
+
         DisplayReleaseTable(releaseLibrary);
         break;
     }
@@ -514,167 +482,206 @@ void MixMatchApp::DeleteConformationPopup(DeleteData& data, DeleteConformationMo
 
 void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
 {
-    // TODO: Use tabs
-    if (ImGui::BeginTable("InputTrackTable", 2, ImGuiTableFlags_SizingFixedFit))
+    bool saveButtonPressed = false;
+
+    const float fieldWidth = 500.0f;
+    float fieldHeight = ImGui::GetFrameHeight();
+
+    ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+
+    ImGui::PushStyleColor(ImGuiCol_Tab, ColourUtil::TintVec4(data.colour, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_TabHovered, ColourUtil::TintVec4(data.colour, 0.66f));
+    ImGui::PushStyleColor(ImGuiCol_TabSelected, ColourUtil::TintVec4(data.colour, 0.8f));
+
+    if (ImGui::BeginTabBar("Input Data Tabs", tab_bar_flags))
     {
-        float fieldWidth = 500.0f;
-        float fieldHeight = ImGui::GetFrameHeight();
-
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthStretch);
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Artist");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Artist", data.artist, sizeof(data.artist));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Title");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Title", data.title, sizeof(data.title));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Label");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Label", data.label, sizeof(data.label));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Release");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Release", data.release, sizeof(data.release));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Side / Number");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputText("##Position", data.position, sizeof(data.position));
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("BPM");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputFloat("##BPM", &data.bpm, 1.f, 10.f, "%.2f");
-        data.bpm = std::max(0.f, data.bpm);
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Rating");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::SetNextItemWidth(fieldWidth);
-        ImGui::InputInt("##Rating", &data.rating, 1, 1);
-        data.rating = std::clamp(data.rating, 0, 5);
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Colour");
-        ImGui::TableSetColumnIndex(1);
-        if (ImGui::ColorButton(
-            "##ColourButton",
-            data.colour,
-            ImGuiColorEditFlags_NoTooltip |
-            ImGuiColorEditFlags_NoBorder,
-            ImVec2(fieldWidth, fieldHeight)))
+        if (ImGui::BeginTabItem("Track"))
         {
-            ImGui::OpenPopup("##ColorPickerPopup");
-        }
-        if (ImGui::BeginPopup("##ColorPickerPopup"))
-        {
-            ImGui::ColorPicker3("##ColourPicker",
-                (float*)&data.colour,
-                ImGuiColorEditFlags_NoSmallPreview |
-                ImGuiColorEditFlags_NoLabel |
-                ImGuiColorEditFlags_NoSidePreview
-            );
-            ImGui::EndPopup();
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-
-        ImVec2 saveButtonSize = ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeight());
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 1.f, 0.f, Ui::Colour::ALPHA_BG));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.f, 1.f, 0.f, Ui::Colour::ALPHA_HOVER));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.f, 1.f, 0.f, Ui::Colour::ALPHA_ACTIVE));
-
-        if (ImGui::Button(Ui::Text::ICON_SAVE, saveButtonSize))
-        {
-            Track t;
-            t.artist = data.artist;
-            t.title = data.title;
-            t.label = data.label;
-            t.release = data.release;
-            t.position = data.position;
-            t.bpm = data.bpm;
-            t.rating = data.rating;
-            t.colour = ColourUtil::ImVec4ToRgb(data.colour);
-
-            if (mode == TrackInputMode::ADD)
+            if (ImGui::BeginTable("InputTrackTable", 2, ImGuiTableFlags_SizingFixedFit))
             {
-                data.result = manager.addTrack(t);
+                ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthStretch);
 
-                if (data.result == LibraryManager::ValidationResult::ValidTrack)
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Artist");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(fieldWidth);
+                ImGui::InputText("##Artist", data.artist, sizeof(data.artist));
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Title");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(fieldWidth);
+                ImGui::InputText("##Title", data.title, sizeof(data.title));
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Colour");
+                ImGui::TableSetColumnIndex(1);
+                if (ImGui::ColorButton(
+                    "##ColourButton",
+                    data.colour,
+                    ImGuiColorEditFlags_NoTooltip |
+                    ImGuiColorEditFlags_NoBorder,
+                    ImVec2(fieldWidth, fieldHeight)))
                 {
-                    if (!manager.getCatalogueForDisplay().empty())
-                    {
-                        activeTrackId = manager.getCatalogueForDisplay().back().id;
-                        mainPage = MainPage::ACTIVE_TRACK;
-                    }
+                    ImGui::OpenPopup("##ColorPickerPopup");
                 }
-            }
-            else if (mode == TrackInputMode::EDIT)
-            {
-                t.id = activeTrackId;
+                if (ImGui::BeginPopup("##ColorPickerPopup"))
+                {
+                    ImGui::ColorPicker3("##ColourPicker",
+                        (float*)&data.colour,
+                        ImGuiColorEditFlags_NoSmallPreview |
+                        ImGuiColorEditFlags_NoLabel |
+                        ImGuiColorEditFlags_NoSidePreview
+                    );
+                    ImGui::EndPopup();
+                }
 
-                data.result = manager.editTrack(t);
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Rating");
+                ImGui::TableSetColumnIndex(1);
+                int newRating = StarRating(data.rating);
+
+                if (newRating > -1)
+                    data.rating = newRating;
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+
+                ImGui::EndTable();
             }
 
-            if (data.result == LibraryManager::ValidationResult::ValidTrack)
+            InputDataSaveButton(data, mode);
+
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Release"))
+        {
+            if (ImGui::BeginTable("InputReleaseTable", 2, ImGuiTableFlags_SizingFixedFit))
             {
-                data = {};
+                ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthFixed, 362.f); // Find the correct size from first tab table
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Label");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(fieldWidth);
+                ImGui::InputText("##Label", data.label, sizeof(data.label));
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("LP / EP");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(fieldWidth);
+                ImGui::InputText("##Release", data.release, sizeof(data.release));
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("Position");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetNextItemWidth(fieldWidth);
+                ImGui::InputText("##Position", data.position, sizeof(data.position));
+
+                ImGui::EndTable();
+            }
+
+            InputDataSaveButton(data, mode);
+
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Misc"))
+        {
+            if (ImGui::BeginTable("InputMiscTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                ImGui::TableSetupColumn("Text", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthStretch);
+
+                // Notes
+
+                // Format?
+
+                ImGui::EndTable();
+            }
+
+            InputDataSaveButton(data, mode);
+
+            ImGui::EndTabItem();
+        }
+
+        if (mode == TrackInputMode::EDIT && ImGui::BeginTabItem("Delete"))
+        {
+
+            float availX = ImGui::GetContentRegionAvail().x;
+
+            // Text
+            const char* line1 = "Permanently Delete";
+            float line1Width = ImGui::CalcTextSize(line1).x;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availX - line1Width) * 0.5f);
+            ImGui::Text(line1);
+
+            std::string line2 = TextUtil::FormartTitle(data.artist, data.title) + "?";
+            float line2Width = ImGui::CalcTextSize(line2.c_str()).x;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availX - line2Width) * 0.5f);
+            ImGui::Text(line2.c_str());
+
+            // Yes / No select
+            const char* yesText = "Yes";
+            const char* noText = "No";
+
+            ImVec2 yesSize = ImGui::CalcTextSize(yesText);
+            ImVec2 noSize = ImGui::CalcTextSize(noText);
+
+            float spacing = 20.0f;
+            float totalWidth = yesSize.x + noSize.x + spacing;
+
+            // center the group
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availX - totalWidth) * 0.5f);
+
+            // Yes
+            ImVec2 yesPos = ImGui::GetCursorPos();
+            SetClearSelectableStyle();
+
+            if (ImGui::Selectable("##Del Yes Sel", false, 0, yesSize))
+            {
+                manager.removeTrack(data.id);
                 ImGui::CloseCurrentPopup();
             }
-        }
-        ImGui::PopStyleColor(3);
 
-        ImGui::TableSetColumnIndex(1);
-        if (data.result !=
-            LibraryManager::ValidationResult::None ||
-            LibraryManager::ValidationResult::ValidTrack)
-        {
-            std::string waringText = "";
+            ImGui::PopStyleColor(3);
 
-            switch (data.result)
+            ImGui::SetCursorPos(yesPos);
+            SetTextColourOnHover(ImGui::IsItemHovered());
+            ImGui::Text(yesText);
+            ImGui::PopStyleColor();
+
+            ImGui::SameLine(0, spacing);
+
+            // No
+            ImVec2 noPos = ImGui::GetCursorPos();
+            SetClearSelectableStyle();
+
+            if (ImGui::Selectable("No", false, 0, noSize))
             {
-            case LibraryManager::ValidationResult::MissingArtist:
-                waringText = "Missing Artist Entry";
-                break;
-            case LibraryManager::ValidationResult::MissingTitle:
-                waringText = "Missing Title Entry";
-                break;
-            case LibraryManager::ValidationResult::TrackNotFound:
-                waringText = "Track Not In Library";
-                break;
-            case LibraryManager::ValidationResult::DuplicateTrack:
-                waringText = "Track Already In Library";
-                break;
+                ImGui::CloseCurrentPopup();
             }
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.f, 0.f, Ui::Colour::ALPHA_ACTIVE));
-            ImGui::Text(waringText.c_str());
+            ImGui::PopStyleColor(3);
+
+            ImGui::SetCursorPos(noPos);
+            SetTextColourOnHover(ImGui::IsItemHovered());
+            ImGui::Text(noText);
             ImGui::PopStyleColor();
+
+            ImGui::EndTabItem();
         }
-        ImGui::EndTable();
+
+        ImGui::EndTabBar();
+        ImGui::PopStyleColor(3);
     }
 }
 
@@ -855,7 +862,14 @@ void MixMatchApp::DisplayLabelTable(std::vector<const Track*> trackList)
             ImGui::TableSetColumnIndex(2);
             float colWidth = ImGui::GetContentRegionAvail().x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize - tablePaddingX);
-            StarRating(track);
+            
+            int newRating = StarRating(track->rating);
+            if (newRating > -1)
+            {
+                Track editedTrack = *track;
+                editedTrack.rating = newRating;
+                manager.editTrack(editedTrack);
+            }
 
             ImGui::PopID();
         }
@@ -970,7 +984,14 @@ void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
             ImGui::TableSetColumnIndex(3);
             float colWidth = ImGui::GetContentRegionAvail().x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize - tablePaddingX);
-            StarRating(track);
+            
+            int newRating = StarRating(track->rating);
+            if (newRating > -1)
+            {
+                Track editedTrack = *track;
+                editedTrack.rating = newRating;
+                manager.editTrack(editedTrack);
+            }
 
             ImGui::PopID();
         }
@@ -1175,7 +1196,14 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::TableSetColumnIndex(5);
             float colWidth = ImGui::GetContentRegionAvail().x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize);
-            StarRating(mixTrack);
+            
+            int newRating = StarRating(mixTrack->rating);
+            if (newRating > -1)
+            {
+                Track editedTrack = *mixTrack;
+                editedTrack.rating = newRating;
+                manager.editTrack(editedTrack);
+            }
 
             DrawTableDividerLine(table, 5, drawList, lineColour, rowHeight);
 
