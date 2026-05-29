@@ -9,6 +9,10 @@
 #include "springGraph.hpp"
 
 #include <array>
+#include <string> // needed?
+#include <algorithm> // needed? 
+
+
 
 struct MixMatchApp
 {
@@ -158,12 +162,13 @@ private:
         return newRating;
     }
 
-    // Requires PopStyleColor(3)
     inline void SetClearSelectableStyle()
     {
+        // IMPORTANT: Requires PopStyleColor(3)
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0, 0, 0, 0));
+
     }
 
     // Requires PopStyleColor(1)
@@ -262,6 +267,28 @@ private:
         std::array<uint8_t, 3> colour,
         float bpm = 0)
     {
+        /* // B&W look
+        ImVec2 rowPos = ImGui::GetCursorScreenPos();
+
+        ImVec2 topLeft(rowPos.x, rowPos.y - bgPaddingY);
+        ImVec2 bottomRight(rowPos.x + width, rowPos.y + height + bgPaddingY);
+
+        ImVec2 mousePos = ImGui::GetMousePos();
+        bool rectHovered = mousePos.x >= topLeft.x && mousePos.x <= bottomRight.x &&
+            mousePos.y >= topLeft.y && mousePos.y <= bottomRight.y;
+
+        drawList->AddRectFilled(topLeft, bottomRight,
+            IM_COL32(18, 18, 18, 255),
+            0.f);
+
+        drawList->AddRect(topLeft, bottomRight,
+            IM_COL32_WHITE,
+            0.f, 0, 1.f);
+
+        return rectHovered;
+        */
+
+        /* // Full colour
         const ImDrawFlags corners = ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomRight;
 
         ImVec2 rowPos = ImGui::GetCursorScreenPos();
@@ -272,8 +299,6 @@ private:
         ImVec2 mousePos = ImGui::GetMousePos();
         bool rectHovered = mousePos.x >= topLeft.x && mousePos.x <= bottomRight.x &&
             mousePos.y >= topLeft.y && mousePos.y <= bottomRight.y;
-
-        //bool rectClicked = rectHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
 
         // TODO: make the colour darker then have a wider range of alpha to oscillate
         uint8_t colourAlpha = 40;
@@ -294,7 +319,6 @@ private:
             {
                 colourAlpha = 64;
             }
-
         }
 
         drawList->AddRectFilled(topLeft, bottomRight,
@@ -304,8 +328,41 @@ private:
         drawList->AddRect(topLeft, bottomRight,
             ColourUtil::RgbToU32(colour, colourAlpha + 24),
             10.f, corners, 1.f);
+            
+        return rectHovered;
+        */
+
+        ImVec2 rowPos = ImGui::GetCursorScreenPos();
+
+        ImVec2 topLeft(rowPos.x, rowPos.y - bgPaddingY);
+        ImVec2 bottomRight(rowPos.x + width, rowPos.y + height + bgPaddingY);
+
+        ImVec2 mousePos = ImGui::GetMousePos();
+        bool rectHovered = mousePos.x >= topLeft.x && mousePos.x <= bottomRight.x &&
+            mousePos.y >= topLeft.y && mousePos.y <= bottomRight.y;
+
+        if (rectHovered)
+        {
+            ImU32 leftColour = ColourUtil::RgbToU32(colour, 64);
+            ImU32 rightColour = ColourUtil::RgbToU32(colour, 0);
+
+            ImVec2 windowPos = ImGui::GetWindowPos();
+            ImVec2 windowSize = ImGui::GetWindowSize();
+
+            float normalizedMousePos = (ImGui::GetMousePos().x - windowPos.x) / windowSize.x;
+            normalizedMousePos = std::clamp(normalizedMousePos, 0.f, 1.f);
+
+            float splitX = topLeft.x + (bottomRight.x - topLeft.x) * normalizedMousePos;
+
+            drawList->AddRectFilledMultiColor(topLeft,ImVec2(splitX, bottomRight.y),
+                rightColour, leftColour, leftColour, rightColour);
+
+            drawList->AddRectFilledMultiColor(ImVec2(splitX, topLeft.y), bottomRight,
+                leftColour, rightColour, rightColour, leftColour);
+        }
 
         return rectHovered;
+        
     }
 
     inline void DrawTableDividerLine(ImGuiTable* table, int colIndex, 
@@ -315,17 +372,112 @@ private:
         ImVec2 rowPos = ImGui::GetCursorScreenPos();
         float length = rowHeight + bgPaddingY - 2;
 
-        drawList->AddLine(ImVec2(column->MaxX, rowPos.y), ImVec2(column->MaxX, rowPos.y - length), colour);
+        //drawList->AddLine(ImVec2(column->MaxX, rowPos.y), ImVec2(column->MaxX, rowPos.y - length), colour);
+        //drawList->AddLine(ImVec2(column->MaxX, rowPos.y), ImVec2(column->MaxX, rowPos.y - length), IM_COL32(255 * 0.66f, 255 * 0.66f, 255 * 0.66f, 255));
+        drawList->AddLine(
+            ImVec2(column->MaxX, rowPos.y), 
+            ImVec2(column->MaxX, rowPos.y - length), 
+            IM_COL32(85, 85, 85, 128));
     }
 
-    inline std::string PadTableText(const std::string& s, int frontSpaces = 0, int backSpaces = 1)
+    inline std::string PadTableText(const std::string& s, int frontSpaces = 1, int backSpaces = 1)
     {
-        if (frontSpaces < 0)
-            frontSpaces = 0;
-
-        if (backSpaces < 0)
-            backSpaces = 0;
-
+        frontSpaces = (std::max)(frontSpaces, 0);
+        backSpaces = (std::max)(backSpaces, 0);
         return std::string(frontSpaces, ' ') + s + std::string(backSpaces, ' ');
+    }
+
+    enum class TextMode
+    {
+        Default,
+        ArtistAndTitle,
+    };
+
+    inline std::string FormatTableText(const std::string& text, float maxWidth)
+    {
+        float width = ImGui::CalcTextSize(text.c_str()).x;
+
+        if (width <= maxWidth)
+        {
+            return PadTableText(text);
+        }
+
+        // Truncated
+        std::string clipped = text;
+
+        while (!clipped.empty() &&
+            ImGui::CalcTextSize((clipped + "...").c_str()).x > maxWidth)
+        {
+            clipped.pop_back();
+        }
+
+        clipped += "...";
+
+        return PadTableText(clipped);
+    }
+
+    inline bool DrawTableButton(const std::string& text, TextMode mode = TextMode::Default)
+    {
+        if (text.empty())
+        {
+            /*
+            if (mode != TextMode::ArtistAndTitle)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.f));
+                TextUtil::DrawCenterJustifyTableText(PadTableText("-", 8, 8));
+                ImGui::PopStyleColor();
+            }
+            */
+            ImGui::TextUnformatted(PadTableText("", 8, 8).c_str());
+            return false;
+        }
+
+        float maxWidth = (mode == TextMode::ArtistAndTitle) ? 550.f : 400.f;
+
+        std::string textToDraw = FormatTableText(text, maxWidth);
+
+        // Select
+        bool clicked = false;
+        ImVec2 pos = ImGui::GetCursorPos();
+        //ImVec2 textSize = ImGui::CalcTextSize(textToDraw.c_str());
+
+        SetClearSelectableStyle();
+        ImGui::PushID(text.c_str());
+
+        if (ImGui::Selectable("##TableSelect", false))
+            clicked = true;
+       
+        ImGui::PopID();
+        ImGui::PopStyleColor(3);
+       
+        ImGui::SetCursorPos(pos);
+
+        // Draw Text
+        bool hovered = ImGui::IsItemHovered();
+        bool requireColourPop = false;
+
+        if (mode != TextMode::ArtistAndTitle)
+        {
+            SetTextColourOnHover(hovered);
+            requireColourPop = true;
+        }
+
+        TextUtil::DrawCenterJustifyTableText(textToDraw);
+        //ImGui::TextUnformatted(textToDraw.c_str());
+
+        if (requireColourPop)
+            ImGui::PopStyleColor();
+
+        // Full text tooltip
+        if (hovered && ImGui::CalcTextSize(text.c_str()).x > maxWidth)
+        {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(600.0f);
+            ImGui::TextUnformatted(text.c_str());
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+
+        return clicked;
     }
 };
