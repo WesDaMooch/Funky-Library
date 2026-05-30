@@ -363,11 +363,11 @@ void MixMatchApp::RunFrame()
                     // Artist & title
                     ImGui::TableSetColumnIndex(0);
                     std::string artistAndTitle = mixSearch.artist + " - " + mixSearch.title;
-                    TextUtil::DrawCenterJustifyTableText(artistAndTitle);
+                    DrawCenterJustifyTableText(artistAndTitle);
 
                     // Label
                     ImGui::TableSetColumnIndex(1);
-                    TextUtil::DrawCenterJustifyTableText(mixSearch.label);
+                    DrawCenterJustifyTableText(mixSearch.label);
 
                     // Rating
                     ImGui::TableSetColumnIndex(2);
@@ -408,6 +408,8 @@ void MixMatchApp::RunFrame()
         ImGui::Text(activeLabel.c_str());
         ImGui::PopFont();
 
+        ImGui::Separator();
+
         DisplayLabelTable(labelLibrary);
         break;
     }
@@ -421,6 +423,8 @@ void MixMatchApp::RunFrame()
         ImGui::PushFont(Ui::Text::BigFont);
         ImGui::Text(activeRelease.c_str());
         ImGui::PopFont();
+
+        ImGui::Separator();
 
         DisplayReleaseTable(releaseLibrary);
         break;
@@ -754,7 +758,7 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
             if (!track.label.empty())
                 trackText += " | " + track.label;
 
-            TextUtil::DrawCenterJustifyTableText(trackText);
+            DrawCenterJustifyTableText(trackText);
     
             //ImGui::TableSetColumnIndex(2);
 
@@ -813,13 +817,13 @@ void MixMatchApp::DisplayLabelTable(std::vector<const Track*> trackList)
 
             if (DrawTableButton(
                 TextUtil::FormartTitle(track->artist, track->title),
-                TextMode::ArtistAndTitle))
+                ButtonType::ArtistAndTitle))
             {
                 activeTrackId = track->id;
                 mainPage = MainPage::ACTIVE_TRACK;
             }
 
-            DrawTableDividerLine(table, 0, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 0, drawList, rowHeight);
 
             // Release
             ImGui::TableSetColumnIndex(1);
@@ -831,13 +835,13 @@ void MixMatchApp::DisplayLabelTable(std::vector<const Track*> trackList)
                 mainPage = MainPage::RELEASE;
             }
 
-            DrawTableDividerLine(table, 1, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 1, drawList, rowHeight);
 
             // Rating
             ImGui::TableSetColumnIndex(2);
 
             float colWidth = ImGui::GetContentRegionAvail().x;
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize - tablePaddingX);
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize);
             
             int newRating = StarRating(track->rating);
             if (newRating > -1)
@@ -908,20 +912,20 @@ void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
             ImGui::Text(PadTableText(position.empty() ? "-" : position, 2, 2).c_str());
             ImGui::PopStyleColor();
 
-            DrawTableDividerLine(table, 0, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 0, drawList, rowHeight);
 
             // Artist & title
             ImGui::TableSetColumnIndex(1);
 
             if (DrawTableButton(
                 TextUtil::FormartTitle(track->artist, track->title),
-                TextMode::ArtistAndTitle))
+                ButtonType::ArtistAndTitle))
             {
                 activeTrackId = track->id;
                 mainPage = MainPage::ACTIVE_TRACK;
             }
 
-            DrawTableDividerLine(table, 1, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 1, drawList, rowHeight);
 
             // Label
             ImGui::TableSetColumnIndex(2);
@@ -934,7 +938,7 @@ void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
                 mainPage = MainPage::LABEL;
             }
 
-            DrawTableDividerLine(table, 2, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 2, drawList, rowHeight);
 
             // Rating
             ImGui::TableSetColumnIndex(3);
@@ -966,30 +970,117 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    ImGui::PushStyleVar(
-        ImGuiStyleVar_CellPadding,
-        ImVec2(tablePaddingX, tablePaddingY));
+    ImGui::PushStyleColor(ImGuiCol_TableHeaderBg, ImVec4(0, 0, 0, 0));
 
     if (ImGui::BeginTable(
         "Mix Table",
         7,
-        ImGuiTableFlags_SizingStretchProp))
+        ImGuiTableFlags_SizingStretchProp |
+        ImGuiTableFlags_ContextMenuInBody |
+        ImGuiTableFlags_Hideable))
     {
         float frameHeight = ImGui::GetFrameHeight();
-        float removeSize = ImGui::CalcTextSize(PadTableText(Ui::Text::ICON_REMOVE).c_str()).x;
         float ratingSize = ImGui::CalcTextSize(Ui::Text::ICON_STAR).x * 5;
-        ImGui::TableSetupColumn("Direction", ImGuiTableColumnFlags_WidthFixed, frameHeight);
-        ImGui::TableSetupColumn("Mix Rating", ImGuiTableColumnFlags_WidthFixed, frameHeight);
-        ImGui::TableSetupColumn("Artist & Title", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 1.f);
-        ImGui::TableSetupColumn("Release", ImGuiTableColumnFlags_WidthStretch, 1.f);
+        float removeSize = ImGui::CalcTextSize(PadTableText(Ui::Text::ICON_REMOVE).c_str()).x;
+
+        ImGui::TableSetupColumn("Direction", 
+            ImGuiTableColumnFlags_WidthFixed | 
+            ImGuiTableColumnFlags_NoHide | 
+            ImGuiTableColumnFlags_NoHeaderLabel, 
+            frameHeight);
+
+        ImGui::TableSetupColumn("Mix Rating", 
+            ImGuiTableColumnFlags_WidthFixed | 
+            ImGuiTableColumnFlags_NoHide | 
+            ImGuiTableColumnFlags_NoHeaderLabel, 
+            frameHeight);
+
+        ImGui::TableSetupColumn("Artist & Title", 
+            ImGuiTableColumnFlags_WidthStretch | 
+            ImGuiTableColumnFlags_NoHide |
+            ImGuiTableColumnFlags_NoHeaderWidth,
+             1.75f);
+
+        ImGui::TableSetupColumn("Label", 
+            ImGuiTableColumnFlags_WidthStretch |
+            ImGuiTableColumnFlags_NoHeaderWidth,
+            1.0f);
+
+        ImGui::TableSetupColumn("Release", 
+            ImGuiTableColumnFlags_WidthStretch |
+            ImGuiTableColumnFlags_NoHeaderWidth,
+            1.0f);
+
         //ImGui::TableSetupColumn("BPM", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Track Rating", ImGuiTableColumnFlags_WidthFixed, ratingSize + tablePaddingX);
-        ImGui::TableSetupColumn("Remove", ImGuiTableColumnFlags_WidthFixed, removeSize);
+
+        ImGui::TableSetupColumn("Track Rating", 
+            ImGuiTableColumnFlags_WidthFixed |
+            ImGuiTableColumnFlags_NoHeaderWidth,
+            ratingSize + tablePaddingX);
+
+        ImGui::TableSetupColumn("Remove", 
+            ImGuiTableColumnFlags_WidthFixed | 
+            ImGuiTableColumnFlags_NoHide | 
+            ImGuiTableColumnFlags_NoHeaderLabel, 
+            removeSize);
 
         ImGuiTable* table = ImGui::GetCurrentTable();
         float rowWidth = table->WorkRect.Max.x - table->WorkRect.Min.x;
         float rowHeight = ImGui::GetTextLineHeight();
+
+
+        // Header
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(tablePaddingX, tablePaddingY * 0.5f));
+
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+
+        // Underline
+        float headerHeight =ImGui::GetTextLineHeight() + (ImGui::GetStyle().CellPadding.y * 2.0f);
+        float underlineY = ImGui::GetCursorScreenPos().y + headerHeight + 4;
+
+        drawList->AddLine(
+            ImVec2(table->WorkRect.Min.x, underlineY),
+            ImVec2(table->WorkRect.Max.x, underlineY),
+            IM_COL32(85, 85, 85, 128),
+            1.0f);
+            
+        // TODO: Make add new mix button?
+        // How would I put the seach bar in??
+        //ImGui::TableSetColumnIndex(0);
+        //DrawCenterJustifyTableText(Ui::Text::ICON_ADD);
+
+        ImGui::TableSetColumnIndex(0);
+        //DrawCenterJustifyTableText("Mix");
+        ImGui::TextUnformatted("");
+
+        ImGui::TableSetColumnIndex(1);
+        ImGui::TextUnformatted("");
+        DrawTableDividerLine(table, 1, drawList, rowHeight);
+
+        ImGui::TableSetColumnIndex(2);
+        DrawCenterJustifyTableText("Track");
+        DrawTableDividerLine(table, 2, drawList, rowHeight);
+
+        ImGui::TableSetColumnIndex(3);
+        DrawCenterJustifyTableText("Label");
+        DrawTableDividerLine(table, 3, drawList, rowHeight);
+
+        ImGui::TableSetColumnIndex(4);
+        DrawCenterJustifyTableText("Release");
+        DrawTableDividerLine(table, 4, drawList, rowHeight);
+
+        ImGui::TableSetColumnIndex(5);
+        DrawCenterJustifyTableText("Rating");
+        DrawTableDividerLine(table, 5, drawList, rowHeight);
+
+        ImGui::TableSetColumnIndex(6);
+        ImGui::TextUnformatted("");
+
+        ImGui::PopStyleVar();
+
+
+        // Track rows
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(tablePaddingX, tablePaddingY));
 
         for (const Mix& mix : mixList)
         {
@@ -1006,8 +1097,6 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImVec2 pos = ImGui::GetCursorPos();
 
             bool hovered = DrawTableBg(drawList, rowWidth, rowHeight, mixTrack->colour, mixTrack->bpm);
-
-            ImU32 lineColour = ColourUtil::RgbToU32(mixTrack->colour, hovered ? 88 : 64);
 
             // Direction 
             ImGui::SetCursorPos(pos);
@@ -1041,7 +1130,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
             ImGui::TableSetColumnIndex(0);
             SetTextColourOnHover(ImGui::IsItemHovered());
-            TextUtil::DrawCenterJustifyTableText(directionIcon.c_str());
+            DrawCenterJustifyTableText(directionIcon.c_str());
             ImGui::PopStyleColor();
 
             // Mix rating
@@ -1063,18 +1152,18 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::PopStyleVar();
             ImGui::PopStyleColor(3);
 
-            DrawTableDividerLine(table, 1, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 1, drawList, rowHeight);
       
             // Artist & title
             ImGui::TableSetColumnIndex(2);
             std::string artistAndTitle = TextUtil::FormartTitle(mixTrack->artist, mixTrack->title);
-            if (DrawTableButton(artistAndTitle, TextMode::ArtistAndTitle))
+            if (DrawTableButton(artistAndTitle, ButtonType::ArtistAndTitle))
             {
                 activeTrackId = mixTrack->id;
                 mainPage = MainPage::ACTIVE_TRACK;
             }
 
-            DrawTableDividerLine(table, 2, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 2, drawList, rowHeight);
 
             // Label
             ImGui::TableSetColumnIndex(3);
@@ -1085,7 +1174,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
                 mainPage = MainPage::LABEL;
             }
 
-            DrawTableDividerLine(table, 3, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 3, drawList, rowHeight);
 
             // Release
             ImGui::TableSetColumnIndex(4);
@@ -1096,7 +1185,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
                 mainPage = MainPage::RELEASE;
             }
 
-            DrawTableDividerLine(table, 4, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 4, drawList, rowHeight);
 
             // Rating
             ImGui::TableSetColumnIndex(5);
@@ -1111,7 +1200,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
                 manager.editTrack(editedTrack);
             }
 
-            DrawTableDividerLine(table, 5, drawList, lineColour, rowHeight);
+            DrawTableDividerLine(table, 5, drawList, rowHeight);
 
             // Remove
             ImGui::TableSetColumnIndex(6);
@@ -1138,9 +1227,11 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             
             ImGui::PopID();
         }
+        ImGui::PopStyleVar();
         ImGui::EndTable();
     }
-    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+
 
     // Delete mix popup
     if (deleteMixButtonPressed)

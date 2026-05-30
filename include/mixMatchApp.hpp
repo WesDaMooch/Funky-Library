@@ -168,12 +168,11 @@ private:
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0, 0, 0, 0));
-
     }
 
-    // Requires PopStyleColor(1)
     inline void SetTextColourOnHover(bool hover)
     {
+        // IMPORTANT: Requires PopStyleColor(1)
         if (hover)
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
         else
@@ -332,6 +331,7 @@ private:
         return rectHovered;
         */
 
+        // Gradients
         ImVec2 rowPos = ImGui::GetCursorScreenPos();
 
         ImVec2 topLeft(rowPos.x, rowPos.y - bgPaddingY);
@@ -366,18 +366,27 @@ private:
     }
 
     inline void DrawTableDividerLine(ImGuiTable* table, int colIndex, 
-        ImDrawList* drawList, ImU32 colour, float rowHeight)
+        ImDrawList* drawList, float rowHeight)
     {
         ImGuiTableColumn* column = &table->Columns[colIndex];
         ImVec2 rowPos = ImGui::GetCursorScreenPos();
         float length = rowHeight + bgPaddingY - 2;
 
-        //drawList->AddLine(ImVec2(column->MaxX, rowPos.y), ImVec2(column->MaxX, rowPos.y - length), colour);
-        //drawList->AddLine(ImVec2(column->MaxX, rowPos.y), ImVec2(column->MaxX, rowPos.y - length), IM_COL32(255 * 0.66f, 255 * 0.66f, 255 * 0.66f, 255));
         drawList->AddLine(
             ImVec2(column->MaxX, rowPos.y), 
             ImVec2(column->MaxX, rowPos.y - length), 
             IM_COL32(85, 85, 85, 128));
+    }
+
+    inline void DrawCenterJustifyTableText(const std::string& text)
+    {
+        float columnWidth = ImGui::GetColumnWidth();
+        float textWidth = ImGui::CalcTextSize(text.c_str()).x;
+        float offset = (columnWidth - textWidth) * 0.5f;
+
+        offset = (std::max)(0.0f, offset);
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
+        ImGui::TextUnformatted(text.c_str());
     }
 
     inline std::string PadTableText(const std::string& s, int frontSpaces = 1, int backSpaces = 1)
@@ -387,36 +396,36 @@ private:
         return std::string(frontSpaces, ' ') + s + std::string(backSpaces, ' ');
     }
 
-    enum class TextMode
-    {
-        Default,
-        ArtistAndTitle,
-    };
-
     inline std::string FormatTableText(const std::string& text, float maxWidth)
     {
+        // Truncates text that is wider than maxWidth, appending an ellipsis.
+        // Pads with one space either side of text.
+
         float width = ImGui::CalcTextSize(text.c_str()).x;
 
         if (width <= maxWidth)
-        {
             return PadTableText(text);
-        }
-
+        
         // Truncated
         std::string clipped = text;
 
-        while (!clipped.empty() &&
-            ImGui::CalcTextSize((clipped + "...").c_str()).x > maxWidth)
-        {
+        // Text width + padding & ellipsis
+        while (!clipped.empty() && ImGui::CalcTextSize((clipped + " ... ").c_str()).x > maxWidth)
             clipped.pop_back();
-        }
-
+        
         clipped += "...";
 
         return PadTableText(clipped);
     }
 
-    inline bool DrawTableButton(const std::string& text, TextMode mode = TextMode::Default)
+    // Table button
+    enum class ButtonType
+    {
+        Default,
+        ArtistAndTitle,
+    };
+
+    inline bool DrawTableButton(const std::string& text, ButtonType type = ButtonType::Default)
     {
         if (text.empty())
         {
@@ -432,14 +441,14 @@ private:
             return false;
         }
 
-        float maxWidth = (mode == TextMode::ArtistAndTitle) ? 550.f : 400.f;
+        //float maxWidth = (type == ButtonType::ArtistAndTitle) ? 550.f : ImGui::GetContentRegionAvail().x;   //ImGui::GetColumnWidth();
+        float maxWidth = ImGui::GetContentRegionAvail().x;
 
         std::string textToDraw = FormatTableText(text, maxWidth);
 
         // Select
         bool clicked = false;
         ImVec2 pos = ImGui::GetCursorPos();
-        //ImVec2 textSize = ImGui::CalcTextSize(textToDraw.c_str());
 
         SetClearSelectableStyle();
         ImGui::PushID(text.c_str());
@@ -456,14 +465,13 @@ private:
         bool hovered = ImGui::IsItemHovered();
         bool requireColourPop = false;
 
-        if (mode != TextMode::ArtistAndTitle)
+        if (type != ButtonType::ArtistAndTitle)
         {
             SetTextColourOnHover(hovered);
             requireColourPop = true;
         }
 
-        TextUtil::DrawCenterJustifyTableText(textToDraw);
-        //ImGui::TextUnformatted(textToDraw.c_str());
+        DrawCenterJustifyTableText(textToDraw);
 
         if (requireColourPop)
             ImGui::PopStyleColor();

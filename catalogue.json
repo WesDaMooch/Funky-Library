@@ -29,7 +29,7 @@
                 {
                     "direction": 2,
                     "id": 9,
-                    "rating": 2
+                    "rating": 3
                 },
                 {
                     "direction": 2,
@@ -44,11 +44,6 @@
                 {
                     "direction": 2,
                     "id": 21,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
-                    "id": 24,
                     "rating": 0
                 }
             ],
@@ -71,7 +66,17 @@
                 {
                     "direction": 2,
                     "id": 7,
-                    "rating": 0
+                    "rating": 3
+                },
+                {
+                    "direction": 2,
+                    "id": 26,
+                    "rating": 5
+                },
+                {
+                    "direction": 2,
+                    "id": 13,
+                    "rating": 3
                 }
             ],
             "position": "",
@@ -83,9 +88,9 @@
             "artist": "Matix",
             "bpm": 0.0,
             "colour": [
-                75,
-                75,
-                75
+                90,
+                180,
+                0
             ],
             "id": 13,
             "label": "Prototype",
@@ -98,6 +103,11 @@
                 {
                     "direction": 1,
                     "id": 26,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 9,
                     "rating": 0
                 }
             ],
@@ -162,7 +172,7 @@
                 }
             ],
             "position": "2",
-            "rating": 4,
+            "rating": 3,
             "release": "Heli EP",
             "title": "808 Fate"
         },
@@ -181,11 +191,6 @@
                     "direction": 0,
                     "id": 29,
                     "rating": 5
-                },
-                {
-                    "direction": 2,
-                    "id": 7,
-                    "rating": 0
                 }
             ],
             "position": "A",
@@ -229,6 +234,11 @@
                 {
                     "direction": 0,
                     "id": 13,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 9,
                     "rating": 0
                 }
             ],
