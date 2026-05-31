@@ -9,7 +9,9 @@ void to_json(json& j, const Mix& m)
     j = {
         {"id", m.id},
         {"direction", static_cast<int>(m.direction)},
-        {"rating", m.rating}
+        {"rating", m.rating},
+        {"pitch", m.pitch },
+        {"note", m.note }
     };
 }
 
@@ -17,10 +19,12 @@ void from_json(const json& j, Mix& m)
 {
     m.id = j.at("id").get<int>();
 
-    int Jdirection = j.value("direction", static_cast<int>(InAndOut));
+    int Jdirection = j.value("direction", static_cast<int>(MixDirection::InAndOut));
     m.direction = static_cast<MixDirection>(Jdirection);
 
     m.rating = j.value("rating", 0);
+    m.pitch = j.value("pitch", 0);
+    m.note = j.value("note", "");
 }
 
 void to_json(json& j, const Track& t)
@@ -223,6 +227,8 @@ void LibraryManager::editMix(Mix mix, int parentTrackId)
         {
             m.direction = mix.direction;
             m.rating = mix.rating;
+            m.pitch = mix.pitch;
+            m.note = mix.note;
             parentFound = true;
             changed = true;
             break;
@@ -244,7 +250,15 @@ void LibraryManager::editMix(Mix mix, int parentTrackId)
             m.direction = InvertMixDirection(mix.direction);
 
             if (mix.direction != MixDirection::InAndOut)
+            {
                 m.rating = mix.rating;
+                m.pitch = mix.pitch;
+                m.note = mix.note;
+            }
+            else
+            {
+                m.pitch = -mix.pitch;
+            }
 
             childFound = true;
             changed = true;
@@ -539,6 +553,12 @@ LibraryManager::ValidationResult LibraryManager::ValidateMix(Mix& m, int parentT
 
     // Ensure rating is between 0 & 5.
     m.rating = std::clamp(m.rating, 0, 5);
+
+    // Ensure pitch adjust in between -99 & 99.
+    m.pitch = std::clamp(m.pitch, -99, 99);
+
+    // Remove space padding from note.
+    m.note = TextUtil::Trim(m.note);
 
     return ValidationResult::ValidMix;
 }

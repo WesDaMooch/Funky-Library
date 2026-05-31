@@ -14,36 +14,50 @@
                 {
                     "direction": 1,
                     "id": 23,
+                    "note": "Mix on 2nd drop",
+                    "pitch": -2,
                     "rating": 3
                 },
                 {
-                    "direction": 0,
+                    "direction": 2,
                     "id": 25,
+                    "note": "Mood change",
+                    "pitch": 0,
                     "rating": 5
                 },
                 {
                     "direction": 1,
                     "id": 13,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 1
                 },
                 {
                     "direction": 2,
                     "id": 9,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 3
                 },
                 {
                     "direction": 2,
                     "id": 28,
-                    "rating": 0
-                },
-                {
-                    "direction": 0,
-                    "id": 29,
-                    "rating": 2
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 4
                 },
                 {
                     "direction": 2,
                     "id": 21,
+                    "note": "",
+                    "pitch": -1,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 29,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 0
                 }
             ],
@@ -66,16 +80,15 @@
                 {
                     "direction": 2,
                     "id": 7,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 3
                 },
                 {
                     "direction": 2,
-                    "id": 26,
-                    "rating": 5
-                },
-                {
-                    "direction": 2,
                     "id": 13,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 3
                 }
             ],
@@ -98,16 +111,15 @@
                 {
                     "direction": 0,
                     "id": 7,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 1
-                },
-                {
-                    "direction": 1,
-                    "id": 26,
-                    "rating": 0
                 },
                 {
                     "direction": 2,
                     "id": 9,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 0
                 }
             ],
@@ -146,6 +158,8 @@
                 {
                     "direction": 2,
                     "id": 7,
+                    "note": "",
+                    "pitch": 1,
                     "rating": 0
                 }
             ],
@@ -168,6 +182,8 @@
                 {
                     "direction": 0,
                     "id": 7,
+                    "note": "Mix on 2nd drop",
+                    "pitch": -2,
                     "rating": 3
                 }
             ],
@@ -190,6 +206,8 @@
                 {
                     "direction": 0,
                     "id": 29,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 5
                 }
             ],
@@ -210,8 +228,10 @@
             "label": "",
             "mix": [
                 {
-                    "direction": 1,
+                    "direction": 2,
                     "id": 7,
+                    "note": "Mood change",
+                    "pitch": 0,
                     "rating": 5
                 }
             ],
@@ -233,13 +253,10 @@
             "mix": [
                 {
                     "direction": 0,
-                    "id": 13,
-                    "rating": 0
-                },
-                {
-                    "direction": 2,
-                    "id": 9,
-                    "rating": 0
+                    "id": 30,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 4
                 }
             ],
             "position": "A",
@@ -259,8 +276,10 @@
             "label": "MetalHeadz",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 1,
                     "id": 28,
+                    "note": "",
+                    "pitch": 6,
                     "rating": 4
                 }
             ],
@@ -281,13 +300,17 @@
             "label": "",
             "mix": [
                 {
-                    "direction": 2,
+                    "direction": 0,
                     "id": 27,
+                    "note": "",
+                    "pitch": 6,
                     "rating": 4
                 },
                 {
                     "direction": 2,
                     "id": 7,
+                    "note": "",
+                    "pitch": 0,
                     "rating": 0
                 }
             ],
@@ -309,19 +332,78 @@
             "mix": [
                 {
                     "direction": 1,
-                    "id": 7,
-                    "rating": 2
+                    "id": 24,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 5
                 },
                 {
-                    "direction": 1,
-                    "id": 24,
-                    "rating": 5
+                    "direction": 2,
+                    "id": 7,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "",
             "rating": 5,
             "release": "Very Long Release Name, Yeah Really Long Indeed",
             "title": "Christ What a Long Name"
+        },
+        {
+            "artist": "Dom & Optical",
+            "bpm": 0.0,
+            "colour": [
+                255,
+                175,
+                175
+            ],
+            "id": 30,
+            "label": "Moving Shadow",
+            "mix": [
+                {
+                    "direction": 1,
+                    "id": 26,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 4
+                },
+                {
+                    "direction": 1,
+                    "id": 31,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 2
+                }
+            ],
+            "position": "",
+            "rating": 4,
+            "release": "",
+            "title": "Quadrant 6"
+        },
+        {
+            "artist": "Ed Rush & Nico",
+            "bpm": 0.0,
+            "colour": [
+                255,
+                222,
+                0
+            ],
+            "id": 31,
+            "label": "No U Turn",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 30,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 2
+                }
+            ],
+            "position": "",
+            "rating": 2,
+            "release": "",
+            "title": "Sector 6"
         }
     ]
 }

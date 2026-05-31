@@ -48,6 +48,9 @@ private:
     bool showEditTrackPopup = false;
     bool showDeleteTrackPopup = false;
     bool showAddMixWindow = false;
+
+    // Mix
+    bool showEditMixNotePopup = false;
     bool showDeleteMixPopup = false;
 
     char mixSearchBuffer[64]{};
@@ -55,9 +58,9 @@ private:
     // Table drawing
     const float minTableColumnWidth = 120;
     const float tablePaddingX = 6;
-    const float tablePaddingY = 16;
+    float tablePaddingY = Ui::Text::fontSizeBase / 2.0f; // 16
 
-    const float bgRectGap = 3;
+    float bgRectGap = Ui::Text::fontSizeBase / 12.0f; // 3
     const float bgPaddingY = tablePaddingY - bgRectGap;
 
     enum class MainPage
@@ -77,6 +80,7 @@ private:
         ADD, 
         EDIT 
     };
+
     struct InputData
     {
         int id = -1;
@@ -91,24 +95,32 @@ private:
 
         LibraryManager::ValidationResult result = LibraryManager::ValidationResult::None;
     };
+
     InputData addTrackData;
     InputData editTrackData;
+
     void InputTrackDataPopup(InputData& data, TrackInputMode mode);
 
+    // Mix Data
+    Mix inputMixData;
+    Mix deleteMixData;
+
     // Delete Conformation Window //
+    // TODO: This is only now being used for deleting mixes
     enum class DeleteConformationMode 
     {
         TRACK,
         MIX
     };
+
     struct DeleteData
     {
         int trackId = -1;
         int mixId = -1;
         std::string label{};
     };
-    DeleteData deleteTrackData;
-    DeleteData deleteMixData;
+
+    DeleteData deleteTrackData; // TODO: <- not used
     void DeleteConformationPopup(DeleteData& data, DeleteConformationMode mode);
 
     void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
@@ -332,12 +344,14 @@ private:
         */
 
         // Gradients
+        // TODO: used rowPos calcuated in table
         ImVec2 rowPos = ImGui::GetCursorScreenPos();
 
         ImVec2 topLeft(rowPos.x, rowPos.y - bgPaddingY);
         ImVec2 bottomRight(rowPos.x + width, rowPos.y + height + bgPaddingY);
 
         ImVec2 mousePos = ImGui::GetMousePos();
+
         bool rectHovered = mousePos.x >= topLeft.x && mousePos.x <= bottomRight.x &&
             mousePos.y >= topLeft.y && mousePos.y <= bottomRight.y;
 
@@ -376,6 +390,59 @@ private:
             ImVec2(column->MaxX, rowPos.y), 
             ImVec2(column->MaxX, rowPos.y - length), 
             IM_COL32(85, 85, 85, 128));
+    }
+
+    inline void DrawTableBorderInnerV(ImGuiTable* table, ImDrawList* drawList, 
+        const int rowCount, std::vector<float>& rowPos)
+    {
+        if (table == nullptr || table->ColumnsCount == 0)
+            return;
+
+        const float offsetY = 8;
+        const float rowHeight = ImGui::GetFrameHeight();
+    
+        bool trackColumnFound = false;
+
+        for (int order_n = 0; order_n < table->ColumnsCount; order_n++)
+        {
+            const int column_n = table->DisplayOrderToIndex[order_n];
+            ImGuiTableColumn* column = &table->Columns[column_n];
+           
+            // Skip last column
+            if (column->NextEnabledColumn == -1)
+                continue;
+
+            // Skip column if not visible unless "Track" comes next
+            const char* nextName = ImGui::TableGetColumnName(column->NextEnabledColumn);
+
+            if (strcmp(nextName, "Track") == 0 && !trackColumnFound)
+                trackColumnFound = true;
+                
+            if (trackColumnFound)
+            {
+                if (!column->IsEnabled)
+                    continue;
+            }
+            else
+            {
+                continue;
+            }
+
+            const float x = column->MaxX;
+
+            for (int row_n = 0; row_n < rowPos.size(); row_n++)
+            {
+
+                float topY = rowPos[row_n] + offsetY;
+                float bottomY = topY + rowHeight + offsetY;
+
+                // Header
+                if (row_n == 0)
+                    bottomY -= 7;
+
+                drawList->AddLine(ImVec2(x, topY), ImVec2(x, bottomY), IM_COL32(85, 85, 85, 128), 1.0f);
+            }
+        }
     }
 
     inline void DrawCenterJustifyTableText(const std::string& text)
@@ -418,30 +485,16 @@ private:
         return PadTableText(clipped);
     }
 
-    // Table button
-    enum class ButtonType
-    {
-        Default,
-        ArtistAndTitle,
-    };
 
-    inline bool DrawTableButton(const std::string& text, ButtonType type = ButtonType::Default)
+    inline bool DrawTableButton(const std::string& text, 
+        bool highlightTextOnHover = true, bool forceTextlessButton = false)
     {
-        if (text.empty())
+        if (text.empty() && !forceTextlessButton)
         {
-            /*
-            if (mode != TextMode::ArtistAndTitle)
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.f));
-                TextUtil::DrawCenterJustifyTableText(PadTableText("-", 8, 8));
-                ImGui::PopStyleColor();
-            }
-            */
             ImGui::TextUnformatted(PadTableText("", 8, 8).c_str());
             return false;
         }
 
-        //float maxWidth = (type == ButtonType::ArtistAndTitle) ? 550.f : ImGui::GetContentRegionAvail().x;   //ImGui::GetColumnWidth();
         float maxWidth = ImGui::GetContentRegionAvail().x;
 
         std::string textToDraw = FormatTableText(text, maxWidth);
@@ -463,17 +516,13 @@ private:
 
         // Draw Text
         bool hovered = ImGui::IsItemHovered();
-        bool requireColourPop = false;
-
-        if (type != ButtonType::ArtistAndTitle)
-        {
+     
+        if (highlightTextOnHover)       
             SetTextColourOnHover(hovered);
-            requireColourPop = true;
-        }
 
         DrawCenterJustifyTableText(textToDraw);
 
-        if (requireColourPop)
+        if (highlightTextOnHover)
             ImGui::PopStyleColor();
 
         // Full text tooltip

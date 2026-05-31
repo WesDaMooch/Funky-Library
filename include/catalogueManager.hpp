@@ -15,7 +15,7 @@
 
 using json = nlohmann::json;
 
-enum MixDirection
+enum class MixDirection
 {
     In,
     Out,
@@ -26,8 +26,18 @@ enum MixDirection
 struct Mix
 {
     int id = -1;
-    MixDirection direction = InAndOut;
+    MixDirection direction = MixDirection::InAndOut;
     int rating = 0;
+    int pitch = 0;
+    std::string note;
+};
+
+enum class Format
+{
+    None,
+    Vinyl,
+    CD,
+    File
 };
 
 struct Track
@@ -40,8 +50,10 @@ struct Track
     std::string position;
     float bpm = 0;
     int rating = 0;
+    //Format format = Format::None;
+    //std::string note;
     std::array<uint8_t, 3> colour = Ui::Colour::RGB_DEFAULT;
-    //std::vector<std::string> tag{};
+    //std::vector<std::string> tag{}
     std::vector<Mix> mix;
 };
 

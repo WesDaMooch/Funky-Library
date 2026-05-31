@@ -8,6 +8,8 @@ namespace Ui
 {
     namespace Text
     {
+        constexpr float fontSizeBase = 30.f;
+
         inline ImFont* DefaultFont = nullptr;
         inline ImFont* BigFont = nullptr;
         inline ImFont* SmallFont = nullptr;

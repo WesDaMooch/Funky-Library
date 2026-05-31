@@ -100,8 +100,7 @@ int main(int, char**)
     MixMatchApp app;
 
     // Setup font
-    float fontSizeBase = 30.f;
-    style.FontSizeBase = fontSizeBase;
+    style.FontSizeBase = Ui::Text::fontSizeBase;
 
     // Default font
     ImFontConfig defaultFontConfig;
@@ -110,7 +109,7 @@ int main(int, char**)
     defaultFontConfig.RasterizerMultiply = 1.1f;
     defaultFontConfig.OversampleH = 2;
     defaultFontConfig.OversampleV = 2;
-    Ui::Text::DefaultFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), fontSizeBase, &defaultFontConfig);
+    Ui::Text::DefaultFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), Ui::Text::fontSizeBase, &defaultFontConfig);
 
     // Merge icon font into main font atlas
     ImFontConfig iconFontConfig;
@@ -122,7 +121,7 @@ int main(int, char**)
     iconFontConfig.GlyphOffset = ImVec2(-1.5f, 6.f);//ImVec2(0.f, Ui::Text::GLYPH_OFFSET);
 
     static const ImWchar icon_ranges[] = { 0xE000, 0xF8FF, 0 };
-    ImFont* iconFont = io.Fonts->AddFontFromMemoryTTF(materialIconsRegular, sizeof(materialIconsRegular), fontSizeBase, &iconFontConfig, icon_ranges);
+    ImFont* iconFont = io.Fonts->AddFontFromMemoryTTF(materialIconsRegular, sizeof(materialIconsRegular), Ui::Text::fontSizeBase, &iconFontConfig, icon_ranges);
     
     // Small font
     ImFontConfig smallFontConfig;
