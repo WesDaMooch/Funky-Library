@@ -1,0 +1,409 @@
+{
+    "tracks": [
+        {
+            "artist": "Chris.Su",
+            "bpm": 0.0,
+            "colour": [
+                0,
+                171,
+                255
+            ],
+            "id": 7,
+            "label": "Hospital",
+            "mix": [
+                {
+                    "direction": 1,
+                    "id": 23,
+                    "note": "Mix on 2nd drop",
+                    "pitch": -2,
+                    "rating": 3
+                },
+                {
+                    "direction": 2,
+                    "id": 25,
+                    "note": "Mood change",
+                    "pitch": 0,
+                    "rating": 5
+                },
+                {
+                    "direction": 1,
+                    "id": 13,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 1
+                },
+                {
+                    "direction": 2,
+                    "id": 9,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 3
+                },
+                {
+                    "direction": 2,
+                    "id": 28,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 4
+                },
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "note": "",
+                    "pitch": -1,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 29,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 4,
+            "release": "",
+            "title": "Solaris Theme"
+        },
+        {
+            "artist": "Konflict",
+            "bpm": 0.0,
+            "colour": [
+                105,
+                243,
+                2
+            ],
+            "id": 9,
+            "label": "Renagard Hardware",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 3
+                },
+                {
+                    "direction": 2,
+                    "id": 13,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 3
+                }
+            ],
+            "position": "",
+            "rating": 3,
+            "release": "",
+            "title": "Messia"
+        },
+        {
+            "artist": "Matix",
+            "bpm": 0.0,
+            "colour": [
+                90,
+                180,
+                0
+            ],
+            "id": 13,
+            "label": "Prototype",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 7,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 1
+                },
+                {
+                    "direction": 2,
+                    "id": 9,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 4,
+            "release": "",
+            "title": "Mute 98"
+        },
+        {
+            "artist": "Half Time",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 18,
+            "label": "Mooch",
+            "mix": [],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Hell"
+        },
+        {
+            "artist": "Cause 4 Concern",
+            "bpm": 0.0,
+            "colour": [
+                162,
+                4,
+                4
+            ],
+            "id": 21,
+            "label": "Metro",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "note": "",
+                    "pitch": 1,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 4,
+            "release": "",
+            "title": "Vaperspace"
+        },
+        {
+            "artist": "Aphex Twin",
+            "bpm": 0.0,
+            "colour": [
+                122,
+                0,
+                255
+            ],
+            "id": 23,
+            "label": "Really Massive Huge Long Label Name",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 7,
+                    "note": "Mix on 2nd drop",
+                    "pitch": -2,
+                    "rating": 3
+                }
+            ],
+            "position": "2",
+            "rating": 3,
+            "release": "Heli EP",
+            "title": "808 Fate"
+        },
+        {
+            "artist": "John B",
+            "bpm": 173.0,
+            "colour": [
+                215,
+                0,
+                0
+            ],
+            "id": 24,
+            "label": "MetalHeadz",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 29,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 5
+                }
+            ],
+            "position": "A",
+            "rating": 3,
+            "release": "Rave Night",
+            "title": "Up All Night"
+        },
+        {
+            "artist": "Tune Man",
+            "bpm": 0.0,
+            "colour": [
+                14,
+                58,
+                155
+            ],
+            "id": 25,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "note": "Mood change",
+                    "pitch": 0,
+                    "rating": 5
+                }
+            ],
+            "position": "1",
+            "rating": 2,
+            "release": "Heli EP",
+            "title": "ESP"
+        },
+        {
+            "artist": "Optical",
+            "bpm": 173.0,
+            "colour": [
+                121,
+                71,
+                255
+            ],
+            "id": 26,
+            "label": "MetalHeadz",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 30,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 4
+                }
+            ],
+            "position": "A",
+            "rating": 3,
+            "release": "To Shape The Future",
+            "title": "To Shape The Future"
+        },
+        {
+            "artist": "Fossil Archive & Roberto",
+            "bpm": 0.0,
+            "colour": [
+                217,
+                160,
+                0
+            ],
+            "id": 27,
+            "label": "MetalHeadz",
+            "mix": [
+                {
+                    "direction": 1,
+                    "id": 28,
+                    "note": "",
+                    "pitch": 6,
+                    "rating": 4
+                }
+            ],
+            "position": "",
+            "rating": 2,
+            "release": "Rhythm Mechanism EP",
+            "title": "Headz"
+        },
+        {
+            "artist": "Tones Of Tones",
+            "bpm": 0.0,
+            "colour": [
+                0,
+                86,
+                215
+            ],
+            "id": 28,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 27,
+                    "note": "",
+                    "pitch": 6,
+                    "rating": 4
+                },
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 4,
+            "release": "",
+            "title": "Sheherezade (Funk D'Void Remix)"
+        },
+        {
+            "artist": "Long Ass Name This Name Is So Long",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 29,
+            "label": "Super Long Name For A  Label",
+            "mix": [
+                {
+                    "direction": 1,
+                    "id": 24,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 5
+                },
+                {
+                    "direction": 2,
+                    "id": 7,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 5,
+            "release": "Very Long Release Name, Yeah Really Long Indeed",
+            "title": "Christ What a Long Name"
+        },
+        {
+            "artist": "Dom & Optical",
+            "bpm": 0.0,
+            "colour": [
+                255,
+                175,
+                175
+            ],
+            "id": 30,
+            "label": "Moving Shadow",
+            "mix": [
+                {
+                    "direction": 1,
+                    "id": 26,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 4
+                },
+                {
+                    "direction": 1,
+                    "id": 31,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 2
+                }
+            ],
+            "position": "",
+            "rating": 4,
+            "release": "",
+            "title": "Quadrant 6"
+        },
+        {
+            "artist": "Ed Rush & Nico",
+            "bpm": 0.0,
+            "colour": [
+                255,
+                222,
+                0
+            ],
+            "id": 31,
+            "label": "No U Turn",
+            "mix": [
+                {
+                    "direction": 0,
+                    "id": 30,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 2
+                }
+            ],
+            "position": "",
+            "rating": 2,
+            "release": "",
+            "title": "Sector 6"
+        }
+    ]
+}
