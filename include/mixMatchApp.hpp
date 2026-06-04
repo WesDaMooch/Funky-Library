@@ -127,7 +127,52 @@ private:
 
     void DisplayLabelTable(std::vector<const Track*> trackList);
     void DisplayReleaseTable(std::vector<const Track*> trackList);
+
+
+    enum class MixTableColumn
+    {
+        Direction,
+        MixRating,
+        PitchAdjust,
+        Track,
+        Label,
+        Release,
+        MixNote,
+        TrackRating,
+        Remove
+    };
+
+    struct MixTableItem
+    {
+        // Mix
+        int id = -1;
+        int direction = 0;
+        int mixRating = 0;
+        int pitch = 0;
+        std::string mixNote;
+
+        // Track
+        std::string artistAndTitle;
+        std::string label;
+        std::string release;
+        float bpm = 0;
+        int trackRating = 0;
+        std::array<uint8_t, 3> colour = Ui::Colour::RGB_DEFAULT;
+
+        Mix ToMix() const
+        {
+            return {
+                id, 
+                static_cast<MixDirection>(direction),
+                mixRating, 
+                pitch, 
+                mixNote
+            };
+        }
+    };
+
     void DisplayMixTable(const std::vector<Mix>& mixList);
+
 
     inline int StarRating(const int rating)
     {

@@ -968,11 +968,43 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
+    // Sort setup
+
+    // Convert mixList to trackList
+    std::vector<MixTableItem> items;
+    items.reserve(mixList.size());
+
+    for (const Mix m : mixList)
+    {
+        const Track* t = manager.getTrackForDisplay(m.id);
+        
+        if (t == nullptr)
+            continue;
+
+        MixTableItem item;
+        item.id = m.id;
+        item.direction = static_cast<int>(m.direction);
+        item.mixRating = m.rating;
+        item.pitch = m.pitch;
+        item.mixNote = m.note;
+        item.artistAndTitle = TextUtil::FormartTitle(t->artist, t->title);
+        item.label = t->label;
+        item.release = t->release;
+        item.bpm = t->bpm;
+        item.trackRating = t->rating;
+        item.colour = t->colour;
+
+        items.emplace_back(item);
+    }
+
+
     ImGui::PushStyleColor(ImGuiCol_TableHeaderBg, ImVec4(0, 0, 0, 0));
 
     if (ImGui::BeginTable(
         "Mix Table",
         9,
+        ImGuiTableFlags_Sortable |
+        ImGuiTableFlags_SortMulti |
         ImGuiTableFlags_SizingStretchProp |
         ImGuiTableFlags_ContextMenuInBody |
         ImGuiTableFlags_Hideable))
@@ -987,56 +1019,221 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGuiTableColumnFlags_WidthFixed |
             ImGuiTableColumnFlags_NoHide |
             ImGuiTableColumnFlags_NoHeaderWidth,
-            iconWidth + tablePaddingX);
+            iconWidth + tablePaddingX,
+            (ImGuiID)MixTableColumn::Direction);
 
         ImGui::TableSetupColumn("Mix Rating", 
             ImGuiTableColumnFlags_WidthFixed,
-            digitWidth);
+            digitWidth,
+            (ImGuiID)MixTableColumn::MixRating);
 
         ImGui::TableSetupColumn("Pitch Adjust",
-            ImGuiTableColumnFlags_WidthFixed);
+            ImGuiTableColumnFlags_WidthFixed,
+            (ImGuiID)MixTableColumn::PitchAdjust);
            
         ImGui::TableSetupColumn("Track", 
             ImGuiTableColumnFlags_WidthStretch | 
             ImGuiTableColumnFlags_NoHide |
             ImGuiTableColumnFlags_NoHeaderWidth,
-             1.75f);
+             1.75f,
+            (ImGuiID)MixTableColumn::Track);
 
         ImGui::TableSetupColumn("Label", 
             ImGuiTableColumnFlags_WidthStretch |
             ImGuiTableColumnFlags_NoHeaderWidth,
-            1.0f);
+            1.0f,
+            (ImGuiID)MixTableColumn::Label);
 
         ImGui::TableSetupColumn("Release", 
             ImGuiTableColumnFlags_WidthStretch |
             ImGuiTableColumnFlags_NoHeaderWidth,
-            1.0f);
+            1.0f,
+            (ImGuiID)MixTableColumn::Release);
 
         ImGui::TableSetupColumn("Mix Note",
             ImGuiTableColumnFlags_WidthStretch |
             ImGuiTableColumnFlags_NoHeaderWidth,
-            1.0f);
+            1.0f,
+            (ImGuiID)MixTableColumn::MixNote);
 
         //ImGui::TableSetupColumn("BPM", ImGuiTableColumnFlags_WidthStretch);
 
         ImGui::TableSetupColumn("Track Rating", 
             ImGuiTableColumnFlags_WidthFixed |
             ImGuiTableColumnFlags_NoHeaderWidth,
-            ratingSize + tablePaddingX);
+            ratingSize + tablePaddingX,
+            (ImGuiID)MixTableColumn::TrackRating);
 
         ImGui::TableSetupColumn("Remove", 
             ImGuiTableColumnFlags_WidthFixed | 
-            ImGuiTableColumnFlags_NoHide | 
-            ImGuiTableColumnFlags_NoHeaderLabel, 
-            removeSize);
+            ImGuiTableColumnFlags_NoHide |
+            ImGuiTableColumnFlags_NoSort,
+            //ImGuiTableColumnFlags_NoHeaderLabel, 
+            removeSize,
+            (ImGuiID)MixTableColumn::Remove);
 
         ImGuiTable* table = ImGui::GetCurrentTable();
         float rowWidth = table->WorkRect.Max.x - table->WorkRect.Min.x;
         float rowHeight = ImGui::GetTextLineHeight();
 
-        // Header
-
         // TODO: Add sort function
+
+        ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs();
+
+        if (sortSpecs && sortSpecs->SpecsCount > 0)
+        {
+            const ImGuiTableColumnSortSpecs& spec = sortSpecs->Specs[0];
+
+            bool ascending = spec.SortDirection == ImGuiSortDirection_Ascending;
+
+            switch ((MixTableColumn)spec.ColumnUserID)
+            {
+            case MixTableColumn::Direction:
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    [ascending](const MixTableItem& a, const MixTableItem& b)
+                    {
+                        return ascending
+                            ? a.direction < b.direction
+                            : a.direction > b.direction;
+                    });
+                break;
+
+            case MixTableColumn::MixRating:
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    [ascending](const MixTableItem& a, const MixTableItem& b)
+                    {
+                        return ascending
+                            ? a.mixRating < b.mixRating
+                            : a.mixRating > b.mixRating;
+                    });
+                break;
+
+            case MixTableColumn::PitchAdjust:
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    [ascending](const MixTableItem& a, const MixTableItem& b)
+                    {
+                        return ascending
+                            ? a.pitch < b.pitch
+                            : a.pitch > b.pitch;
+                    });
+                break;
+
+            case MixTableColumn::Track:
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    [ascending](const MixTableItem& a, const MixTableItem& b)
+                    {
+                        return ascending
+                            ? a.artistAndTitle < b.artistAndTitle
+                            : a.artistAndTitle > b.artistAndTitle;
+                    });
+                break;
+
+            case MixTableColumn::Label:
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    [ascending](const MixTableItem& a, const MixTableItem& b)
+                    {
+                        return ascending
+                            ? a.label < b.label
+                            : a.label > b.label;
+                    });
+                break;
+
+            case MixTableColumn::Release:
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    [ascending](const MixTableItem& a, const MixTableItem& b)
+                    {
+                        return ascending
+                            ? a.release < b.release
+                            : a.release > b.release;
+                    });
+                break;
+
+            case MixTableColumn::TrackRating:
+                std::sort(
+                    items.begin(),
+                    items.end(),
+                    [ascending](const MixTableItem& a, const MixTableItem& b)
+                    {
+                        return ascending
+                            ? a.trackRating < b.trackRating
+                            : a.trackRating > b.trackRating;
+                    });
+                break;
+            }
+
+            sortSpecs->SpecsDirty = false;
+        }
+
+
+        /*
+        if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs())
+            if (sortSpecs->SpecsDirty)
+            {
+                //MyItem::SortWithSortSpecs(sort_specs, items.Data, items.Size);
+
+                const ImGuiTableColumnSortSpecs& spec = sortSpecs->Specs[0];
+                bool ascending = spec.SortDirection == ImGuiSortDirection_Ascending;
+
+                switch ((MixTableColumn)spec.ColumnUserID)
+                {
+                case MixTableColumn::Track:
+                    std::sort(
+                        items.begin(),
+                        items.end(),
+                        [ascending](const MixTableItem& a, const MixTableItem& b)
+                        {
+                            return ascending
+                                ? a.artistAndTitle < b.artistAndTitle
+                                : a.artistAndTitle > b.artistAndTitle;
+                        });
+                    break;
+
+                case MixTableColumn::Label:
+                    std::sort(
+                        items.begin(),
+                        items.end(),
+                        [ascending](const MixTableItem& a, const MixTableItem& b)
+                        {
+                            return ascending
+                                ? a.label < b.label
+                                : a.label > b.label;
+                        });
+                    break;
+
+                case MixTableColumn::Release:
+                    std::sort(
+                        items.begin(),
+                        items.end(),
+                        [ascending](const MixTableItem& a, const MixTableItem& b)
+                        {
+                            return ascending
+                                ? a.release < b.release
+                                : a.release > b.release;
+                        });
+                    break;
+                }
+
+                sortSpecs->SpecsDirty = false;
+            }
+        }
+        */
+
+        ImGui::TableHeadersRow();
+
+        // Header
+        /*
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(tablePaddingX, tablePaddingY * 0.5f));
 
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -1081,10 +1278,208 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
         ImGui::TextUnformatted(""); // Remove button
 
         ImGui::PopStyleVar();
+        */
+
 
         // Track rows
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(tablePaddingX, tablePaddingY));
 
+        for (const MixTableItem& item : items)
+        {
+            ImGui::TableNextRow();
+            ImGui::PushID(item.id);
+            rowPos.emplace_back(table->RowPosY1);
+
+            // Background
+            ImGui::TableSetColumnIndex(0);
+            ImVec2 bgPos = ImGui::GetCursorPos();
+
+            bool hovered = DrawTableBg(drawList, rowWidth, rowHeight, item.colour, item.bpm);
+
+            ImGui::SetCursorPos(bgPos);
+
+
+            // Direction 
+            std::string directionIcon = "";
+
+            if (static_cast<MixDirection>(item.direction) == MixDirection::In)
+                directionIcon = Ui::Text::ICON_ARROWFORWARD;
+            else if (static_cast<MixDirection>(item.direction) == MixDirection::Out)
+                directionIcon = Ui::Text::ICON_ARROWBACK;
+            else
+                directionIcon = Ui::Text::ICON_SYNCALT;
+
+            // Old button
+            SetClearSelectableStyle();
+            if (ImGui::Selectable("##Direction", false))
+            {
+                int direction = item.direction;
+
+                direction++;
+
+                if (direction >= static_cast<int>(MixDirection::NumDirections))
+                    direction = 0;
+
+                Mix editedMix = item.ToMix();
+                editedMix.direction = static_cast<MixDirection>(direction);
+
+                manager.editMix(editedMix, activeTrackId);
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::SameLine();
+
+            ImGui::TableSetColumnIndex(0);
+            //SetTextColourOnHover(ImGui::IsItemHovered());
+            SetTextColourOnHover(false);
+            DrawCenterJustifyTableText(directionIcon.c_str());
+            ImGui::PopStyleColor();
+
+
+            /*
+            if (DrawTableButton(directionIcon))
+            {
+                int direction = static_cast<int>(mix.direction);
+
+                direction++;
+
+                if (direction >= static_cast<int>(MixDirection::NumDirections))
+                    direction = 0;
+
+                Mix editedMix = mix;
+                editedMix.direction = static_cast<MixDirection>(direction);
+
+                manager.editMix(editedMix, activeTrackId);
+            }
+            */
+
+
+            // Mix rating
+            ImGui::TableSetColumnIndex(1);
+            int rating = item.mixRating;
+
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
+            SetTextColourOnHover(false);
+
+            ImGui::SetNextItemWidth(digitWidth);
+            if (ImGui::InputInt("##Mix Rating", &rating, 0.25f, 0, 5))
+            {
+                Mix editedMix = item.ToMix();
+                editedMix.rating = rating;
+                manager.editMix(editedMix, activeTrackId);
+            }
+
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor(4);
+
+
+            // Pitch Adjust
+            ImGui::TableSetColumnIndex(2);
+
+            int pitch = item.pitch;
+
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
+            SetTextColourOnHover(false);
+
+            ImGui::SetNextItemWidth(ImGui::CalcTextSize((std::to_string(item.pitch) + "%").c_str()).x);
+            if (ImGui::InputScalar("##Pitch Input", ImGuiDataType_S32, &pitch, nullptr, nullptr, "%d%%"))
+            {
+                Mix editedMix = item.ToMix();
+                editedMix.pitch = pitch;
+                manager.editMix(editedMix, activeTrackId);
+            }
+
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor(4);
+
+
+            // Artist & title
+            ImGui::TableSetColumnIndex(3);
+
+            //std::string artistAndTitle = item.artistAndTitle;
+            if (DrawTableButton(item.artistAndTitle, false))
+            {
+                activeTrackId = item.id;
+                mainPage = MainPage::ACTIVE_TRACK;
+            }
+
+
+
+            // Label
+            ImGui::TableSetColumnIndex(4);
+            std::string label = item.label;
+
+            if (DrawTableButton(label))
+            {
+                activeLabel = label;
+                mainPage = MainPage::LABEL;
+            }
+
+
+            // Release
+            ImGui::TableSetColumnIndex(5);
+            std::string release = item.release;
+
+            if (DrawTableButton(release))
+            {
+                activeRelease = release;
+                mainPage = MainPage::RELEASE;
+            }
+
+
+            // Mix Note
+            ImGui::TableSetColumnIndex(6);
+
+            if (DrawTableButton(item.mixNote, true, true))
+            {
+                inputMixData = item.ToMix();
+                editMixNoteButtonPressed = true;
+            }
+
+
+            // Rating
+            ImGui::TableSetColumnIndex(7);
+            float colWidth = ImGui::GetContentRegionAvail().x;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize);
+
+            int newRating = StarRating(item.trackRating);
+
+            if (newRating > -1)
+            {
+                Track editedTrack = *manager.getTrack(item.id);
+                editedTrack.rating = newRating;
+                manager.editTrack(editedTrack);
+            }
+
+
+            // Remove
+            ImGui::TableSetColumnIndex(8);
+
+            if (DrawTableButton(Ui::Text::ICON_CLOSE))
+            {
+                //deleteMixData.trackId = activeTrackId;
+                //deleteMixData.mixId = mixTrack->id;
+                //deleteMixData.label = artistAndTitle;
+
+                deleteMixData = item.ToMix();
+                deleteMixButtonPressed = true;
+            }
+
+            ImGui::PopID();
+        }
+
+
+
+
+
+
+
+        /*
         for (const Mix& mix : mixList)
         {
             const Track* mixTrack = manager.getTrackForDisplay(mix.id);
@@ -1141,7 +1536,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::PopStyleColor();
             
 
-            /*
+            //// new button
             if (DrawTableButton(directionIcon))
             {
                 int direction = static_cast<int>(mix.direction);
@@ -1156,9 +1551,8 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
                 manager.editMix(editedMix, activeTrackId);
             }
-            */
             
-
+            
             // Mix rating
             ImGui::TableSetColumnIndex(1);
             int rating = mix.rating;
@@ -1203,7 +1597,6 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::PopStyleVar();
             ImGui::PopStyleColor(4);
 
-            //DrawTableDividerLine(table, 2, drawList, rowHeight);
 
             // Artist & title
             ImGui::TableSetColumnIndex(3);
@@ -1280,6 +1673,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
             ImGui::PopID();
         }
+        */
 
         DrawTableBorderInnerV(table, drawList, mixList.size(), rowPos);
 
@@ -1298,7 +1692,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
     if (ImGui::BeginPopupModal("Edit Mix Note", &showEditMixNotePopup, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        static char buf[1024]; // TODO: is this the correct place for this
+        static char buf[1024];
 
         if (ImGui::IsWindowAppearing())
             strncpy_s(buf, sizeof(buf), inputMixData.note.c_str(), _TRUNCATE);
@@ -1316,7 +1710,6 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
     if (deleteMixButtonPressed)
     {
         showDeleteMixPopup = true;
-        //ImGui::OpenPopup(deleteMixData.label.c_str());
         ImGui::OpenPopup("Delete Mix");
     }
 
@@ -1356,9 +1749,9 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
         float availableSpace = ImGui::GetContentRegionAvail().x;
 
-        ImGui::SetCursorPosX(
-            ImGui::GetCursorPosX() + (availableSpace - totalWidth) * 0.5f
-        );
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availableSpace - totalWidth) * 0.5f);
+
+        // TODO: update stytle inline with DrawTableButton
 
         if (ImGui::Button("Yes"))
         {
@@ -1369,10 +1762,6 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
         ImGui::SameLine();
 
         if (ImGui::Button("No"))
-            ImGui::CloseCurrentPopup();
-
-
-        if (!showDeleteMixPopup)
             ImGui::CloseCurrentPopup();
 
         ImGui::EndPopup();
