@@ -168,7 +168,7 @@ $(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalInclu
     <ClInclude Include="fonts\fonts.h" />
     <ClInclude Include="include\catalogueManager.hpp" />
     <ClInclude Include="include\mixMatchApp.hpp" />
-    <ClInclude Include="include\springGraph.hpp" />
+    <ClInclude Include="include\trackMap.hpp" />
     <ClInclude Include="include\StringUtils.hpp" />
     <ClInclude Include="include\tags.h" />
     <ClInclude Include="include\UiConstants.hpp" />
@@ -185,7 +185,7 @@ $(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalInclu
     <ClCompile Include="src\catalogueManager.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\mixMatchApp.cpp" />
-    <ClCompile Include="src\springGraph.cpp" />
+    <ClCompile Include="src\trackMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="external\imgui\misc\debuggers\imgui.natvis" />

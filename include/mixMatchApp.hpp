@@ -6,7 +6,7 @@
 #include "UiConstants.hpp"
 #include "StringUtils.hpp"
 #include "catalogueManager.hpp"
-#include "springGraph.hpp"
+#include "trackMap.hpp"
 
 #include <array>
 #include <string> // needed?
@@ -28,10 +28,10 @@ private:
     std::string activeLabel{};
     std::string activeRelease{};
 
-    SpringGraph springGraph;
-    std::vector<SpringGraph::Node> trackNodes;
-    std::vector<SpringGraph::Edge> trackEdges;
-    std::unordered_map<int, int> idToIndex;
+    TrackMap map;
+    //std::vector<TrackMap::Node> trackNodes;
+    //std::vector<TrackMap::Edge> trackEdges;
+    //std::unordered_map<int, int> idToIndex;
 
     // Main search bar and result window
     LibraryManager::TrackSort mainSearchSort = LibraryManager::TrackSort::Artist;
@@ -39,7 +39,7 @@ private:
     bool showMainLibary = false;
 
     // 
-    bool showSpringDiagram = false;
+    bool showTrackMap = false;
 
     // Add new track window
     bool showAddTrackPopup = false;

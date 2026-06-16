@@ -3,9 +3,27 @@
 #include <cmath>
 #include "imgui.h"
 
-struct SpringGraph
+struct TrackMap
 {
-	
+
+	struct Camera
+	{
+		ImVec2 pos;
+		float zoom;
+	};
+
+	Camera camera;
+
+	void bake();
+
+	void render();
+
+
+	ImVec2 mousePosOnLeftClick;
+	ImVec2 cameraPosOnLeftClick;
+
+
+	/*
 	struct Node
 	{
 		ImVec2 pos;
@@ -36,4 +54,5 @@ struct SpringGraph
 
 		return ImVec2(v.x / length, v.y / length);
 	}
+	*/
 };

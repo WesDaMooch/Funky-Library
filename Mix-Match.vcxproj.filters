@@ -60,7 +60,7 @@
     <ClInclude Include="fonts\fonts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\springGraph.hpp">
+    <ClInclude Include="include\trackMap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\tags.h">
@@ -101,7 +101,7 @@
     <ClCompile Include="src\mixMatchApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\springGraph.cpp">
+    <ClCompile Include="src\trackMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

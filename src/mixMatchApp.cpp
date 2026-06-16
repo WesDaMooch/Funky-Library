@@ -61,7 +61,7 @@ void MixMatchApp::RunFrame()
 
     // Spring graph button 
     if (ImGui::Button(Ui::Text::ICON_HALFSTAR, mainSearchBarButtonSize))
-        showSpringDiagram = !showSpringDiagram;
+        showTrackMap = !showTrackMap;
 
     if (mainSearchBuffer[0] != '\0')
         showMainLibary = true;
@@ -95,8 +95,8 @@ void MixMatchApp::RunFrame()
 
 
 #pragma region TrackMap
-    /*
-    if (showSpringDiagram)
+    
+    if (showTrackMap)
     {
         
         ImGui::SetNextWindowPos(ImVec2(0, 75));
@@ -110,6 +110,7 @@ void MixMatchApp::RunFrame()
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoCollapse);
 
+        map.render();
 
         //springGraph.simulate(trackNodes, trackEdges, ImGui::GetIO().DeltaTime);
 
@@ -131,7 +132,7 @@ void MixMatchApp::RunFrame()
 
         ImGui::End();
     }
-    */
+    
 
 #pragma endregion TrackMap
 
@@ -1076,7 +1077,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
         float rowWidth = table->WorkRect.Max.x - table->WorkRect.Min.x;
         float rowHeight = ImGui::GetTextLineHeight();
 
-        // TODO: Add sort function
+        // TODO: Add sort function to custom header
 
         ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs();
 

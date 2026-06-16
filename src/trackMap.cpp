@@ -1,8 +1,63 @@
-#include "../include/springGraph.hpp"
+#include "../include/trackMap.hpp"
 
-void SpringGraph::simulate(
-	std::vector<SpringGraph::Node>& nodes,
-	const std::vector<SpringGraph::Edge> edges,
+void TrackMap::bake()
+{
+
+}
+
+void TrackMap::render()
+{
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+	ImVec2 windowSize = ImGui::GetWindowSize();
+
+
+	ImGuiIO& io = ImGui::GetIO();
+	ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
+
+
+	// Mouse drag
+
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+		// Save mouse position
+		mousePosOnLeftClick = mousePos;
+		cameraPosOnLeftClick = camera.pos;
+	}
+
+	if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+	{
+		float dx = mousePos.x - mousePosOnLeftClick.x;
+		float dy = mousePos.y - mousePosOnLeftClick.y;
+
+		camera.pos = ImVec2(cameraPosOnLeftClick.x + dx, cameraPosOnLeftClick.y + dy);
+	}
+
+
+	// Mouse zoom
+	//float verticalWheel = io.MouseWheel;
+	//float horizontalWheel = io.MouseWheelH;
+	
+
+
+
+
+
+	float circleSize = 30.f;
+	ImVec2 circlePos(windowSize.x * 0.5f, windowSize.y * 0.5f);
+
+	drawList->AddCircle(ImVec2(circlePos.x + camera.pos.x, circlePos.y + camera.pos.y), circleSize, IM_COL32_WHITE, 16);
+}
+
+
+
+
+
+/*
+void trackMap::simulate(
+	std::vector<trackMap::Node>& nodes,
+	const std::vector<trackMap::Edge> edges,
 	float dt)
 {
 	const float repulsion = 5000.0f;
@@ -73,3 +128,4 @@ void SpringGraph::simulate(
 		nodes[i].pos.y += nodes[i].vel.y * dt;
 	}
 }
+*/
