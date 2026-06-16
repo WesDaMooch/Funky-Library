@@ -1,17 +1,26 @@
 #include "../include/trackMap.hpp"
 
-void TrackMap::bake()
-{
 
+void TrackMap::bake(std::vector<TrackNode> trackNodeList)
+{
+	trackNodes = std::move(trackNodeList);
+
+
+	// TODO: Bake map
+	int i = 0;
+	for (TrackNode& tn : trackNodes)
+	{
+		tn.pos = ImVec2(i * 200, i * 100);
+		i++;
+	}
 }
+
 
 void TrackMap::render()
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 	ImVec2 windowSize = ImGui::GetWindowSize();
-
 
 	ImGuiIO& io = ImGui::GetIO();
 	ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
@@ -36,18 +45,21 @@ void TrackMap::render()
 
 
 	// Mouse zoom
+	
 	//float verticalWheel = io.MouseWheel;
 	//float horizontalWheel = io.MouseWheelH;
 	
 
+	for (TrackNode tn : trackNodes)
+	{
+		drawList->AddCircle(
+			ImVec2(tn.pos.x + camera.pos.x, tn.pos.y + camera.pos.y), 
+			30.f, 
+			tn.col, 
+			16);
 
-
-
-
-	float circleSize = 30.f;
-	ImVec2 circlePos(windowSize.x * 0.5f, windowSize.y * 0.5f);
-
-	drawList->AddCircle(ImVec2(circlePos.x + camera.pos.x, circlePos.y + camera.pos.y), circleSize, IM_COL32_WHITE, 16);
+		
+	}
 }
 
 

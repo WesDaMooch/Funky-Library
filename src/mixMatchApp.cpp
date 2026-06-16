@@ -14,6 +14,23 @@
 MixMatchApp::MixMatchApp()
 {
 	manager.load();
+
+    const std::vector<Track>& trackList = manager.getCatalogueForDisplay();
+
+    // TODO: put track map glue in func
+    std::vector<TrackMap::TrackNode> trackNodeList;
+    trackNodeList.reserve(trackList.size());
+
+    for (const Track& t : trackList)
+    {
+        TrackMap::TrackNode tn;
+        tn.id = t.id;
+        tn.col = ColourUtil::RgbToU32(t.colour);
+
+        trackNodeList.emplace_back(tn);
+    }
+
+    map.bake(std::move(trackNodeList));
 }
 
 void MixMatchApp::RunFrame()
@@ -1768,5 +1785,3 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
         ImGui::EndPopup();
     }
 }
-
-     

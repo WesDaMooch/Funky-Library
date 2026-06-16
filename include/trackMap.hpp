@@ -5,6 +5,14 @@
 
 struct TrackMap
 {
+	struct TrackNode 
+	{
+		ImVec2 pos;
+		// edge
+
+		int id = -1;
+		ImU32 col = IM_COL32_WHITE;
+	};
 
 	struct Camera
 	{
@@ -12,12 +20,12 @@ struct TrackMap
 		float zoom;
 	};
 
-	Camera camera;
-
-	void bake();
+	void bake(std::vector<TrackNode> trackNodeList);
 
 	void render();
 
+	Camera camera;
+	std::vector<TrackNode> trackNodes;
 
 	ImVec2 mousePosOnLeftClick;
 	ImVec2 cameraPosOnLeftClick;
