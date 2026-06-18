@@ -1,66 +1,73 @@
 #pragma once
+#define _USE_MATH_DEFINES
 #include <vector>
+#include <unordered_map>
 #include <cmath>
+#include <algorithm>
 #include "imgui.h"
 
 struct TrackMap
 {
-	struct TrackNode 
+	struct Vec
 	{
-		ImVec2 pos;
-		// edge
+		double x = 0.0;
+		double y = 0.0;
 
+		double norm() const { return std::sqrt(x * x + y * y); }
+
+		Vec& operator+=(const Vec& other);
+		Vec& operator-=(const Vec& other);
+		Vec& operator*=(double scalar);
+		Vec& operator/=(double scalar);
+	};
+
+	struct Node 
+	{
 		int id = -1;
+		Vec pos;
 		ImU32 col = IM_COL32_WHITE;
+
+		float baseRadius = 25.0f;
+	};
+
+	struct Edge
+	{
+		int A_id = -1;
+		int B_id = -1;
+
+		// Weight (Rating)
+		// Direction
 	};
 
 	struct Camera
 	{
 		ImVec2 pos;
-		float zoom;
+		float zoom = 1.0f;
 	};
 
-	void bake(std::vector<TrackNode> trackNodeList);
-
+	void bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
+	void circle(std::vector<Node>& nodes);
+	void centerAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
 	void render();
 
-	Camera camera;
-	std::vector<TrackNode> trackNodes;
+	int iterations = 500;
+	double k = 1.5;
+	double kSquared = k * k;
 
+	double temperature = 0.0; 
+
+	std::vector<Node> nodes;
+	std::unordered_map<int, int> nodeIndex;
+	std::vector<Edge> edges;
+
+	// Rendering
+	Camera camera;
 	ImVec2 mousePosOnLeftClick;
 	ImVec2 cameraPosOnLeftClick;
-
-
-	/*
-	struct Node
-	{
-		ImVec2 pos;
-		ImVec2 vel;
-	};
-
-	struct Edge
-	{
-		int a, b;
-	};
-
-	// TODO: Calulate static graph on library change
-	// Glue library manager and spring graph together in the app
-
-	void simulate(std::vector<Node>& nodes, const std::vector<Edge> edges, float dt);
-
-	inline float GetLength(const ImVec2& v)
-	{
-		return std::sqrt(v.x * v.x + v.y * v.y);
-	}
-
-	inline ImVec2 Normalize(const ImVec2& v)
-	{
-		float length = GetLength(v);
-
-		if (length > 1e-5f)
-			return ImVec2(0, 0);
-
-		return ImVec2(v.x / length, v.y / length);
-	}
-	*/
 };
+
+TrackMap::Vec operator+(TrackMap::Vec lhs, const TrackMap::Vec& rhs);
+TrackMap::Vec operator-(TrackMap::Vec lhs, const TrackMap::Vec& rhs);
+TrackMap::Vec operator*(TrackMap::Vec lhs, double scalar);
+TrackMap::Vec operator*(double scalar, TrackMap::Vec rhs);
+TrackMap::Vec operator/(TrackMap::Vec lhs, double scalar);

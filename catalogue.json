@@ -138,7 +138,15 @@
             ],
             "id": 18,
             "label": "Mooch",
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 24,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 0,
             "release": "",
@@ -209,6 +217,13 @@
                     "note": "",
                     "pitch": 0,
                     "rating": 5
+                },
+                {
+                    "direction": 2,
+                    "id": 18,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "A",

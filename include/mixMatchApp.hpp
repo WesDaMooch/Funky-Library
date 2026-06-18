@@ -583,4 +583,6 @@ private:
         return clicked;
     }
     
+    // Track map glue
+    void rebakeTrackMap(const std::vector<Track>& tracks);
 };

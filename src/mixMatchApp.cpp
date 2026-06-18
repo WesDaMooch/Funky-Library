@@ -15,22 +15,7 @@ MixMatchApp::MixMatchApp()
 {
 	manager.load();
 
-    const std::vector<Track>& trackList = manager.getCatalogueForDisplay();
-
-    // TODO: put track map glue in func
-    std::vector<TrackMap::TrackNode> trackNodeList;
-    trackNodeList.reserve(trackList.size());
-
-    for (const Track& t : trackList)
-    {
-        TrackMap::TrackNode tn;
-        tn.id = t.id;
-        tn.col = ColourUtil::RgbToU32(t.colour);
-
-        trackNodeList.emplace_back(tn);
-    }
-
-    map.bake(std::move(trackNodeList));
+    rebakeTrackMap(manager.getCatalogueForDisplay());
 }
 
 void MixMatchApp::RunFrame()
@@ -1784,4 +1769,38 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
         ImGui::EndPopup();
     }
+}
+
+
+// Track map glue
+void MixMatchApp::rebakeTrackMap(const std::vector<Track>& tracks)
+{
+    std::vector<TrackMap::Node> newNodes;
+    newNodes.reserve(tracks.size());
+
+    std::vector<TrackMap::Edge> newEdges;
+    newEdges.reserve(tracks.size());
+
+    for (const Track& t : tracks)
+    {
+        TrackMap::Node n{
+            t.id,
+            TrackMap::Vec{0.0, 0.0},
+            ColourUtil::RgbToU32(t.colour)
+        };
+
+        newNodes.emplace_back(n);
+
+        for (const Mix& m : t.mix)
+        {
+            TrackMap::Edge e{
+                t.id,
+                m.id
+            };
+
+            newEdges.emplace_back(e);
+        }
+    }
+
+    map.bake(std::move(newNodes), std::move(newEdges));
 }
