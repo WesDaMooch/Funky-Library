@@ -52,7 +52,6 @@ struct TrackMap
 
 	int iterations = 500;
 	double k = 1.5;
-	double kSquared = k * k;
 
 	double temperature = 0.0; 
 

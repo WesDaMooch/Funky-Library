@@ -69,8 +69,6 @@ void TrackMap::bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 	
 	// Position nodes in a circle
 	circle(nodes);
-
-	// Fruchterman-Reingold layout
 	
 	// Generate node index lookup table 
 
@@ -79,7 +77,12 @@ void TrackMap::bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 	for (int i = 0; i < nodes.size(); ++i)
 		nodeIndex[nodes[i].id] = i;
 
+	// Fruchterman-Reingold layout
+	// TODO: Use grid variant layout for disconnected node groups
+
+
 	temperature = 10 * std::sqrt(nodes.size());
+	double kSquared = k * k;
 
 	for (int iteration = 0; iteration < iterations; iteration++)
 	{
@@ -155,216 +158,6 @@ void TrackMap::bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 	}
 
 	centerAndScale(1920, 1080, nodes);
-
-	/*
-	static const int areaSize = 100;
-
-	// Position nodes randomly
-	for (Node& n : nodes)
-	{
-		n.pos.x = (float)(rand() % areaSize);
-		n.pos.y = (float)(rand() % areaSize);
-	}
-
-	const float area = 500; //500.0f * 500.0f;
-
-	// Ideal node spacing
-	const float k = sqrtf(area / nodes.size());
-
-	float temperature = 200.0f;
-
-	constexpr int iterations = 500;
-
-	for (int iter = 0; iter < iterations; ++iter)
-	{
-		std::vector<ImVec2> disp(nodes.size(), ImVec2(0, 0));
-
-		//--------------------------------------------------
-		// Repulsion
-		//--------------------------------------------------
-
-		for (size_t v = 0; v < nodes.size(); ++v)
-		{
-			for (size_t u = v + 1; u < nodes.size(); ++u)
-			{
-				ImVec2 delta(
-					nodes[v].pos.x - nodes[u].pos.x,
-					nodes[v].pos.y - nodes[u].pos.y
-				);
-
-				float dist = std::max(length(delta), 0.01f);
-
-				ImVec2 dir = normalize(delta);
-
-				float force = (k * k) / dist;
-
-				disp[v].x += dir.x * force;
-				disp[v].y += dir.y * force;
-
-				disp[u].x -= dir.x * force;
-				disp[u].y -= dir.y * force;
-			}
-		}
-
-		//--------------------------------------------------
-		// Attraction
-		//--------------------------------------------------
-
-		for (const Edge& e : edges)
-		{
-			Node* a = findNode(e.A_id);
-			Node* b = findNode(e.B_id);
-
-			if (!a || !b)
-				continue;
-
-			size_t ai = a - nodes.data();
-			size_t bi = b - nodes.data();
-
-			ImVec2 delta(
-				a->pos.x - b->pos.x,
-				a->pos.y - b->pos.y
-			);
-
-			float dist = std::max(length(delta), 0.01f);
-
-			ImVec2 dir = normalize(delta);
-
-			float force = (dist * dist) / k;
-
-			disp[ai].x -= dir.x * force;
-			disp[ai].y -= dir.y * force;
-
-			disp[bi].x += dir.x * force;
-			disp[bi].y += dir.y * force;
-		}
-
-		//--------------------------------------------------
-		// Move nodes
-		//--------------------------------------------------
-
-		for (size_t i = 0; i < nodes.size(); ++i)
-		{
-			float dispLen = length(disp[i]);
-
-			if (dispLen < 0.001f)
-				continue;
-
-			ImVec2 dir = normalize(disp[i]);
-
-			float moveAmount =
-				std::min(dispLen, temperature);
-
-			nodes[i].pos.x += dir.x * moveAmount;
-			nodes[i].pos.y += dir.y * moveAmount;
-		}
-
-		//--------------------------------------------------
-		// Cool
-		//--------------------------------------------------
-
-		temperature *= 0.95f;
-	}
-	*/
-
-
-
-	/*
-	static const int maxIterations = 100;
-
-	static const float baseStringStength = 0.05f;
-	static const float desiredSpringLength = 150.0f;
-
-	nodes = std::move(newNodes);
-	edges = std::move(newEdges);
-
-	// Position nodes randomly
-	for (Node& n : nodes)
-	{
-		n.pos.x = (float)(rand() % 500);
-		n.pos.y = (float)(rand() % 500);
-	}
-
-	for (int iteration = 0; iteration < maxIterations; iteration++)
-	{
-		std::vector<ImVec2> forces(nodes.size(), ImVec2(0, 0));
-
-		// Repulsion
-		for (size_t i = 0; i < nodes.size(); i++)
-		{
-			for (size_t j = i + 1; j < nodes.size(); j++)
-			{
-				ImVec2 delta(nodes[j].pos.x - nodes[i].pos.x, nodes[j].pos.y - nodes[i].pos.y);
-
-				float distSq =delta.x * delta.x + delta.y * delta.y;
-				distSq = std::max(distSq, 1.0f);
-
-				float force = 50000.0f / distSq;
-				float dist = sqrtf(distSq);
-
-				ImVec2 dir(delta.x / dist,delta.y / dist);
-
-				forces[i].x -= dir.x * force;
-				forces[i].y -= dir.y * force;
-
-				forces[j].x += dir.x * force;
-				forces[j].y += dir.y * force;
-			}
-		}
-
-		// Spring attraction
-		for (const Edge& e : edges)
-		{
-			Node* a = findNode(e.A_id);
-			Node* b = findNode(e.B_id);
-
-			if (!a || !b)
-				continue;
-
-			size_t ai = a - nodes.data();
-			size_t bi = b - nodes.data();
-
-			ImVec2 delta(b->pos.x - a->pos.x,b->pos.y - a->pos.y);
-
-			float dist =std::sqrtf(delta.x * delta.x + delta.y * delta.y);
-			dist = std::max(dist, 1.0f);
-
-			ImVec2 dir(delta.x / dist,delta.y / dist);
-
-			float force = (dist - desiredSpringLength) * baseStringStength;
-
-			forces[ai].x += dir.x * force;
-			forces[ai].y += dir.y * force;
-
-			forces[bi].x -= dir.x * force;
-			forces[bi].y -= dir.y * force;
-		}
-
-		// Apply forces
-		for (size_t i = 0; i < nodes.size(); i++)
-		{
-			nodes[i].pos.x += forces[i].x;
-			nodes[i].pos.y += forces[i].y;
-		}
-	}
-	*/
-	
-
-
-	/*
-	// Circle layout
-	float radius = 500.0f;
-	float step = 2.0f * 3.1415f / nodes.size();
-
-	for (size_t i = 0; i < nodes.size(); ++i)
-	{
-		float a = i * step;
-
-		nodes[i].pos = ImVec2(
-			cosf(a) * radius,
-			sinf(a) * radius);
-	}
-	*/
 }
 
 void TrackMap::circle(std::vector<Node>& nodes)
@@ -385,19 +178,19 @@ void TrackMap::centerAndScale(unsigned int width, unsigned int height, std::vect
 	double y_min = std::numeric_limits<double>::max();
 	double y_max = std::numeric_limits<double>::lowest();
 
-	for (int v_id = 0; v_id < nodes.size(); v_id++)
+	for (size_t i = 0; i < nodes.size(); i++)
 	{
-		if (nodes[v_id].pos.x < x_min)
-			x_min = nodes[v_id].pos.x;
+		if (nodes[i].pos.x < x_min)
+			x_min = nodes[i].pos.x;
 
-		if (nodes[v_id].pos.x > x_max)
-			x_max = nodes[v_id].pos.x;
+		if (nodes[i].pos.x > x_max)
+			x_max = nodes[i].pos.x;
 
-		if (nodes[v_id].pos.y < y_min)
-			y_min = nodes[v_id].pos.y;
+		if (nodes[i].pos.y < y_min)
+			y_min = nodes[i].pos.y;
 
-		if (nodes[v_id].pos.y > y_max)
-			y_max = nodes[v_id].pos.y;
+		if (nodes[i].pos.y > y_max)
+			y_max = nodes[i].pos.y;
 
 	}
 
@@ -410,15 +203,16 @@ void TrackMap::centerAndScale(unsigned int width, unsigned int height, std::vect
 	double scale = 0.9 * (x_scale < y_scale ? x_scale : y_scale);
 
 	// Compute offset and apply it to every position
-	Vec center = { x_max + x_min, y_max + y_min };
-	Vec offset = center / 2.0 * scale;
+	Vec min = { x_min, y_min };
+	Vec offset = { (width - cur_width * scale) * 0.5, (height - cur_height * scale) * 0.5 };
 
-	// TODO: center at the middle of window
-
-	for (int v_id = 0; v_id < nodes.size(); v_id++)
+	for (Node& n : nodes)
 	{
-		nodes[v_id].pos.x = nodes[v_id].pos.x * scale - offset.x;
-		nodes[v_id].pos.y = nodes[v_id].pos.y * scale - offset.y;
+		Vec pos = n.pos;
+		pos -= min;
+		pos *= scale;
+		pos += offset;
+		n.pos = pos;
 	}
 }
 
@@ -429,17 +223,16 @@ void TrackMap::render()
 	if (ImGui::Begin("Map Settings", &open))
 	{
 		if (ImGui::InputDouble("k", &k))
-		{
-			kSquared = k * k;
-
 			bake(nodes, edges);
-		}
+		
 
 		if (ImGui::InputInt("iter", &iterations))
-		{
 			bake(nodes, edges);
-		}
 		
+		//ImGui::InputDouble("X Pos", &nodes[0].pos.x);
+		//ImGui::SameLine();
+		//ImGui::InputDouble("Y Pos", &nodes[0].pos.y);
+
 		ImGui::End();
 	}
 
@@ -476,7 +269,7 @@ void TrackMap::render()
 	{
 		drawList->AddCircle(
 			ImVec2((float)n.pos.x + camera.pos.x, (float)n.pos.y + camera.pos.y), 
-			n.baseRadius, 
+			4.f, 
 			n.col, 
 			16);
 	}
@@ -491,7 +284,7 @@ void TrackMap::render()
 			ImVec2((float)a.pos.x + camera.pos.x, (float)a.pos.y + camera.pos.y),
 			ImVec2((float)b.pos.x + camera.pos.x, (float)b.pos.y + camera.pos.y),
 			IM_COL32_WHITE,
-			1.0f);
+			0.5f);
 	}
 }
 
