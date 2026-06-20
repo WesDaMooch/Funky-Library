@@ -42,17 +42,35 @@ struct TrackMap
 	struct Camera
 	{
 		ImVec2 pos;
+
 		float zoom = 1.0f;
+		float zoomVelocity = 0.0f;
+		
+		void SetZoom(float z, float dt)
+		{
+			zoomVelocity += z;
+			zoomVelocity = std::clamp(zoomVelocity, -4.5f, 4.5f); // Max velocity
+			zoom *= std::exp(zoomVelocity * dt);
+			zoom = std::clamp(zoom, 0.1f, 15.0f); // Max & min zoom
+			zoomVelocity *= 0.85f; // Dampening
+		}
+		
+		ImVec2 ToScreenPos(double x, double y)
+		{
+			return ImVec2(
+				(float)(x * zoom + pos.x),
+				(float)(y * zoom + pos.y)
+			);
+		}
 	};
 
 	void bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
 	void circle(std::vector<Node>& nodes);
-	void centerAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
+	void centreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
 	void render();
 
 	int iterations = 500;
-	double k = 1.5;
-
+	double k = 1.4;
 	double temperature = 0.0; 
 
 	std::vector<Node> nodes;

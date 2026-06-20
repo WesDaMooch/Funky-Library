@@ -157,7 +157,7 @@ void TrackMap::bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 			temperature = 1.5;
 	}
 
-	centerAndScale(1920, 1080, nodes);
+	centreAndScale(1920, 1080, nodes);
 }
 
 void TrackMap::circle(std::vector<Node>& nodes)
@@ -170,7 +170,7 @@ void TrackMap::circle(std::vector<Node>& nodes)
 	}
 }
 
-void TrackMap::centerAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes)
+void TrackMap::centreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes)
 {
 	// Find current dimensions
 	double x_min = std::numeric_limits<double>::max();
@@ -219,7 +219,8 @@ void TrackMap::centerAndScale(unsigned int width, unsigned int height, std::vect
 
 void TrackMap::render()
 {
-	bool open = true;
+	/*
+	bool open = false;
 	if (ImGui::Begin("Map Settings", &open))
 	{
 		if (ImGui::InputDouble("k", &k))
@@ -235,13 +236,30 @@ void TrackMap::render()
 
 		ImGui::End();
 	}
+	*/
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
 	ImVec2 windowSize = ImGui::GetWindowSize();
 
 	ImGuiIO& io = ImGui::GetIO();
-	ImVec2 mousePos(io.MousePos.x, io.MousePos.y);
+	ImVec2 mousePos = { io.MousePos.x, io.MousePos.y };
+
+	// Mouse zoom
+	float wheel = io.MouseWheel;
+
+	float oldZoom = camera.zoom;
+	ImVec2 worldUnderMouse = { (mousePos.x - camera.pos.x) / oldZoom, (mousePos.y - camera.pos.y) / oldZoom };
+
+	camera.SetZoom(wheel, io.DeltaTime);
+
+	camera.pos.x = mousePos.x - worldUnderMouse.x * camera.zoom;
+	camera.pos.y = mousePos.y - worldUnderMouse.y * camera.zoom;
+
+	ImGui::InputFloat("W", &wheel);
+	ImGui::InputFloat("V", &camera.zoomVelocity);
+	ImGui::InputFloat("Z", &camera.zoom);
+
 
 	// Mouse drag
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
@@ -258,22 +276,7 @@ void TrackMap::render()
 
 		camera.pos = ImVec2(cameraPosOnLeftClick.x + dx, cameraPosOnLeftClick.y + dy);
 	}
-
-
-	// Mouse zoom
-	//float verticalWheel = io.MouseWheel;
-	//float horizontalWheel = io.MouseWheelH;
 	
-	// Draw nodes
-	for (const Node& n : nodes)
-	{
-		drawList->AddCircle(
-			ImVec2((float)n.pos.x + camera.pos.x, (float)n.pos.y + camera.pos.y), 
-			4.f, 
-			n.col, 
-			16);
-	}
-
 	// Draw edges
 	for (const Edge& e : edges)
 	{
@@ -281,10 +284,35 @@ void TrackMap::render()
 		const Node& b = nodes[nodeIndex.at(e.B_id)];
 
 		drawList->AddLine(
-			ImVec2((float)a.pos.x + camera.pos.x, (float)a.pos.y + camera.pos.y),
-			ImVec2((float)b.pos.x + camera.pos.x, (float)b.pos.y + camera.pos.y),
+			camera.ToScreenPos(a.pos.x, a.pos.y),
+			camera.ToScreenPos(b.pos.x, b.pos.y),
 			IM_COL32_WHITE,
-			0.5f);
+			0.5f * camera.zoom
+		);
+	}
+
+	// Draw nodes
+	for (const Node& n : nodes)
+	{
+		drawList->AddCircleFilled(
+			camera.ToScreenPos(n.pos.x, n.pos.y),
+			4.f * camera.zoom,
+			n.col,
+			16
+		);
+
+		
+		// Outline
+		/*
+		drawList->AddCircle(
+			ImVec2((float)n.pos.x + camera.pos.x, (float)n.pos.y + camera.pos.y), 
+			4.f, 
+			IM_COL32_WHITE, 
+			8,
+			0.5f
+		);
+		*/
+		
 	}
 }
 
