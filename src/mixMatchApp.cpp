@@ -14,8 +14,6 @@
 MixMatchApp::MixMatchApp()
 {
 	manager.load();
-
-    rebakeTrackMap(manager.getCatalogueForDisplay());
 }
 
 void MixMatchApp::RunFrame()
@@ -61,19 +59,22 @@ void MixMatchApp::RunFrame()
 
     ImGui::SameLine();
 
-    // Spring graph button 
+    // Map button 
     if (ImGui::Button(Ui::Text::ICON_HALFSTAR, mainSearchBarButtonSize))
+    {
         showTrackMap = !showTrackMap;
+
+        if (showTrackMap)
+            rebakeTrackMap(manager.getCatalogueForDisplay());
+    }
 
     if (mainSearchBuffer[0] != '\0')
         showMainLibary = true;
 
-    // Main libary (search results)
+    // Main library (search results)
     if (showMainLibary)
     {
-        const std::vector<Track> mainLibrary =
-            manager.searchAndSort(mainSearchBuffer, mainSearchSort);
-
+        const std::vector<Track> mainLibrary = manager.searchAndSort(mainSearchBuffer, mainSearchSort);
         TrackSearchTable(mainLibrary, tableX, tableWidth);
     }
 
@@ -100,7 +101,6 @@ void MixMatchApp::RunFrame()
     
     if (showTrackMap)
     {
-        
         ImGui::SetNextWindowPos(ImVec2(0, 75));
         ImGui::SetNextWindowSize(
             ImVec2(io.DisplaySize.x, io.DisplaySize.y - 75),
@@ -112,26 +112,36 @@ void MixMatchApp::RunFrame()
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoCollapse);
 
-        map.render();
+        TrackMap::Info mapInfo = map.Render();
 
-        //springGraph.simulate(trackNodes, trackEdges, ImGui::GetIO().DeltaTime);
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-        // Draw
-        //auto* draw = ImGui::GetWindowDrawList();
+        if (mapInfo.hoveredId > -1)
+        {
+            const Track* t = manager.getTrackForDisplay(mapInfo.hoveredId);
 
-        //// draw edges
-        //for (const auto& e : trackEdges) {
-        //    const auto& a = trackNodes[e.a];
-        //    const auto& b = trackNodes[e.b];
+            if (t != nullptr)
+            {
+                //ImGui::SetCursorPos(mapInfo.pos);
+                //ImGui::TextUnformatted(TextUtil::FormartTitle(t->artist, t->label).c_str());
 
-        //    draw->AddLine(a.pos, b.pos, IM_COL32(100, 100, 100, 255));
-        //}
+                
+                drawList->AddText(
+                    mapInfo.pos,
+                    IM_COL32_WHITE,
+                    t->artist.c_str()
+                );
 
-        //// draw nodes
-        //for (const auto& n : trackNodes) {
-        //    draw->AddCircleFilled(n.pos, 4.0f, IM_COL32(255, 200, 100, 255));
-        //}
+                float textHeight = ImGui::GetTextLineHeight();
 
+                drawList->AddText(
+                    ImVec2(mapInfo.pos.x, mapInfo.pos.y + textHeight),
+                    IM_COL32_WHITE,
+                    t->title.c_str()
+                );
+            }
+        }
+        
         ImGui::End();
     }
     
@@ -1793,14 +1803,43 @@ void MixMatchApp::rebakeTrackMap(const std::vector<Track>& tracks)
 
         for (const Mix& m : t.mix)
         {
+            bool duplicate = false;
+
+            for (TrackMap::Edge& existing : newEdges)
+            {
+                if ((existing.A_id == t.id && existing.B_id == m.id) ||
+                    (existing.A_id == m.id && existing.B_id == t.id))
+                {
+                    duplicate = true;
+                    break;
+                }
+            }
+
+            if (!duplicate)
+            {
+                TrackMap::Edge e;
+                e.A_id = t.id;
+                e.B_id = m.id;
+                
+                if (m.direction == MixDirection::In)
+                    e.A_direction = false;
+
+                if (m.direction == MixDirection::Out)
+                    e.B_direction = false;
+
+                newEdges.push_back(e);
+            }
+
+            /*
             TrackMap::Edge e{
                 t.id,
                 m.id
             };
 
             newEdges.emplace_back(e);
+            */
         }
     }
 
-    map.bake(std::move(newNodes), std::move(newEdges));
+    map.Bake(std::move(newNodes), std::move(newEdges));
 }

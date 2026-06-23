@@ -59,7 +59,107 @@ TrackMap::Vec operator/(TrackMap::Vec lhs, double scalar)
 }
 
 
-void TrackMap::bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
+void TrackMap::FruchtermanReingold(const std::vector<int>& group, const std::unordered_map<int, size_t>& groupIndex)
+{
+	// Fruchterman-Reingold layout
+
+	//double temperature = 100.0;
+	double temperature = 10 * std::sqrt(group.size());
+	double kSquared = k * k;
+
+	// Generate set to find if edges are in the group
+	std::unordered_set<int> groupSet(group.begin(), group.end());
+	
+	// Run layout
+	std::vector<Vec> forces(group.size());
+
+	for (int iteration = 0; iteration < iterations; iteration++)
+	{
+		std::fill(forces.begin(), forces.end(), Vec{});
+
+		// Repulsion force between vertice pairs
+		for (size_t v_id = 0; v_id < group.size(); v_id++)
+		{
+			for (size_t other_id = v_id + 1; other_id < group.size(); other_id++)
+			{
+				Node& a = nodes[nodeIndex[group[v_id]]];
+				Node& b = nodes[nodeIndex[group[other_id]]];
+
+				Vec delta = a.pos - b.pos;
+
+				double distance = delta.norm();
+
+				// Handle distance small distance
+				// TODO: add random jitters
+				if (distance < 1e-6)
+					continue;
+
+				// > 1000.0: not worth computing
+				//if (distance > maxDistance)
+				//	continue;
+
+				double repulsion = kSquared / distance;
+
+				forces[v_id] += delta / distance * repulsion;
+				forces[other_id] -= delta / distance * repulsion;
+			}
+		}
+
+		// Attraction force between edges
+		for (const Edge& e : edges)
+		{
+			if (groupSet.find(e.A_id) == groupSet.end() ||
+				groupSet.find(e.B_id) == groupSet.end())
+			{
+				continue;
+			}
+
+			Node& nodeA = nodes[nodeIndex[e.A_id]];
+			Node& nodeB = nodes[nodeIndex[e.B_id]];
+
+			Vec delta = nodeA.pos - nodeB.pos;
+
+			double distance = delta.norm();
+
+			if (distance == 0.0)
+				continue;
+
+			// attraction = distance
+			// attraction = std::log(distance)
+			double attraction = distance * distance / k;
+
+			forces[groupIndex.at(e.A_id)] -= delta / distance * attraction;
+			forces[groupIndex.at(e.B_id)] += delta / distance * attraction;
+		}
+
+
+		// Max movement capped by current temperature
+		for (size_t v_id = 0; v_id < group.size(); v_id++)
+		{
+			double forceNorm = forces[v_id].norm();
+
+			// < 1e-6: not worth computing
+			if (forceNorm < 1e-6)
+				continue;
+
+			double cappedForceNorm = std::min(forceNorm, temperature);
+			Vec cappedForce = forces[v_id] / forceNorm * cappedForceNorm;
+
+			nodes[nodeIndex[group[v_id]]].pos += cappedForce;
+		}
+
+		// Cool down fast until we reach 1.5, then stay at low temperature
+		//if (temperature > 1.5)
+		//	temperature *= 0.85;
+		//else
+		//	temperature = 1.5;
+
+		temperature *= 0.95;
+	}
+}
+
+
+void TrackMap::Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 {
 	nodes = std::move(newNodes);
 	edges = std::move(newEdges);
@@ -68,99 +168,58 @@ void TrackMap::bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 		return;
 	
 	// Position nodes in a circle
-	circle(nodes);
+	Circle(nodes);
 	
 	// Generate node index lookup table 
-
 	nodeIndex.clear();
 
 	for (int i = 0; i < nodes.size(); ++i)
 		nodeIndex[nodes[i].id] = i;
 
-	// Fruchterman-Reingold layout
-	// TODO: Use grid variant layout for disconnected node groups
-
-
-	temperature = 10 * std::sqrt(nodes.size());
-	double kSquared = k * k;
-
-	for (int iteration = 0; iteration < iterations; iteration++)
+	// Find connected node groups
+	GroupConnectedNodes();
+	
+	//
+	for (const auto& group : groups)
 	{
-		std::vector<Vec> mvmts_;
-		mvmts_.resize(nodes.size());
+		if (group.size() <= 1)
+			continue;
+		
+		// Generate group id lookup table
+		std::unordered_map<int, size_t> groupIndex;
 
-		// Repulsion force between vertice pairs
-		for (int v_id = 0; v_id < nodes.size(); v_id++) 
+		for (size_t i = 0; i < group.size(); ++i)
+			groupIndex[group[i]] = i;
+
+		FruchtermanReingold(group, groupIndex);
+
+		// Find group max & min position
+		Vec maxPos;
+		Vec minPos;
+
+		for (const int id : group)
 		{
-			for (int other_id = v_id + 1; other_id < nodes.size(); other_id++) 
-			{
-				if (v_id == other_id) 
-					continue;
-				
-				Vec delta = nodes[v_id].pos - nodes[other_id].pos;
+			Node& node = nodes[nodeIndex[group[id]]];
 
-				double distance = delta.norm();
+			if (node.pos.x > maxPos.x)
+				maxPos.x = node.pos.x;
+			else if (node.pos.x < minPos.x)
+				minPos.x = node.pos.x;
 
-				// Handle distance small distance
-				//if (distance < 0.001)
-				//	continue;
-
-				// > 1000.0: not worth computing
-				if (distance > 1000.0)
-					continue;
-
-				double repulsion = kSquared / distance;
-
-				mvmts_[v_id] += delta / distance * repulsion;
-				mvmts_[other_id] -= delta / distance * repulsion;
-			}
+			if (node.pos.y > maxPos.y)
+				maxPos.y = node.pos.y;
+			else if (node.pos.y < minPos.y)
+				minPos.y = node.pos.y;
 		}
-
-		// Attraction force between edges
-		for (const Edge& e : edges)
-		{
-			int a = nodeIndex[e.A_id];
-			int b = nodeIndex[e.B_id];
-
-			Vec delta = nodes[a].pos - nodes[b].pos;
-
-			double distance = delta.norm();
-
-			if (distance == 0.0)
-				continue;
-
-			double attraction = distance * distance / k;
-
-			mvmts_[a] -= delta / distance * attraction;
-			mvmts_[b] += delta / distance * attraction;
-		}
-
-		// Max movement capped by current temperature
-		for (int v_id = 0; v_id < nodes.size(); v_id++)
-		{
-			double mvmt_norm = mvmts_[v_id].norm();
-
-			// < 1.0: not worth computing
-			if (mvmt_norm < 1.0)
-				continue;
-
-			double capped_mvmt_norm = std::min(mvmt_norm, temperature);
-			Vec capped_mvmt = mvmts_[v_id] / mvmt_norm * capped_mvmt_norm;
-
-			nodes[v_id].pos += capped_mvmt;
-		}
-
-		// Cool down fast until we reach 1.5, then stay at low temperature
-		if (temperature > 1.5)
-			temperature *= 0.85;
-		else
-			temperature = 1.5;
 	}
 
-	centreAndScale(1920, 1080, nodes);
+	// Pack groups
+
+	// Scale
+	CentreAndScale(2000, 2000, nodes);
 }
 
-void TrackMap::circle(std::vector<Node>& nodes)
+void TrackMap::Circle(std::vector<Node>& nodes)
 {
 	double angle = 2.0 * M_PI / nodes.size();
 	for (int i = 0; i < nodes.size(); i++)
@@ -170,7 +229,7 @@ void TrackMap::circle(std::vector<Node>& nodes)
 	}
 }
 
-void TrackMap::centreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes)
+void TrackMap::CentreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes)
 {
 	// Find current dimensions
 	double x_min = std::numeric_limits<double>::max();
@@ -216,27 +275,75 @@ void TrackMap::centreAndScale(unsigned int width, unsigned int height, std::vect
 	}
 }
 
-
-void TrackMap::render()
+// Recursive depth first search
+void Dfs(
+	int statrt_id, 
+	const std::unordered_map<int, std::vector<int>>& adj,
+	std::unordered_set<int>& visited,
+	std::vector<int>& group)
 {
-	/*
-	bool open = false;
-	if (ImGui::Begin("Map Settings", &open))
+	if (visited.find(statrt_id) != visited.end())
+		return;
+
+	visited.insert(statrt_id);
+	group.emplace_back(statrt_id);
+
+	auto it = adj.find(statrt_id);
+
+	if (it == adj.end())
+		return;
+
+	for (int neighbour : it->second)
+		Dfs(neighbour, adj, visited, group);
+
+	//if (visited.contains(node.id))
+	//if (visited.find(node.id) != visited.end())
+}
+	
+void TrackMap::GroupConnectedNodes()
+{
+	// Create adjacent list
+	std::unordered_map<int, std::vector<int>> adj;
+	for (const auto& e : edges)
 	{
-		if (ImGui::InputDouble("k", &k))
-			bake(nodes, edges);
-		
-
-		if (ImGui::InputInt("iter", &iterations))
-			bake(nodes, edges);
-		
-		//ImGui::InputDouble("X Pos", &nodes[0].pos.x);
-		//ImGui::SameLine();
-		//ImGui::InputDouble("Y Pos", &nodes[0].pos.y);
-
-		ImGui::End();
+		adj[e.A_id].emplace_back(e.B_id);
+		adj[e.B_id].emplace_back(e.A_id);
 	}
-	*/
+
+	std::unordered_set<int> visited;
+
+	for (auto& node : nodes)
+	{
+		if (visited.find(node.id) != visited.end())
+			continue;
+
+		std::vector<int> group;
+		Dfs(node.id, adj, visited, group);
+
+		groups.emplace_back(std::move(group));
+	}
+}
+
+void TrackMap::PackGroups()
+{
+
+}
+
+
+TrackMap::Info TrackMap::Render()
+{
+	bool dirty = false;
+
+	if (ImGui::InputDouble("k", &k))
+		dirty = true;
+
+	if (ImGui::InputInt("iter", &iterations))
+		dirty = true;
+
+	if (dirty)
+		Bake(nodes, edges);
+	
+	Info info;
 
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -256,10 +363,6 @@ void TrackMap::render()
 	camera.pos.x = mousePos.x - worldUnderMouse.x * camera.zoom;
 	camera.pos.y = mousePos.y - worldUnderMouse.y * camera.zoom;
 
-	ImGui::InputFloat("W", &wheel);
-	ImGui::InputFloat("V", &camera.zoomVelocity);
-	ImGui::InputFloat("Z", &camera.zoom);
-
 
 	// Mouse drag
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
@@ -277,42 +380,117 @@ void TrackMap::render()
 		camera.pos = ImVec2(cameraPosOnLeftClick.x + dx, cameraPosOnLeftClick.y + dy);
 	}
 	
+
 	// Draw edges
+	float radius = 8.0f * camera.zoom;
+	float lineWidth = 0.5f * camera.zoom;
+	float arrowLength = 4.0f * camera.zoom;
+	float arrowWidth = 4.0f * camera.zoom;
+
 	for (const Edge& e : edges)
 	{
 		const Node& a = nodes[nodeIndex.at(e.A_id)];
 		const Node& b = nodes[nodeIndex.at(e.B_id)];
 
+		ImVec2 start = camera.ToScreenPos(a.pos.x, a.pos.y);
+		ImVec2 end = camera.ToScreenPos(b.pos.x, b.pos.y);
+		ImVec2 dir = { end.x - start.x,end.y - start.y };
+		float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+
+		if (len > 0.0f)
+		{
+			// Gap between node and endge
+			dir.x /= len;
+			dir.y /= len;
+
+			float gap = (4.0f * camera.zoom) + radius;
+
+			start.x += dir.x * gap;
+			start.y += dir.y * gap;
+
+			end.x -= dir.x * gap;
+			end.y -= dir.y * gap;
+
+			// Draw arrow
+			ImVec2 perp = { -dir.y,dir.x };
+			
+			if (e.A_direction)
+			{
+				ImVec2 arrowLine1 = {
+					start.x + dir.x * arrowLength + perp.x * arrowWidth,
+					start.y + dir.y * arrowLength + perp.y * arrowWidth
+				};
+
+				ImVec2 arrowA2 = {
+					start.x + dir.x * arrowLength - perp.x * arrowWidth,
+					start.y + dir.y * arrowLength - perp.y * arrowWidth
+				};
+
+				drawList->AddLine(start, arrowLine1, IM_COL32_WHITE, lineWidth);
+				drawList->AddLine(start, arrowA2, IM_COL32_WHITE, lineWidth);
+			}
+
+			if (e.B_direction)
+			{
+				ImVec2 arrowLine1 = {
+					end.x - dir.x * arrowLength + perp.x * arrowWidth,
+					end.y - dir.y * arrowLength + perp.y * arrowWidth
+				};
+
+				ImVec2 arrowLine2 = {
+					end.x - dir.x * arrowLength - perp.x * arrowWidth,
+					end.y - dir.y * arrowLength - perp.y * arrowWidth
+				};
+
+				drawList->AddLine(end, arrowLine1, IM_COL32_WHITE, lineWidth);
+				drawList->AddLine(end, arrowLine2, IM_COL32_WHITE, lineWidth);
+			}
+			
+		}
+
+		// Edge line
 		drawList->AddLine(
-			camera.ToScreenPos(a.pos.x, a.pos.y),
-			camera.ToScreenPos(b.pos.x, b.pos.y),
+			start,
+			end,
 			IM_COL32_WHITE,
-			0.5f * camera.zoom
+			lineWidth
 		);
 	}
 
 	// Draw nodes
 	for (const Node& n : nodes)
 	{
+		ImVec2 nodePos = camera.ToScreenPos(n.pos.x, n.pos.y);
+
+		// Node hovered
+		float dx = mousePos.x - nodePos.x;
+		float dy = mousePos.y - nodePos.y;
+
+		if ((dx * dx + dy * dy) <= (radius * radius))
+		{
+			info.hoveredId = n.id;
+			info.pos = nodePos;
+		}
+		
 		drawList->AddCircleFilled(
-			camera.ToScreenPos(n.pos.x, n.pos.y),
-			4.f * camera.zoom,
+			nodePos,
+			radius,
 			n.col,
 			16
 		);
 
 		
 		// Outline
-		/*
 		drawList->AddCircle(
-			ImVec2((float)n.pos.x + camera.pos.x, (float)n.pos.y + camera.pos.y), 
-			4.f, 
-			IM_COL32_WHITE, 
-			8,
-			0.5f
+			nodePos,
+			radius,
+			IM_COL32_WHITE,
+			16,
+			0.5f * camera.zoom
 		);
-		*/
 		
 	}
+
+	return info;
 }
 

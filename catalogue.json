@@ -13,20 +13,6 @@
             "mix": [
                 {
                     "direction": 2,
-                    "id": 23,
-                    "note": "Mix on 2nd drop",
-                    "pitch": -1,
-                    "rating": 2
-                },
-                {
-                    "direction": 2,
-                    "id": 25,
-                    "note": "Mood change",
-                    "pitch": 0,
-                    "rating": 5
-                },
-                {
-                    "direction": 2,
                     "id": 13,
                     "note": "",
                     "pitch": 0,
@@ -38,27 +24,6 @@
                     "note": "",
                     "pitch": 0,
                     "rating": 3
-                },
-                {
-                    "direction": 2,
-                    "id": 28,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 4
-                },
-                {
-                    "direction": 1,
-                    "id": 21,
-                    "note": "",
-                    "pitch": -1,
-                    "rating": 0
-                },
-                {
-                    "direction": 0,
-                    "id": 29,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 0
                 }
             ],
             "position": "",
@@ -121,6 +86,13 @@
                     "note": "",
                     "pitch": 0,
                     "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 24,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "",
@@ -145,6 +117,13 @@
                     "note": "",
                     "pitch": 0,
                     "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 26,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "",
@@ -162,15 +141,7 @@
             ],
             "id": 21,
             "label": "Metro",
-            "mix": [
-                {
-                    "direction": 0,
-                    "id": 7,
-                    "note": "",
-                    "pitch": -1,
-                    "rating": 0
-                }
-            ],
+            "mix": [],
             "position": "",
             "rating": 4,
             "release": "",
@@ -186,15 +157,7 @@
             ],
             "id": 23,
             "label": "Really Massive Huge Long Label Name",
-            "mix": [
-                {
-                    "direction": 2,
-                    "id": 7,
-                    "note": "Mix on 2nd drop",
-                    "pitch": 1,
-                    "rating": 2
-                }
-            ],
+            "mix": [],
             "position": "2",
             "rating": 1,
             "release": "Heli EP",
@@ -212,15 +175,36 @@
             "label": "MetalHeadz",
             "mix": [
                 {
-                    "direction": 0,
-                    "id": 29,
+                    "direction": 2,
+                    "id": 18,
                     "note": "",
                     "pitch": 0,
-                    "rating": 5
+                    "rating": 0
                 },
                 {
                     "direction": 2,
-                    "id": 18,
+                    "id": 28,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 27,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 30,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 13,
                     "note": "",
                     "pitch": 0,
                     "rating": 0
@@ -241,15 +225,7 @@
             ],
             "id": 25,
             "label": "",
-            "mix": [
-                {
-                    "direction": 2,
-                    "id": 7,
-                    "note": "Mood change",
-                    "pitch": 0,
-                    "rating": 5
-                }
-            ],
+            "mix": [],
             "position": "1",
             "rating": 2,
             "release": "Heli EP",
@@ -272,6 +248,13 @@
                     "note": "",
                     "pitch": 0,
                     "rating": 4
+                },
+                {
+                    "direction": 2,
+                    "id": 18,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "A",
@@ -296,6 +279,13 @@
                     "note": "",
                     "pitch": 6,
                     "rating": 4
+                },
+                {
+                    "direction": 2,
+                    "id": 24,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "",
@@ -323,7 +313,14 @@
                 },
                 {
                     "direction": 2,
-                    "id": 7,
+                    "id": 24,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 30,
                     "note": "",
                     "pitch": 0,
                     "rating": 0
@@ -344,22 +341,7 @@
             ],
             "id": 29,
             "label": "Super Long Name For A  Label",
-            "mix": [
-                {
-                    "direction": 1,
-                    "id": 24,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 5
-                },
-                {
-                    "direction": 1,
-                    "id": 7,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 0
-                }
-            ],
+            "mix": [],
             "position": "",
             "rating": 5,
             "release": "Very Long Release Name, Yeah Really Long Indeed",
@@ -384,11 +366,18 @@
                     "rating": 4
                 },
                 {
-                    "direction": 1,
-                    "id": 31,
+                    "direction": 2,
+                    "id": 24,
                     "note": "",
                     "pitch": 0,
-                    "rating": 2
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 28,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "",
@@ -406,19 +395,121 @@
             ],
             "id": 31,
             "label": "No U Turn",
-            "mix": [
-                {
-                    "direction": 0,
-                    "id": 30,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 2
-                }
-            ],
+            "mix": [],
             "position": "",
             "rating": 2,
             "release": "",
             "title": "Sector 6"
+        },
+        {
+            "artist": "1",
+            "bpm": 0.0,
+            "colour": [
+                165,
+                22,
+                22
+            ],
+            "id": 32,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 34,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 33,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 35,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "2"
+        },
+        {
+            "artist": "1",
+            "bpm": 0.0,
+            "colour": [
+                26,
+                15,
+                93
+            ],
+            "id": 33,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 32,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "1"
+        },
+        {
+            "artist": "2",
+            "bpm": 0.0,
+            "colour": [
+                206,
+                203,
+                30
+            ],
+            "id": 34,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 32,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "1"
+        },
+        {
+            "artist": "2",
+            "bpm": 0.0,
+            "colour": [
+                4,
+                50,
+                59
+            ],
+            "id": 35,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 32,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "3"
         }
     ]
 }

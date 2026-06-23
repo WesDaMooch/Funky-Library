@@ -25,20 +25,17 @@ private:
 
 	LibraryManager manager;
     int activeTrackId = -1;
-    std::string activeLabel{};
-    std::string activeRelease{};
+    std::string activeLabel;
+    std::string activeRelease;
 
     TrackMap map;
-    //std::vector<TrackMap::Node> trackNodes;
-    //std::vector<TrackMap::Edge> trackEdges;
-    //std::unordered_map<int, int> idToIndex;
 
     // Main search bar and result window
     LibraryManager::TrackSort mainSearchSort = LibraryManager::TrackSort::Artist;
     char mainSearchBuffer[64]{};
     bool showMainLibary = false;
 
-    // 
+    // Track map
     bool showTrackMap = false;
 
     // Add new track window

@@ -2,6 +2,7 @@
 #define _USE_MATH_DEFINES
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <cmath>
 #include <algorithm>
 #include "imgui.h"
@@ -36,7 +37,8 @@ struct TrackMap
 		int B_id = -1;
 
 		// Weight (Rating)
-		// Direction
+		bool A_direction = true;
+		bool B_direction = true;
 	};
 
 	struct Camera
@@ -64,18 +66,28 @@ struct TrackMap
 		}
 	};
 
-	void bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
-	void circle(std::vector<Node>& nodes);
-	void centreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
-	void render();
+	struct Info
+	{
+		int hoveredId = -1;
+		int clickedId = -1;
+		ImVec2 pos = { 0.0f, 0.0f };
+	};
+
+	void Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
+	void Circle(std::vector<Node>& nodes);
+	void CentreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
+	void GroupConnectedNodes();
+	void PackGroups();
+	void FruchtermanReingold(const std::vector<int>& group, const std::unordered_map<int, size_t>& groupIndex);
+	Info Render();
 
 	int iterations = 500;
-	double k = 1.4;
-	double temperature = 0.0; 
+	double k = 1.5;
 
 	std::vector<Node> nodes;
 	std::unordered_map<int, int> nodeIndex;
 	std::vector<Edge> edges;
+	std::vector<std::vector<int>> groups;
 
 	// Rendering
 	Camera camera;

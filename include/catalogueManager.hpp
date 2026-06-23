@@ -8,10 +8,12 @@
 #include <string>
 #include <array>
 #include <vector>
-#include <algorithm>
 #include <unordered_set>
+#include <algorithm>
+
 
 // TODO: rename library manager
+// TODO: used unsorted set to make a index lookup table
 
 using json = nlohmann::json;
 
