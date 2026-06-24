@@ -141,7 +141,22 @@
             ],
             "id": 21,
             "label": "Metro",
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 31,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 23,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 4,
             "release": "",
@@ -157,7 +172,15 @@
             ],
             "id": 23,
             "label": "Really Massive Huge Long Label Name",
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "2",
             "rating": 1,
             "release": "Heli EP",
@@ -225,7 +248,15 @@
             ],
             "id": 25,
             "label": "",
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 31,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "1",
             "rating": 2,
             "release": "Heli EP",
@@ -341,7 +372,15 @@
             ],
             "id": 29,
             "label": "Super Long Name For A  Label",
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 31,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 5,
             "release": "Very Long Release Name, Yeah Really Long Indeed",
@@ -395,7 +434,29 @@
             ],
             "id": 31,
             "label": "No U Turn",
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 25,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 29,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 21,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 2,
             "release": "",

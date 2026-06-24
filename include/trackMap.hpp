@@ -76,6 +76,8 @@ struct TrackMap
 	void Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
 	void Circle(std::vector<Node>& nodes);
 	void CentreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
+	void CentreAndScaleGroup(unsigned int width, unsigned int height, const std::vector<int>& group);
+
 	void GroupConnectedNodes();
 	void PackGroups();
 	void FruchtermanReingold(const std::vector<int>& group, const std::unordered_map<int, size_t>& groupIndex);
@@ -84,10 +86,14 @@ struct TrackMap
 	int iterations = 500;
 	double k = 1.5;
 
+	const float baseRadius = 8.0f;
+
 	std::vector<Node> nodes;
 	std::unordered_map<int, int> nodeIndex;
 	std::vector<Edge> edges;
 	std::vector<std::vector<int>> groups;
+
+	std::vector<std::pair<Vec, Vec>> groupBox;
 
 	// Rendering
 	Camera camera;
