@@ -59,31 +59,41 @@ TrackMap::Vec operator/(TrackMap::Vec lhs, double scalar)
 }
 
 
-void TrackMap::FruchtermanReingold(const std::vector<int>& group, const std::unordered_map<int, size_t>& groupIndex)
+void TrackMap::FruchtermanReingold(const std::vector<int>& group_ids)
 {
 	// Fruchterman-Reingold layout
 
+
+	// Generate group id lookup table
+	std::unordered_map<int, size_t> groupIndex;
+
+	for (size_t i = 0; i < group_ids.size(); ++i)
+		groupIndex[group_ids[i]] = i;
+
+
 	//double temperature = 100.0;
-	double temperature = 10 * std::sqrt(group.size());
+	double temperature = 10 * std::sqrt(group_ids.size());
 	double kSquared = k * k;
 
+
 	// Generate set to find if edges are in the group
-	std::unordered_set<int> groupSet(group.begin(), group.end());
+	std::unordered_set<int> groupSet(group_ids.begin(), group_ids.end());
 	
+
 	// Run layout
-	std::vector<Vec> forces(group.size());
+	std::vector<Vec> forces(group_ids.size());
 
 	for (int iteration = 0; iteration < iterations; iteration++)
 	{
 		std::fill(forces.begin(), forces.end(), Vec{});
 
 		// Repulsion force between vertice pairs
-		for (size_t i = 0; i < group.size(); i++)
+		for (size_t i = 0; i < group_ids.size(); i++)
 		{
-			for (size_t j = i + 1; j < group.size(); j++)
+			for (size_t j = i + 1; j < group_ids.size(); j++)
 			{
-				Node& a = nodes[nodeIndex[group[i]]];
-				Node& b = nodes[nodeIndex[group[j]]];
+				Node& a = nodes[nodeIndex[group_ids[i]]];
+				Node& b = nodes[nodeIndex[group_ids[j]]];
 
 				Vec delta = a.pos - b.pos;
 
@@ -133,7 +143,7 @@ void TrackMap::FruchtermanReingold(const std::vector<int>& group, const std::uno
 		}
 
 		// Max movement capped by current temperature
-		for (size_t v_id = 0; v_id < group.size(); v_id++)
+		for (size_t v_id = 0; v_id < group_ids.size(); v_id++)
 		{
 			double forceNorm = forces[v_id].norm();
 
@@ -144,14 +154,8 @@ void TrackMap::FruchtermanReingold(const std::vector<int>& group, const std::uno
 			double cappedForceNorm = std::min(forceNorm, temperature);
 			Vec cappedForce = forces[v_id] / forceNorm * cappedForceNorm;
 
-			nodes[nodeIndex[group[v_id]]].pos += cappedForce;
+			nodes[nodeIndex[group_ids[v_id]]].pos += cappedForce;
 		}
-
-		// Cool down fast until we reach 1.5, then stay at low temperature
-		//if (temperature > 1.5)
-		//	temperature *= 0.85;
-		//else
-		//	temperature = 1.5;
 
 		temperature *= 0.95;
 	}
@@ -166,71 +170,35 @@ void TrackMap::Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 	if (nodes.empty())
 		return;
 	
+
 	// Position nodes in a circle
 	Circle(nodes);
 	
+
 	// Generate node index lookup table 
 	nodeIndex.clear();
-
 	// ++i??
 	for (int i = 0; i < nodes.size(); ++i)
 		nodeIndex[nodes[i].id] = i;
 
+
 	// Find connected node groups
 	GroupConnectedNodes();
-	
-	// 
-	//std::vector<std::pair<Vec, Vec>> groupBox;
-	//groupBox.reserve(groups.size());
-	groupBox.clear();
-	groupBox.reserve(groups.size());
+
 
 	for (const auto& group : groups)
 	{
-		if (group.size() <= 1)
+		if (group.ids.size() <= 1)
 			continue;
 		
-		// Generate group id lookup table
-		std::unordered_map<int, size_t> groupIndex;
-
-		for (size_t i = 0; i < group.size(); ++i)
-			groupIndex[group[i]] = i;
-
 		// Run layout
-		FruchtermanReingold(group, groupIndex);
-
-		// Center and scale
-		float sizeOnScreen = group.size() * 75.0f;
-		CentreAndScaleGroup(
-			sizeOnScreen,
-			sizeOnScreen,
-			group
-		);
-
-		// Find group max & min position
-		Vec minPos;
-		Vec maxPos;
-
-		for (const int id : group)
-		{
-			const Node& node = nodes[nodeIndex[id]];
-
-			if (node.pos.x > maxPos.x)
-				maxPos.x = node.pos.x;
-			else if (node.pos.x < minPos.x)
-				minPos.x = node.pos.x;
-
-			if (node.pos.y > maxPos.y)
-				maxPos.y = node.pos.y;
-			else if (node.pos.y < minPos.y)
-				minPos.y = node.pos.y;
-		}
-
-		groupBox.emplace_back(maxPos, minPos);
+		FruchtermanReingold(group.ids);
 	}
+
 
 	// Pack groups
 	// Largest group to smalles packing algo
+	Pack();
 
 	// Scale
 	//CentreAndScale(2000, 2000, nodes);
@@ -281,8 +249,8 @@ void TrackMap::CentreAndScaleGroup(unsigned int width, unsigned int height, cons
 	double scale = 0.9 * (x_scale < y_scale ? x_scale : y_scale);
 
 	// compute offset and apply it to every position
-	Vec center = { x_max + x_min, y_max + y_min };
-	Vec offset = center / 2.0 * scale;
+	Vec centre = { x_max + x_min, y_max + y_min };
+	Vec offset = centre / 2.0 * scale;
 
 	for (const int id : group)
 	{
@@ -338,18 +306,55 @@ void TrackMap::CentreAndScale(unsigned int width, unsigned int height, std::vect
 	}
 }
 
+
+void TrackMap::Centre(const std::vector<int>& group_ids)
+{
+	// Find current dimensions
+	double x_min = std::numeric_limits<double>::max();
+	double x_max = std::numeric_limits<double>::lowest();
+	double y_min = std::numeric_limits<double>::max();
+	double y_max = std::numeric_limits<double>::lowest();
+
+	for (const int id : group_ids)
+	{
+		const Node& node = nodes[nodeIndex[id]];
+
+		if (node.pos.x < x_min)
+			x_min = node.pos.x;
+
+		if (node.pos.x > x_max)
+			x_max = node.pos.x;
+
+		if (node.pos.y < y_min)
+			y_min = node.pos.y;
+
+		if (node.pos.y > y_max)
+			y_max = node.pos.y;
+	}
+	// compute offset and apply it to every position
+	Vec centre = { x_max + x_min, y_max + y_min };
+	Vec offset = centre / 2.0;
+
+	for (const int id : group_ids)
+	{
+		Node& node = nodes[nodeIndex[id]];
+		node.pos = node.pos - offset;
+	}
+}
+
+
 // Recursive depth first search
 void Dfs(
 	int statrt_id, 
 	const std::unordered_map<int, std::vector<int>>& adj,
 	std::unordered_set<int>& visited,
-	std::vector<int>& group)
+	std::vector<int>& group_ids)
 {
 	if (visited.find(statrt_id) != visited.end())
 		return;
 
 	visited.insert(statrt_id);
-	group.emplace_back(statrt_id);
+	group_ids.emplace_back(statrt_id);
 
 	auto it = adj.find(statrt_id);
 
@@ -357,10 +362,7 @@ void Dfs(
 		return;
 
 	for (int neighbour : it->second)
-		Dfs(neighbour, adj, visited, group);
-
-	//if (visited.contains(node.id))
-	//if (visited.find(node.id) != visited.end())
+		Dfs(neighbour, adj, visited, group_ids);
 }
 	
 void TrackMap::GroupConnectedNodes()
@@ -375,21 +377,66 @@ void TrackMap::GroupConnectedNodes()
 
 	std::unordered_set<int> visited;
 
-	for (auto& node : nodes)
+	for (const auto& node : nodes)
 	{
 		if (visited.find(node.id) != visited.end())
 			continue;
 
-		std::vector<int> group;
-		Dfs(node.id, adj, visited, group);
+		std::vector<int> group_ids;
+		Dfs(node.id, adj, visited, group_ids);
 
-		groups.emplace_back(std::move(group));
+		//groups.emplace_back(std::move(group));
+		
+		Group g;
+		g.ids = std::move(group_ids);
+		groups.emplace_back(std::move(g));
 	}
 }
 
-void TrackMap::PackGroups()
-{
 
+// Based on James Bremner packing around a centre point.
+void TrackMap::Pack()
+{
+	if (groups.empty())
+		return;
+
+	for (auto& group : groups)
+	{
+		// Position group at 0,0
+		Centre(group.ids);
+
+		// Generate group bounding box and find area
+		Vec minPos;
+		Vec maxPos;
+		for (size_t i = 0; i < group.ids.size(); i++)
+		{
+			const int id = group.ids[i];
+			const Node& node = nodes[nodeIndex[id]];
+
+			if (node.pos.x > maxPos.x)
+				maxPos.x = node.pos.x;
+			else if (node.pos.x < minPos.x)
+				minPos.x = node.pos.x;
+
+			if (node.pos.y > maxPos.y)
+				maxPos.y = node.pos.y;
+			else if (node.pos.y < minPos.y)
+				minPos.y = node.pos.y;
+
+			group.rect = { minPos, maxPos };
+
+			double width = minPos.x - maxPos.x;
+			double height = minPos.y - maxPos.y;
+			group.area = width * height;
+		}
+	}
+
+
+
+	// Divide area into four quadrants 
+
+	// Sort rects into order of decreasing area
+	// and assigned to the quadrants in round robin fashion
 }
 
 
@@ -554,12 +601,12 @@ TrackMap::Info TrackMap::Render()
 		
 	}
 
-	for (const auto& box : groupBox)
+	for (const auto& group : groups)
 	{
 		// line
 		
-		ImVec2 min = camera.ToScreenPos(box.second.x, box.second.y);
-		ImVec2 max = camera.ToScreenPos(box.first.x, box.first.y);
+		ImVec2 min = camera.ToScreenPos(group.rect.first.x, group.rect.first.y);
+		ImVec2 max = camera.ToScreenPos(group.rect.second.x, group.rect.second.y);
 
 		drawList->AddRect(
 			min,
