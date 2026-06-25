@@ -7,6 +7,9 @@
 #include <algorithm>
 #include "imgui.h"
 
+// Debug
+#include <string>
+
 struct TrackMap
 {
 	struct Vec
@@ -27,8 +30,6 @@ struct TrackMap
 		int id = -1;
 		Vec pos;
 		ImU32 col = IM_COL32_WHITE;
-
-		float baseRadius = 25.0f;
 	};
 
 	struct Edge
@@ -45,6 +46,8 @@ struct TrackMap
 	{
 		std::vector<int> ids;
 		std::pair<Vec, Vec> rect;
+		double width = 0.0;
+		double height = 0.0;
 		double area = 0.0;
 	};
 
@@ -83,10 +86,10 @@ struct TrackMap
 	void Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
 	void Circle(std::vector<Node>& nodes);
 	void CentreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
-	void CentreAndScaleGroup(unsigned int width, unsigned int height, const std::vector<int>& group);
+	void CentreAndScaleGroup(unsigned int width, unsigned int height, const std::vector<int>& group_ids);
 	void Centre(const std::vector<int>& group);
 	void GroupConnectedNodes();
-	void Pack();
+	void Pack(const std::vector<size_t>& group_idxs);
 	void FruchtermanReingold(const std::vector<int>& group_ids);
 	// TODO: move rendering to main app
 	Info Render();

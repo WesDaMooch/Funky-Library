@@ -183,9 +183,10 @@ void TrackMap::Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 
 
 	// Find connected node groups
+	groups.clear();
 	GroupConnectedNodes();
 
-
+	// Run layout
 	for (const auto& group : groups)
 	{
 		if (group.ids.size() <= 1)
@@ -193,15 +194,83 @@ void TrackMap::Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 		
 		// Run layout
 		FruchtermanReingold(group.ids);
+
+		int scale = group.ids.size() * 80;
+		CentreAndScaleGroup(scale, scale, group.ids);
+	}
+
+	// Pack groups
+	const double margin = 30.0;
+
+	for (auto& group : groups)
+	{
+		// Position group at 0,0
+		//Centre(group.ids);
+
+		// Generate group bounding box and find area
+		Vec minPos, maxPos;
+		for (size_t i = 0; i < group.ids.size(); i++)
+		{
+			const int id = group.ids[i];
+			const Node& node = nodes[nodeIndex[id]];
+
+			if (node.pos.x > maxPos.x)
+				maxPos.x = node.pos.x;
+			else if (node.pos.x < minPos.x)
+				minPos.x = node.pos.x;
+
+			if (node.pos.y > maxPos.y)
+				maxPos.y = node.pos.y;
+			else if (node.pos.y < minPos.y)
+				minPos.y = node.pos.y;
+		}
+
+		// Add margin
+		minPos.x -= margin;
+		minPos.y -= margin;
+		maxPos.x += margin;
+		maxPos.y += margin;
+
+		group.rect = { minPos, maxPos }; // TODO: remove after debug?
+		group.width = std::abs(maxPos.x - minPos.x);
+		group.height = std::abs(maxPos.y - minPos.y);
+		group.area = group.width * group.height;
+	}
+
+	// Sort groups by area
+	std::sort(groups.begin(), groups.end(),
+		[](const Group& a, const Group& b)
+		{
+			return a.area > b.area;
+		});
+
+
+	// Divide area into four quadrants 
+	// and assigned to the quadrants in round robin fashion
+	std::vector<std::vector<size_t>> quadGroups(4);	// store group index
+
+	for (size_t i = 0; i < groups.size(); ++i)
+	{
+		//size_t quad = i % 4;
+		size_t quad = 0;
+		quadGroups[quad].emplace_back(i);
+	}
+
+	// Pack groups in each quadrant
+	int i = 0;
+	for (const auto& quad : quadGroups)
+	{
+		if (i == 0)
+			Pack(quad);
+
+		// Rotate
+		i++;
 	}
 
 
-	// Pack groups
-	// Largest group to smalles packing algo
-	Pack();
-
 	// Scale
-	//CentreAndScale(2000, 2000, nodes);
+	//int scale = nodes.size() * 100;
+	//CentreAndScale(scale, scale, nodes);
 }
 
 void TrackMap::Circle(std::vector<Node>& nodes)
@@ -215,7 +284,7 @@ void TrackMap::Circle(std::vector<Node>& nodes)
 }
 
 
-void TrackMap::CentreAndScaleGroup(unsigned int width, unsigned int height, const std::vector<int>& group)
+void TrackMap::CentreAndScaleGroup(unsigned int width, unsigned int height, const std::vector<int>& group_ids)
 {
 	// Find current dimensions
 	double x_min = std::numeric_limits<double>::max();
@@ -223,7 +292,7 @@ void TrackMap::CentreAndScaleGroup(unsigned int width, unsigned int height, cons
 	double y_min = std::numeric_limits<double>::max();
 	double y_max = std::numeric_limits<double>::lowest();
 
-	for (const int id : group)
+	for (const int id : group_ids)
 	{
 		const Node& node = nodes[nodeIndex[id]];
 
@@ -252,7 +321,7 @@ void TrackMap::CentreAndScaleGroup(unsigned int width, unsigned int height, cons
 	Vec centre = { x_max + x_min, y_max + y_min };
 	Vec offset = centre / 2.0 * scale;
 
-	for (const int id : group)
+	for (const int id : group_ids)
 	{
 		Node& node = nodes[nodeIndex[id]];
 		node.pos = node.pos * scale - offset;
@@ -395,48 +464,127 @@ void TrackMap::GroupConnectedNodes()
 
 
 // Based on James Bremner packing around a centre point.
-void TrackMap::Pack()
+void TrackMap::Pack(const std::vector<size_t>& group_idxs)
 {
-	if (groups.empty())
+	if (group_idxs.empty())
 		return;
 
-	for (auto& group : groups)
+	double totalArea = 0.0;
+
+	for (size_t idx : group_idxs)
+		totalArea += groups[idx].area;
+
+	double targetWidth = std::sqrt(totalArea);
+
+	double x = 0.0;
+	double y = 0.0;
+	double rowHeight = 0.0;
+
+	for (size_t idx : group_idxs)
 	{
-		// Position group at 0,0
-		Centre(group.ids);
+		Group& g = groups[idx];
 
-		// Generate group bounding box and find area
-		Vec minPos;
-		Vec maxPos;
-		for (size_t i = 0; i < group.ids.size(); i++)
+		double width = g.rect.second.x - g.rect.first.x;
+		double height = g.rect.second.y - g.rect.first.y;
+
+		if (x + width > targetWidth)
 		{
-			const int id = group.ids[i];
-			const Node& node = nodes[nodeIndex[id]];
-
-			if (node.pos.x > maxPos.x)
-				maxPos.x = node.pos.x;
-			else if (node.pos.x < minPos.x)
-				minPos.x = node.pos.x;
-
-			if (node.pos.y > maxPos.y)
-				maxPos.y = node.pos.y;
-			else if (node.pos.y < minPos.y)
-				minPos.y = node.pos.y;
-
-			group.rect = { minPos, maxPos };
-
-			double width = minPos.x - maxPos.x;
-			double height = minPos.y - maxPos.y;
-			group.area = width * height;
+			x = 0.0;
+			y += rowHeight;
+			rowHeight = 0.0;
 		}
+
+		Vec offset{
+			x - g.rect.first.x,
+			y - g.rect.first.y
+		};
+
+		// Move all nodes in the group
+		for (int id : g.ids)
+		{
+			nodes[nodeIndex[id]].pos += offset;
+		}
+
+		// Update stored bounding box
+		g.rect.first += offset;
+		g.rect.second += offset;
+
+		x += width;
+
+		if (height > rowHeight)
+			rowHeight = height;
 	}
 
 
+	/*
+	for (size_t i = 0; i < quadGroups.size(); i++)
+	{
+		float x = 0;
+		float y = 0;
 
-	// Divide area into four quadrants 
+		if (i == 0)
+		{
+			x = -100;
+			y = -100;
+		}
 
-	// Sort rects into order of decreasing area
-	// and assigned to the quadrants in round robin fashion
+		if (i == 1)
+		{
+			x = 100;
+			y = -100;
+		}
+
+		if (i == 2)
+		{
+			x = -100;
+			y = 100;
+		}
+
+		if (i == 3)
+		{
+			x = -100;
+			y = -100;
+		}
+
+		for (size_t index : quadGroups[i])
+		{
+			Group& group = groups[index];
+
+			group.rect.first += {x, y};
+			group.rect.second += {x, y};
+
+			for (size_t j = 0; j < group.ids.size(); j++)
+			{
+				const int id = group.ids[j];
+				Node& node = nodes[nodeIndex[id]];
+
+				node.pos.x += x;
+				node.pos.y += y;
+			}
+		}
+	}
+	*/
+
+
+	/*
+	for (size_t i = 0; i < groups.size(); i++)
+	{
+		int a = 20.0 * (int)i;
+
+		auto& group = groups[i];
+		group.rect.first += {(double)a, 0.0};
+		group.rect.second += {(double)a, 0.0};
+
+		for (size_t j = 0; j < group.ids.size(); j++)
+		{
+			const int id = group.ids[j];
+			Node& node = nodes[nodeIndex[id]];
+
+			node.pos.x += a;
+		}
+	}
+	*/
+
 }
 
 
@@ -489,7 +637,6 @@ TrackMap::Info TrackMap::Render()
 
 		camera.pos = ImVec2(cameraPosOnLeftClick.x + dx, cameraPosOnLeftClick.y + dy);
 	}
-	
 
 	// Draw edges
 	float radius = baseRadius * camera.zoom;
@@ -582,6 +729,7 @@ TrackMap::Info TrackMap::Render()
 			info.pos = nodePos;
 		}
 		
+
 		drawList->AddCircleFilled(
 			nodePos,
 			radius,
@@ -600,11 +748,10 @@ TrackMap::Info TrackMap::Render()
 		);
 		
 	}
-
+	
+	
 	for (const auto& group : groups)
 	{
-		// line
-		
 		ImVec2 min = camera.ToScreenPos(group.rect.first.x, group.rect.first.y);
 		ImVec2 max = camera.ToScreenPos(group.rect.second.x, group.rect.second.y);
 
@@ -613,7 +760,15 @@ TrackMap::Info TrackMap::Render()
 			max,
 			IM_COL32_WHITE
 		);
+
+		// Debug
+		drawList->AddText(
+			camera.ToScreenPos(group.rect.second.x, group.rect.second.y),
+			IM_COL32_WHITE,
+			std::to_string(group.area).c_str()
+		);
 	}
+	
 
 	return info;
 }
