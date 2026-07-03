@@ -45,10 +45,17 @@ struct TrackMap
 	struct Group
 	{
 		std::vector<int> ids;
-		std::pair<Vec, Vec> rect;
+		std::pair<Vec, Vec> rect; // TODO: replace with pos?
 		double width = 0.0;
 		double height = 0.0;
 		double area = 0.0;
+	};
+
+	struct Group2
+	{
+		std::vector<int> ids;
+		Vec pos;
+		double radius = 0.0;
 	};
 
 	struct Camera
@@ -87,15 +94,18 @@ struct TrackMap
 	void Circle(std::vector<Node>& nodes);
 	void CentreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
 	void CentreAndScaleGroup(unsigned int width, unsigned int height, const std::vector<int>& group_ids);
-	void Centre(const std::vector<int>& group);
+	void Centre(std::vector<Node>& nodes);
+	void Rotate(const std::vector<size_t>& group_idxs, int quadrant);
 	void GroupConnectedNodes();
 	void Pack(const std::vector<size_t>& group_idxs);
-	void FruchtermanReingold(const std::vector<int>& group_ids);
+	void FruchtermanReingold();
+	void GroupFruchtermanReingold(const std::vector<int>& group_ids);
+	void GroupRadialPull();
 	// TODO: move rendering to main app
 	Info Render();
 
-	int iterations = 500;
-	double k = 1.5;
+	int iterations = 100;
+	double k = 2.0;
 	const float baseRadius = 8.0f;
 
 	std::vector<Node> nodes;
@@ -103,6 +113,7 @@ struct TrackMap
 	std::vector<Edge> edges;
 
 	std::vector<Group> groups;
+	std::vector<Group2> groups2;
 
 	//std::vector<std::pair<Vec, Vec>> groupRects;
 

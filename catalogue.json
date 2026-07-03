@@ -172,6 +172,13 @@
                     "note": "",
                     "pitch": 0,
                     "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 42,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
                 }
             ],
             "position": "2",
@@ -252,6 +259,13 @@
                 {
                     "direction": 2,
                     "id": 21,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 42,
                     "note": "",
                     "pitch": 0,
                     "rating": 0
@@ -613,6 +627,237 @@
             "rating": 0,
             "release": "",
             "title": "3"
+        },
+        {
+            "artist": "Tester",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 36,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 42,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Loner"
+        },
+        {
+            "artist": "A",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 37,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 38,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "A"
+        },
+        {
+            "artist": "B",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 38,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 40,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 39,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 37,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 41,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "B"
+        },
+        {
+            "artist": "C",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 39,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 38,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 41,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "C"
+        },
+        {
+            "artist": "D",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 40,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 38,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 41,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "D"
+        },
+        {
+            "artist": "E",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 41,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 38,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 39,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 40,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "E"
+        },
+        {
+            "artist": "A",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 42,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 36,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 25,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 23,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Lone"
         }
     ]
 }

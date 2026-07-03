@@ -59,7 +59,85 @@ TrackMap::Vec operator/(TrackMap::Vec lhs, double scalar)
 }
 
 
-void TrackMap::FruchtermanReingold(const std::vector<int>& group_ids)
+void TrackMap::FruchtermanReingold()
+{
+	double temperature = 10 * std::sqrt(nodes.size());
+	double kSquared = k * k;
+
+	std::vector<Vec> forces(nodes.size());
+
+	for (int iteration = 0; iteration < iterations; iteration++)
+	{
+		std::fill(forces.begin(), forces.end(), Vec{});
+
+		// Repulsion force between vertice pairs
+		for (size_t i = 0; i < nodes.size(); i++)
+		{
+			for (size_t j = i + 1; j < nodes.size(); j++)
+			{
+				Vec delta = nodes[i].pos - nodes[j].pos;
+
+				double distance = delta.norm();
+
+				// Handle distance small distance
+				// TODO: add random jitters
+				if (distance < 1e-6)
+					continue;
+
+				// > 1000.0: not worth computing
+				//if (distance > maxDistance)
+				//	continue;
+
+				double repulsion = kSquared / distance;
+
+				forces[i] += delta / distance * repulsion;
+				forces[j] -= delta / distance * repulsion;
+			}
+		}
+
+		// Attraction force between edges
+		for (const Edge& e : edges)
+		{
+			int a = nodeIndex[e.A_id];
+			int b = nodeIndex[e.B_id];
+
+			Vec delta = nodes[a].pos - nodes[b].pos;
+
+			double distance = delta.norm();
+
+			if (distance == 0.0)
+				continue;
+
+			double attraction = distance * distance / k;
+
+			forces[a] -= delta / distance * attraction;
+			forces[b] += delta / distance * attraction;
+		}
+
+
+		// Max movement capped by current temperature
+		for (size_t i = 0; i < nodes.size(); i++)
+		{
+			double forcesNorm = forces[i].norm();
+
+			// < 1.0: not worth computing
+			if (forcesNorm < 1.0)
+				continue;
+
+			double cappedForcesNorm = std::min(forcesNorm, temperature);
+			Vec cappedForces = forces[i] / forcesNorm * cappedForcesNorm;
+
+			nodes[i].pos += cappedForces;
+		}
+
+		temperature *= 0.95;
+	}
+}
+
+
+
+
+void TrackMap::GroupFruchtermanReingold(const std::vector<int>& group_ids)
 {
 	// Fruchterman-Reingold layout
 
@@ -169,23 +247,72 @@ void TrackMap::Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 
 	if (nodes.empty())
 		return;
-	
 
 	// Position nodes in a circle
 	Circle(nodes);
 	
-
 	// Generate node index lookup table 
 	nodeIndex.clear();
 	// ++i??
 	for (int i = 0; i < nodes.size(); ++i)
 		nodeIndex[nodes[i].id] = i;
 
+	FruchtermanReingold();
+
+	//Centre(nodes);
+
+	int scale = nodes.size() * 200;
+	CentreAndScale(scale, scale, nodes);
 
 	// Find connected node groups
-	groups.clear();
+	groups2.clear();
 	GroupConnectedNodes();
 
+
+	const double margin = 10.0;
+
+	for (auto& group : groups2)
+	{
+		// Generate group bounding box and find area
+		constexpr double minDouble = -std::numeric_limits<double>::max();
+		constexpr double maxDouble = std::numeric_limits<double>::max();
+
+		Vec minPos = { maxDouble, maxDouble };
+		Vec maxPos = { minDouble, minDouble };
+		for (size_t i = 0; i < group.ids.size(); i++)
+		{
+			const int id = group.ids[i];
+			const Node& node = nodes[nodeIndex[id]];
+
+			if (node.pos.x > maxPos.x)
+				maxPos.x = node.pos.x;
+
+			if (node.pos.x < minPos.x)
+				minPos.x = node.pos.x;
+
+			if (node.pos.y > maxPos.y)
+				maxPos.y = node.pos.y;
+
+			if (node.pos.y < minPos.y)
+				minPos.y = node.pos.y;
+		}
+
+		// Add margin
+		minPos.x -= margin;
+		minPos.y -= margin;
+		maxPos.x += margin;
+		maxPos.y += margin;
+
+		double width = maxPos.x - minPos.x;
+		double height = maxPos.y - minPos.y;
+
+		group.pos = (minPos + maxPos) * 0.5f;
+		group.radius = 0.5f * std::sqrt(width * width + height * height);
+	}
+		
+	GroupRadialPull();
+
+	/*
 	// Run layout
 	for (const auto& group : groups)
 	{
@@ -193,14 +320,14 @@ void TrackMap::Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 			continue;
 		
 		// Run layout
-		FruchtermanReingold(group.ids);
+		GroupFruchtermanReingold(group.ids);
 
 		int scale = group.ids.size() * 80;
 		CentreAndScaleGroup(scale, scale, group.ids);
 	}
 
 	// Pack groups
-	const double margin = 30.0;
+	const double margin = 20.0;
 
 	for (auto& group : groups)
 	{
@@ -251,26 +378,100 @@ void TrackMap::Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges)
 
 	for (size_t i = 0; i < groups.size(); ++i)
 	{
-		//size_t quad = i % 4;
-		size_t quad = 0;
+		size_t quad = i % 4;
 		quadGroups[quad].emplace_back(i);
 	}
 
 	// Pack groups in each quadrant
-	int i = 0;
-	for (const auto& quad : quadGroups)
+	for (size_t i = 0; i < quadGroups.size(); i++)
 	{
-		if (i == 0)
-			Pack(quad);
+		const auto& quad = quadGroups[i];
 
-		// Rotate
-		i++;
+		Pack(quad);
+		Rotate(quad, (int)i);
 	}
 
+	////
+	for (const auto& quad : quadGroups)
+	{
+		Pack(quad);
+
+		// Rotate
+
+	}
+	////
+	*/
 
 	// Scale
 	//int scale = nodes.size() * 100;
 	//CentreAndScale(scale, scale, nodes);
+	
+}
+
+
+void TrackMap::GroupRadialPull()
+{
+	if (groups2.empty())
+		return;
+
+	const int radialPullIterations = 100; // TODO: play with this number
+	const Vec origin = { 0,0 };
+
+	std::vector<Vec> prePullPos;
+	prePullPos.reserve(groups2.size());
+
+	for (const auto& group : groups2)
+		prePullPos.emplace_back(group.pos);
+
+	for (int i = 0; i < radialPullIterations; i++)
+	{
+		// Pull groups towards the origin
+		for (auto& group : groups2)
+		{
+			Vec toOrigin = origin - group.pos;
+			group.pos += toOrigin * 0.05;
+		}
+
+		//Resolve collisions between groups
+		for (size_t a = 0; a < groups2.size(); a++)
+		{
+			for (size_t b = a + 1; b < groups2.size(); b++)
+			{
+				Vec delta = groups2[b].pos - groups2[a].pos;
+				double distance = delta.norm();
+
+				if (distance == 0.0)
+				{
+					delta = { 1.0, 0.0 };
+					distance = 1.0;
+				}
+
+				double minDistance = groups2[a].radius + groups2[b].radius;
+
+				if (distance < minDistance)
+				{
+					double overlap = minDistance - distance;
+					Vec normal = delta / distance;
+
+					groups2[a].pos.x -= normal.x * overlap * 0.5;
+					groups2[a].pos.y -= normal.y * overlap * 0.5;
+					groups2[b].pos.x += normal.x * overlap * 0.5;
+					groups2[b].pos.y += normal.y * overlap * 0.5;
+				}
+			}
+		}
+	}
+
+	// Update node positions in group
+	for (size_t i = 0; i < groups2.size(); i++)
+	{
+		const auto& group = groups2[i];
+		for (const size_t id : group.ids)
+		{
+			Node& n = nodes[nodeIndex[id]];
+			n.pos += group.pos - prePullPos[i];
+		}
+	}
 }
 
 void TrackMap::Circle(std::vector<Node>& nodes)
@@ -292,21 +493,21 @@ void TrackMap::CentreAndScaleGroup(unsigned int width, unsigned int height, cons
 	double y_min = std::numeric_limits<double>::max();
 	double y_max = std::numeric_limits<double>::lowest();
 
-	for (const int id : group_ids)
+	for (const size_t id : group_ids)
 	{
-		const Node& node = nodes[nodeIndex[id]];
+		const Node& n = nodes[nodeIndex[id]];
 
-		if (node.pos.x < x_min)
-			x_min = node.pos.x;
+		if (n.pos.x < x_min)
+			x_min = n.pos.x;
 
-		if (node.pos.x > x_max)
-			x_max = node.pos.x;
+		if (n.pos.x > x_max)
+			x_max = n.pos.x;
 
-		if (node.pos.y < y_min)
-			y_min = node.pos.y;
+		if (n.pos.y < y_min)
+			y_min = n.pos.y;
 
-		if (node.pos.y > y_max)
-			y_max = node.pos.y;
+		if (n.pos.y > y_max)
+			y_max = n.pos.y;
 	}
 
 	double cur_width = x_max - x_min;
@@ -353,6 +554,23 @@ void TrackMap::CentreAndScale(unsigned int width, unsigned int height, std::vect
 
 	}
 
+	// 0,0 centre
+	double cur_width = x_max - x_min;
+	double cur_height = y_max - y_min;
+
+	// compute scale factor (0.9: keep some margin)
+	double x_scale = width / cur_width;
+	double y_scale = height / cur_height;
+	double scale = 0.9 * (x_scale < y_scale ? x_scale : y_scale);
+
+	// compute offset and apply it to every position
+	Vec centre = { x_max + x_min, y_max + y_min };
+	Vec offset = centre / 2.0 * scale;
+
+	for (auto& node : nodes)
+		node.pos = node.pos * scale - offset;
+
+	/* Screen centre
 	double cur_width = x_max - x_min;
 	double cur_height = y_max - y_min;
 
@@ -373,10 +591,11 @@ void TrackMap::CentreAndScale(unsigned int width, unsigned int height, std::vect
 		pos += offset;
 		n.pos = pos;
 	}
+	*/
 }
 
 
-void TrackMap::Centre(const std::vector<int>& group_ids)
+void TrackMap::Centre(std::vector<Node>& nodes)
 {
 	// Find current dimensions
 	double x_min = std::numeric_limits<double>::max();
@@ -384,10 +603,8 @@ void TrackMap::Centre(const std::vector<int>& group_ids)
 	double y_min = std::numeric_limits<double>::max();
 	double y_max = std::numeric_limits<double>::lowest();
 
-	for (const int id : group_ids)
+	for (const auto& node : nodes)
 	{
-		const Node& node = nodes[nodeIndex[id]];
-
 		if (node.pos.x < x_min)
 			x_min = node.pos.x;
 
@@ -404,11 +621,8 @@ void TrackMap::Centre(const std::vector<int>& group_ids)
 	Vec centre = { x_max + x_min, y_max + y_min };
 	Vec offset = centre / 2.0;
 
-	for (const int id : group_ids)
-	{
-		Node& node = nodes[nodeIndex[id]];
+	for (auto& node : nodes)
 		node.pos = node.pos - offset;
-	}
 }
 
 
@@ -454,11 +668,9 @@ void TrackMap::GroupConnectedNodes()
 		std::vector<int> group_ids;
 		Dfs(node.id, adj, visited, group_ids);
 
-		//groups.emplace_back(std::move(group));
-		
-		Group g;
+		Group2 g;
 		g.ids = std::move(group_ids);
-		groups.emplace_back(std::move(g));
+		groups2.emplace_back(std::move(g));
 	}
 }
 
@@ -514,77 +726,45 @@ void TrackMap::Pack(const std::vector<size_t>& group_idxs)
 		if (height > rowHeight)
 			rowHeight = height;
 	}
+}
 
+void TrackMap::Rotate(const std::vector<size_t>& group_idxs, int quadrant)
+{
+	if (group_idxs.empty() || quadrant >= 3 || quadrant < 0)
+		return;
 
-	/*
-	for (size_t i = 0; i < quadGroups.size(); i++)
+	// 0: top left, 1: top right, 2: bottom left, 3: bottm right (no rotation)
+
+	for (size_t idx : group_idxs)
 	{
-		float x = 0;
-		float y = 0;
+		Group& group = groups[idx];
 
-		if (i == 0)
+		for (size_t id : group.ids)
 		{
-			x = -100;
-			y = -100;
-		}
+			Vec& pos = nodes[nodeIndex[id]].pos;
 
-		if (i == 1)
-		{
-			x = 100;
-			y = -100;
-		}
+			double x = pos.x;
+			double y = pos.y;
 
-		if (i == 2)
-		{
-			x = -100;
-			y = 100;
-		}
-
-		if (i == 3)
-		{
-			x = -100;
-			y = -100;
-		}
-
-		for (size_t index : quadGroups[i])
-		{
-			Group& group = groups[index];
-
-			group.rect.first += {x, y};
-			group.rect.second += {x, y};
-
-			for (size_t j = 0; j < group.ids.size(); j++)
+			switch (quadrant)
 			{
-				const int id = group.ids[j];
-				Node& node = nodes[nodeIndex[id]];
+			case 0: // 270
+				pos.x = y;
+				pos.y = -x;
+				break;
 
-				node.pos.x += x;
-				node.pos.y += y;
+			case 1: // 180
+				pos.x = -x;
+				pos.y = -y;
+				break;
+
+			case 2: // 90
+				pos.x = -y;
+				pos.y = x;
+				break;
 			}
 		}
 	}
-	*/
-
-
-	/*
-	for (size_t i = 0; i < groups.size(); i++)
-	{
-		int a = 20.0 * (int)i;
-
-		auto& group = groups[i];
-		group.rect.first += {(double)a, 0.0};
-		group.rect.second += {(double)a, 0.0};
-
-		for (size_t j = 0; j < group.ids.size(); j++)
-		{
-			const int id = group.ids[j];
-			Node& node = nodes[nodeIndex[id]];
-
-			node.pos.x += a;
-		}
-	}
-	*/
-
 }
 
 
@@ -749,12 +929,25 @@ TrackMap::Info TrackMap::Render()
 		
 	}
 	
-	
+	for (const auto& group : groups2)
+	{
+		ImVec2 pos = camera.ToScreenPos((float)group.pos.x, (float)group.pos.y);
+		drawList->AddCircle(
+			pos,
+			(float)group.radius * camera.zoom,
+			IM_COL32_WHITE,
+			16,
+			1.0f
+		);
+	}
+
+
+	/*
 	for (const auto& group : groups)
 	{
 		ImVec2 min = camera.ToScreenPos(group.rect.first.x, group.rect.first.y);
 		ImVec2 max = camera.ToScreenPos(group.rect.second.x, group.rect.second.y);
-
+		
 		drawList->AddRect(
 			min,
 			max,
@@ -767,8 +960,13 @@ TrackMap::Info TrackMap::Render()
 			IM_COL32_WHITE,
 			std::to_string(group.area).c_str()
 		);
+		
 	}
-	
+	*/
+
+	// Debug
+	// Centre
+	drawList->AddCircleFilled(camera.ToScreenPos(0, 0), 10.0f, IM_COL32_WHITE, 8);
 
 	return info;
 }
