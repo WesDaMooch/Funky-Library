@@ -5,10 +5,6 @@
 #include <unordered_set>
 #include <cmath>
 #include <algorithm>
-#include "imgui.h"
-
-// Debug
-#include <string>
 
 struct TrackMap
 {
@@ -29,7 +25,7 @@ struct TrackMap
 	{
 		int id = -1;
 		Vec pos;
-		ImU32 col = IM_COL32_WHITE;
+		//ImU32 col = IM_COL32_WHITE;
 	};
 
 	struct Edge
@@ -45,82 +41,29 @@ struct TrackMap
 	struct Group
 	{
 		std::vector<int> ids;
-		std::pair<Vec, Vec> rect; // TODO: replace with pos?
-		double width = 0.0;
-		double height = 0.0;
-		double area = 0.0;
-	};
-
-	struct Group2
-	{
-		std::vector<int> ids;
 		Vec pos;
 		double radius = 0.0;
 	};
 
-	struct Camera
-	{
-		ImVec2 pos;
-
-		float zoom = 1.0f;
-		float zoomVelocity = 0.0f;
-		
-		void SetZoom(float z, float dt)
-		{
-			zoomVelocity += z;
-			zoomVelocity = std::clamp(zoomVelocity, -4.5f, 4.5f); // Max velocity
-			zoom *= std::exp(zoomVelocity * dt);
-			zoom = std::clamp(zoom, 0.1f, 15.0f); // Max & min zoom
-			zoomVelocity *= 0.85f; // Dampening
-		}
-		
-		ImVec2 ToScreenPos(double x, double y)
-		{
-			return ImVec2(
-				(float)(x * zoom + pos.x),
-				(float)(y * zoom + pos.y)
-			);
-		}
-	};
-
-	struct Info
-	{
-		int hoveredId = -1;
-		int clickedId = -1;
-		ImVec2 pos = { 0.0f, 0.0f };
-	};
-
-	void Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
+	void FruchtermanReingold();
+	void Dfs(int statrt_id, const std::unordered_map<int, std::vector<int>>& adj, std::unordered_set<int>& visited, std::vector<int>& group_ids);
+	void GroupConnectedNodes();
+	void GroupRadialPull();
 	void Circle(std::vector<Node>& nodes);
 	void CentreAndScale(unsigned int width, unsigned int height, std::vector<Node>& nodes);
-	void CentreAndScaleGroup(unsigned int width, unsigned int height, const std::vector<int>& group_ids);
-	void Centre(std::vector<Node>& nodes);
-	void Rotate(const std::vector<size_t>& group_idxs, int quadrant);
-	void GroupConnectedNodes();
-	void Pack(const std::vector<size_t>& group_idxs);
-	void FruchtermanReingold();
-	void GroupFruchtermanReingold(const std::vector<int>& group_ids);
-	void GroupRadialPull();
-	// TODO: move rendering to main app
-	Info Render();
+	void Bake(std::vector<Node> newNodes, std::vector<Edge> newEdges);
 
-	int iterations = 100;
-	double k = 2.0;
-	const float baseRadius = 8.0f;
+	int iterations = 200;
+	double k = 1.6;
+
+	int scale = 1;
+	double stepAmount = 0.1;
 
 	std::vector<Node> nodes;
 	std::unordered_map<int, int> nodeIndex;
 	std::vector<Edge> edges;
 
 	std::vector<Group> groups;
-	std::vector<Group2> groups2;
-
-	//std::vector<std::pair<Vec, Vec>> groupRects;
-
-	// Rendering
-	Camera camera;
-	ImVec2 mousePosOnLeftClick;
-	ImVec2 cameraPosOnLeftClick;
 };
 
 TrackMap::Vec operator+(TrackMap::Vec lhs, const TrackMap::Vec& rhs);

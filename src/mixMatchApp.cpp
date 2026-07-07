@@ -1,5 +1,8 @@
 #include "..\include\mixMatchApp.hpp"
 
+// Make it a thing, then make it look good!
+
+
 // TODO:
 // Add back button on the right of the main search bar
 
@@ -9,14 +12,81 @@
 // Add pitch adjust
 
 // Add spring graph (maybe called constallation map or something)
-// Add tap tempo 
+// Add tap tempo ??
 
 MixMatchApp::MixMatchApp()
 {
 	manager.load();
 }
 
-void MixMatchApp::RunFrame()
+void MixMatchApp::runFrame2()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+
+    ImGuiWindowFlags windowFlags =
+        //ImGuiWindowFlags_MenuBar |
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoBringToFrontOnFocus |
+        ImGuiWindowFlags_NoNavFocus;
+
+    if (ImGui::Begin("Funky Libaray", &open, windowFlags))
+    {
+
+        // Left panel
+        {
+            ImGuiChildFlags childFlags =
+                ImGuiChildFlags_ResizeX;
+
+            ImGui::BeginChild("Left Panel", ImVec2(ImGui::GetContentRegionAvail().x * 0.25f, ImGui::GetContentRegionAvail().y), childFlags, ImGuiWindowFlags_None);
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            ImGui::InputText("##MainSeachInput", mainSearchBuffer, sizeof(mainSearchBuffer));
+
+            const auto searchResultLibrary = manager.searchAndSort(mainSearchBuffer, mainSearchSort);
+
+            ImGui::BeginChild("Library List", ImVec2(0, 0));
+
+            for (const auto& track : searchResultLibrary)
+            {
+                ImGui::PushID(track.id);
+                ImGui::Selectable(TextUtil::FormartTitle(track.artist, track.title).c_str());
+                ImGui::PopID();
+            }
+
+            ImGui::EndChild();
+            ImGui::EndChild();
+        }
+
+        ImGui::SameLine();
+
+        // Right panel
+        {
+            ImGuiChildFlags childFlags =
+                ImGuiChildFlags_Borders;
+
+
+            
+            ImGui::BeginChild("ChildR", ImVec2(0, ImGui::GetContentRegionAvail().y), childFlags, ImGuiWindowFlags_None);
+
+            ImGui::Text("Yo");
+
+            ImGui::EndChild();
+        }
+
+        ImGui::End();
+    }
+}
+
+
+
+void MixMatchApp::runFrame()
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGuiStyle& style = ImGui::GetStyle();
@@ -75,18 +145,18 @@ void MixMatchApp::RunFrame()
     if (showMainLibary)
     {
         const std::vector<Track> mainLibrary = manager.searchAndSort(mainSearchBuffer, mainSearchSort);
-        TrackSearchTable(mainLibrary, tableX, tableWidth);
+        trackSearchTable(mainLibrary, tableX, tableWidth);
     }
 
     // Add track popup window
-    SetModalPopupPosAndSize("Add Track");
+    setModalPopupPosAndSize("Add Track");
 
     //ImGui::PushStyleColor(ImGuiCol_TitleBg, ColourUtil::TintVec4(addTrackData.colour, Ui::Colour::TINT_BG));
     //ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ColourUtil::TintVec4(addTrackData.colour, Ui::Colour::TINT_HOVER));
 
     if (ImGui::BeginPopupModal("Add Track", &showAddTrackPopup, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        InputTrackDataPopup(addTrackData, TrackInputMode::ADD);
+        inputTrackDataPopup(addTrackData, TrackInputMode::ADD);
         ImGui::EndPopup();
     }
 
@@ -112,30 +182,193 @@ void MixMatchApp::RunFrame()
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoCollapse);
 
-        TrackMap::Info mapInfo = map.Render();
-
+        // Draw map
         ImDrawList* drawList = ImGui::GetWindowDrawList();
+        ImVec2 windowSize = ImGui::GetWindowSize();
+        ImGuiIO& io = ImGui::GetIO();
+        ImVec2 mousePos = { io.MousePos.x, io.MousePos.y };
 
-        if (mapInfo.hoveredId > -1)
+        int hoveredNodeId = -1;
+        ImVec2 hoveredNodePos;
+
+        // Mouse zoom
+        float wheel = io.MouseWheel;
+
+        float oldZoom = camera.zoom;
+        ImVec2 worldUnderMouse = { (mousePos.x - camera.pos.x) / oldZoom, (mousePos.y - camera.pos.y) / oldZoom };
+
+        camera.setZoom(wheel, io.DeltaTime);
+
+        camera.pos.x = mousePos.x - worldUnderMouse.x * camera.zoom;
+        camera.pos.y = mousePos.y - worldUnderMouse.y * camera.zoom;
+
+
+        // Mouse drag
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         {
-            const Track* t = manager.getTrackForDisplay(mapInfo.hoveredId);
+            // Save mouse position
+            mousePosOnLeftClick = mousePos;
+            cameraPosOnLeftClick = camera.pos;
+        }
+
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+        {
+            float dx = mousePos.x - mousePosOnLeftClick.x;
+            float dy = mousePos.y - mousePosOnLeftClick.y;
+
+            camera.pos = ImVec2(cameraPosOnLeftClick.x + dx, cameraPosOnLeftClick.y + dy);
+        }
+
+        // Draw edges
+        float radius = nodeBaseRadius * camera.zoom;
+        float lineWidth = 0.5f * camera.zoom;
+        float arrowLength = 4.0f * camera.zoom;
+        float arrowWidth = 4.0f * camera.zoom;
+
+        for (const TrackMap::Edge& e : map.edges)
+        {
+            const TrackMap::Node& a = map.nodes[map.nodeIndex.at(e.A_id)];
+            const TrackMap::Node& b = map.nodes[map.nodeIndex.at(e.B_id)];
+
+            ImVec2 start = camera.toScreenPos(a.pos.x, a.pos.y);
+            ImVec2 end = camera.toScreenPos(b.pos.x, b.pos.y);
+            ImVec2 dir = { end.x - start.x,end.y - start.y };
+            float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+
+            if (len > 0.0f)
+            {
+                // Gap between node and endge
+                dir.x /= len;
+                dir.y /= len;
+
+                float gap = (4.0f * camera.zoom) + radius;
+
+                start.x += dir.x * gap;
+                start.y += dir.y * gap;
+
+                end.x -= dir.x * gap;
+                end.y -= dir.y * gap;
+
+                // Draw arrow
+                ImVec2 perp = { -dir.y,dir.x };
+
+                if (e.A_direction)
+                {
+                    ImVec2 arrowLine1 = {
+                        start.x + dir.x * arrowLength + perp.x * arrowWidth,
+                        start.y + dir.y * arrowLength + perp.y * arrowWidth
+                    };
+
+                    ImVec2 arrowA2 = {
+                        start.x + dir.x * arrowLength - perp.x * arrowWidth,
+                        start.y + dir.y * arrowLength - perp.y * arrowWidth
+                    };
+
+                    drawList->AddLine(start, arrowLine1, IM_COL32_WHITE, lineWidth);
+                    drawList->AddLine(start, arrowA2, IM_COL32_WHITE, lineWidth);
+                }
+
+                if (e.B_direction)
+                {
+                    ImVec2 arrowLine1 = {
+                        end.x - dir.x * arrowLength + perp.x * arrowWidth,
+                        end.y - dir.y * arrowLength + perp.y * arrowWidth
+                    };
+
+                    ImVec2 arrowLine2 = {
+                        end.x - dir.x * arrowLength - perp.x * arrowWidth,
+                        end.y - dir.y * arrowLength - perp.y * arrowWidth
+                    };
+
+                    drawList->AddLine(end, arrowLine1, IM_COL32_WHITE, lineWidth);
+                    drawList->AddLine(end, arrowLine2, IM_COL32_WHITE, lineWidth);
+                }
+
+            }
+
+            // Edge line
+            drawList->AddLine(
+                start,
+                end,
+                IM_COL32_WHITE,
+                lineWidth
+            );
+        }
+
+        // Draw nodes
+        for (const TrackMap::Node& n : map.nodes)
+        {
+            ImVec2 nodePos = camera.toScreenPos(n.pos.x, n.pos.y);
+
+            // Node hovered
+            float dx = mousePos.x - nodePos.x;
+            float dy = mousePos.y - nodePos.y;
+
+            if ((dx * dx + dy * dy) <= (radius * radius))
+            {
+                hoveredNodeId = n.id;
+                hoveredNodePos.x = (float)n.pos.x;
+                hoveredNodePos.y = (float)n.pos.y;
+            }
+                
+
+            drawList->AddCircleFilled(
+                nodePos,
+                radius,
+                IM_COL32_WHITE, //n.col
+                16
+            );
+
+
+            // Outline
+            drawList->AddCircle(
+                nodePos,
+                radius,
+                IM_COL32_WHITE,
+                16,
+                0.5f * camera.zoom
+            );
+
+        }
+
+        for (const auto& group : map.groups)
+        {
+            continue;
+
+            ImVec2 pos = camera.toScreenPos((float)group.pos.x, (float)group.pos.y);
+            drawList->AddCircle(
+                pos,
+                (float)group.radius * camera.zoom,
+                IM_COL32_WHITE,
+                16,
+                1.0f
+            );
+        }
+
+
+        // Debug
+        // Centre
+        //drawList->AddCircleFilled(camera.ToScreenPos(0, 0), 10.0f, IM_COL32_WHITE, 8);
+        //ImGui::Text(std::to_string(map.nodes.size()).c_str());
+
+
+        // Hovered node text
+        if (hoveredNodeId > -1)
+        {
+            const Track* t = manager.getTrackForDisplay(hoveredNodeId);
 
             if (t != nullptr)
-            {
-                //ImGui::SetCursorPos(mapInfo.pos);
-                //ImGui::TextUnformatted(TextUtil::FormartTitle(t->artist, t->label).c_str());
-
-                
+            {             
                 drawList->AddText(
-                    mapInfo.pos,
+                    camera.toScreenPos(hoveredNodePos.x, hoveredNodePos.y),
                     IM_COL32_WHITE,
                     t->artist.c_str()
                 );
 
-                float textHeight = ImGui::GetTextLineHeight();
+                float textHeight = ImGui::GetTextLineHeight() / camera.zoom;
 
                 drawList->AddText(
-                    ImVec2(mapInfo.pos.x, mapInfo.pos.y + textHeight),
+                    camera.toScreenPos(hoveredNodePos.x, hoveredNodePos.y + textHeight),
                     IM_COL32_WHITE,
                     t->title.c_str()
                 );
@@ -200,7 +433,7 @@ void MixMatchApp::RunFrame()
         ImVec2 editSelSize = ImGui::CalcTextSize(Ui::Text::ICON_EDIT);
         ImVec2 editSelPos = ImGui::GetCursorPos();
 
-        SetClearSelectableStyle();
+        setClearSelectableStyle();
 
         if (ImGui::Selectable("##Edit Select", false, NULL, editSelSize))
         {
@@ -223,7 +456,7 @@ void MixMatchApp::RunFrame()
         ImGui::SameLine();
 
         ImGui::SetCursorPos(editSelPos);
-        SetTextColourOnHover(ImGui::IsItemHovered());
+        setTextColourOnHover(ImGui::IsItemHovered());
         ImGui::Text(Ui::Text::ICON_EDIT);
         ImGui::PopStyleColor();
 
@@ -234,7 +467,7 @@ void MixMatchApp::RunFrame()
             ImVec2 selectSize = ImGui::CalcTextSize(label.c_str());
             ImVec2 selectPos = ImGui::GetCursorPos();
 
-            SetClearSelectableStyle();
+            setClearSelectableStyle();
 
             if (ImGui::Selectable("##Label Select", false, NULL, selectSize))
             {
@@ -246,7 +479,7 @@ void MixMatchApp::RunFrame()
             ImGui::SameLine();
 
             ImGui::SetCursorPos(selectPos);
-            SetTextColourOnHover(ImGui::IsItemHovered());
+            setTextColourOnHover(ImGui::IsItemHovered());
             ImGui::Text(label.c_str());
             ImGui::PopStyleColor();
         }
@@ -258,7 +491,7 @@ void MixMatchApp::RunFrame()
             ImVec2 selectSize = ImGui::CalcTextSize(release.c_str());
             ImVec2 selectPos = ImGui::GetCursorPos();
 
-            SetClearSelectableStyle();
+            setClearSelectableStyle();
 
             if (ImGui::Selectable("##Release Select", false, NULL, selectSize))
             {
@@ -270,7 +503,7 @@ void MixMatchApp::RunFrame()
             ImGui::SameLine();
 
             ImGui::SetCursorPos(selectPos);
-            SetTextColourOnHover(ImGui::IsItemHovered());
+            setTextColourOnHover(ImGui::IsItemHovered());
 
             ImGui::Text(release.c_str());
 
@@ -280,7 +513,7 @@ void MixMatchApp::RunFrame()
             ImGui::PopStyleColor();
         }
             
-        int newRating = StarRating(activeTrack->rating);
+        int newRating = starRating(activeTrack->rating);
         if (newRating > -1)
         {
             Track editedTrack = *activeTrack;
@@ -289,11 +522,11 @@ void MixMatchApp::RunFrame()
         }
 
         // Track edit popup
-        SetModalPopupPosAndSize("Edit Track");
+        setModalPopupPosAndSize("Edit Track");
 
         if (ImGui::BeginPopupModal("Edit Track", &showEditTrackPopup, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            InputTrackDataPopup(editTrackData, TrackInputMode::EDIT);
+            inputTrackDataPopup(editTrackData, TrackInputMode::EDIT);
 
             if (!showEditTrackPopup)
                 ImGui::CloseCurrentPopup();
@@ -374,11 +607,11 @@ void MixMatchApp::RunFrame()
                     // Artist & title
                     ImGui::TableSetColumnIndex(0);
                     std::string artistAndTitle = mixSearch.artist + " - " + mixSearch.title;
-                    DrawCenterJustifyTableText(artistAndTitle);
+                    drawCenterJustifyTableText(artistAndTitle);
 
                     // Label
                     ImGui::TableSetColumnIndex(1);
-                    DrawCenterJustifyTableText(mixSearch.label);
+                    drawCenterJustifyTableText(mixSearch.label);
 
                     // Rating
                     ImGui::TableSetColumnIndex(2);
@@ -397,7 +630,7 @@ void MixMatchApp::RunFrame()
         else 
         {
             // Display Mixes //
-            DisplayMixTable(activeTrack->mix);            
+            displayMixTable(activeTrack->mix);            
         }
 
 #pragma endregion ActiveTrackMixes
@@ -421,7 +654,7 @@ void MixMatchApp::RunFrame()
 
         ImGui::Separator();
 
-        DisplayLabelTable(labelLibrary);
+        displayLabelTable(labelLibrary);
         break;
     }
     case MainPage::RELEASE:
@@ -437,7 +670,7 @@ void MixMatchApp::RunFrame()
 
         ImGui::Separator();
 
-        DisplayReleaseTable(releaseLibrary);
+        displayReleaseTable(releaseLibrary);
         break;
     }
     default: break;
@@ -446,7 +679,7 @@ void MixMatchApp::RunFrame()
     ImGui::End();
 }
 
-void MixMatchApp::DeleteConformationPopup(DeleteData& data, DeleteConformationMode mode)
+void MixMatchApp::deleteConformationPopup(DeleteData& data, DeleteConformationMode mode)
 {
     // TODO: Use track colour for window header
 
@@ -493,7 +726,7 @@ void MixMatchApp::DeleteConformationPopup(DeleteData& data, DeleteConformationMo
         ImGui::CloseCurrentPopup();
 }
 
-void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
+void MixMatchApp::inputTrackDataPopup(InputData& data, TrackInputMode mode)
 {
     bool saveButtonPressed = false;
 
@@ -557,7 +790,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("Rating");
                 ImGui::TableSetColumnIndex(1);
-                int newRating = StarRating(data.rating);
+                int newRating = starRating(data.rating);
 
                 if (newRating > -1)
                     data.rating = newRating;
@@ -568,7 +801,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
                 ImGui::EndTable();
             }
 
-            InputDataSaveButton(data, mode);
+            inputDataSaveButton(data, mode);
 
             ImGui::EndTabItem();
         }
@@ -603,7 +836,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
                 ImGui::EndTable();
             }
 
-            InputDataSaveButton(data, mode);
+            inputDataSaveButton(data, mode);
 
             ImGui::EndTabItem();
         }
@@ -621,7 +854,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
                 ImGui::EndTable();
             }
 
-            InputDataSaveButton(data, mode);
+            inputDataSaveButton(data, mode);
 
             ImGui::EndTabItem();
         }
@@ -657,7 +890,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
 
             // Yes
             ImVec2 yesPos = ImGui::GetCursorPos();
-            SetClearSelectableStyle();
+            setClearSelectableStyle();
 
             if (ImGui::Selectable("##Del Yes Sel", false, 0, yesSize))
             {
@@ -668,7 +901,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
             ImGui::PopStyleColor(3);
 
             ImGui::SetCursorPos(yesPos);
-            SetTextColourOnHover(ImGui::IsItemHovered());
+            setTextColourOnHover(ImGui::IsItemHovered());
             ImGui::Text(yesText);
             ImGui::PopStyleColor();
 
@@ -676,7 +909,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
 
             // No
             ImVec2 noPos = ImGui::GetCursorPos();
-            SetClearSelectableStyle();
+            setClearSelectableStyle();
 
             if (ImGui::Selectable("No", false, 0, noSize))
             {
@@ -686,7 +919,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
             ImGui::PopStyleColor(3);
 
             ImGui::SetCursorPos(noPos);
-            SetTextColourOnHover(ImGui::IsItemHovered());
+            setTextColourOnHover(ImGui::IsItemHovered());
             ImGui::Text(noText);
             ImGui::PopStyleColor();
 
@@ -698,7 +931,7 @@ void MixMatchApp::InputTrackDataPopup(InputData& data, TrackInputMode mode)
     }
 }
 
-void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, float width)
+void MixMatchApp::trackSearchTable(const std::vector<Track>& library, float x, float width)
 {
     if (library.empty())
         return;
@@ -769,7 +1002,7 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
             if (!track.label.empty())
                 trackText += " | " + track.label;
 
-            DrawCenterJustifyTableText(trackText);
+            drawCenterJustifyTableText(trackText);
     
             //ImGui::TableSetColumnIndex(2);
 
@@ -780,7 +1013,7 @@ void MixMatchApp::TrackSearchTable(const std::vector<Track>& library, float x, f
     ImGui::PopStyleVar(1);
 }
 
-void MixMatchApp::DisplayLabelTable(std::vector<const Track*> trackList)
+void MixMatchApp::displayLabelTable(std::vector<const Track*> trackList)
 {
     if (trackList.empty())
         return;
@@ -819,32 +1052,32 @@ void MixMatchApp::DisplayLabelTable(std::vector<const Track*> trackList)
             ImGui::TableSetColumnIndex(0);
             ImVec2 pos = ImGui::GetCursorPos();
 
-            bool hovered = DrawTableBg(drawList, rowWidth, rowHeight, track->colour, track->bpm);
+            bool hovered = drawTableBg(drawList, rowWidth, rowHeight, track->colour, track->bpm);
 
             ImU32 lineColour = ColourUtil::RgbToU32(track->colour, hovered ? 88 : 64);
 
             // Artist & title
             ImGui::SetCursorPos(pos);
 
-            if (DrawTableButton(TextUtil::FormartTitle(track->artist, track->title), false))
+            if (drawTableButton(TextUtil::FormartTitle(track->artist, track->title), false))
             {
                 activeTrackId = track->id;
                 mainPage = MainPage::ACTIVE_TRACK;
             }
 
-            DrawTableDividerLine(table, 0, drawList, rowHeight);
+            drawTableDividerLine(table, 0, drawList, rowHeight);
 
             // Release
             ImGui::TableSetColumnIndex(1);
 
             std::string release = track->release;
-            if (DrawTableButton(release))
+            if (drawTableButton(release))
             {
                 activeRelease = release;
                 mainPage = MainPage::RELEASE;
             }
 
-            DrawTableDividerLine(table, 1, drawList, rowHeight);
+            drawTableDividerLine(table, 1, drawList, rowHeight);
 
             // Rating
             ImGui::TableSetColumnIndex(2);
@@ -852,7 +1085,7 @@ void MixMatchApp::DisplayLabelTable(std::vector<const Track*> trackList)
             float colWidth = ImGui::GetContentRegionAvail().x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize);
             
-            int newRating = StarRating(track->rating);
+            int newRating = starRating(track->rating);
             if (newRating > -1)
             {
                 Track editedTrack = *track;
@@ -868,7 +1101,7 @@ void MixMatchApp::DisplayLabelTable(std::vector<const Track*> trackList)
 }
 
 
-void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
+void MixMatchApp::displayReleaseTable(std::vector<const Track*> trackList)
 {
     if (trackList.empty())
         return;
@@ -908,7 +1141,7 @@ void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
             ImGui::TableSetColumnIndex(0);
             ImVec2 pos = ImGui::GetCursorPos();
 
-            bool hovered = DrawTableBg(drawList, rowWidth, rowHeight, track->colour, track->bpm);
+            bool hovered = drawTableBg(drawList, rowWidth, rowHeight, track->colour, track->bpm);
 
             ImU32 lineColour = ColourUtil::RgbToU32(track->colour, hovered ? 88 : 64);
 
@@ -918,34 +1151,34 @@ void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
             std::string position = track->position;
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.f));
-            ImGui::Text(PadTableText(position.empty() ? "-" : position, 2, 2).c_str());
+            ImGui::Text(padTableText(position.empty() ? "-" : position, 2, 2).c_str());
             ImGui::PopStyleColor();
 
-            DrawTableDividerLine(table, 0, drawList, rowHeight);
+            drawTableDividerLine(table, 0, drawList, rowHeight);
 
             // Artist & title
             ImGui::TableSetColumnIndex(1);
 
-            if (DrawTableButton(TextUtil::FormartTitle(track->artist, track->title), false))
+            if (drawTableButton(TextUtil::FormartTitle(track->artist, track->title), false))
             {
                 activeTrackId = track->id;
                 mainPage = MainPage::ACTIVE_TRACK;
             }
 
-            DrawTableDividerLine(table, 1, drawList, rowHeight);
+            drawTableDividerLine(table, 1, drawList, rowHeight);
 
             // Label
             ImGui::TableSetColumnIndex(2);
 
             std::string label = track->label;
 
-            if (DrawTableButton(label))
+            if (drawTableButton(label))
             {
                 activeLabel = label;
                 mainPage = MainPage::LABEL;
             }
 
-            DrawTableDividerLine(table, 2, drawList, rowHeight);
+            drawTableDividerLine(table, 2, drawList, rowHeight);
 
             // Rating
             ImGui::TableSetColumnIndex(3);
@@ -953,7 +1186,7 @@ void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
             float colWidth = ImGui::GetContentRegionAvail().x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize);
             
-            int newRating = StarRating(track->rating);
+            int newRating = starRating(track->rating);
             if (newRating > -1)
             {
                 Track editedTrack = *track;
@@ -968,7 +1201,7 @@ void MixMatchApp::DisplayReleaseTable(std::vector<const Track*> trackList)
 }
 
 
-void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
+void MixMatchApp::displayMixTable(const std::vector<Mix>& mixList)
 {
     if (mixList.empty())
         return;
@@ -1026,7 +1259,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
         rowPos.reserve(mixList.size() + 1); // Header + track rows
 
         float ratingSize = ImGui::CalcTextSize(Ui::Text::ICON_STAR).x * 5;
-        float removeSize = ImGui::CalcTextSize(PadTableText(Ui::Text::ICON_REMOVE).c_str()).x;
+        float removeSize = ImGui::CalcTextSize(padTableText(Ui::Text::ICON_REMOVE).c_str()).x;
 
         ImGui::TableSetupColumn("Direction", 
             ImGuiTableColumnFlags_WidthFixed |
@@ -1307,7 +1540,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::TableSetColumnIndex(0);
             ImVec2 bgPos = ImGui::GetCursorPos();
 
-            bool hovered = DrawTableBg(drawList, rowWidth, rowHeight, item.colour, item.bpm);
+            bool hovered = drawTableBg(drawList, rowWidth, rowHeight, item.colour, item.bpm);
 
             ImGui::SetCursorPos(bgPos);
 
@@ -1323,7 +1556,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
                 directionIcon = Ui::Text::ICON_SYNCALT;
 
             // Old button
-            SetClearSelectableStyle();
+            setClearSelectableStyle();
             if (ImGui::Selectable("##Direction", false))
             {
                 int direction = item.direction;
@@ -1333,7 +1566,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
                 if (direction >= static_cast<int>(MixDirection::NumDirections))
                     direction = 0;
 
-                Mix editedMix = item.ToMix();
+                Mix editedMix = item.toMix();
                 editedMix.direction = static_cast<MixDirection>(direction);
 
                 manager.editMix(editedMix, activeTrackId);
@@ -1343,8 +1576,8 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
 
             ImGui::TableSetColumnIndex(0);
             //SetTextColourOnHover(ImGui::IsItemHovered());
-            SetTextColourOnHover(false);
-            DrawCenterJustifyTableText(directionIcon.c_str());
+            setTextColourOnHover(false);
+            drawCenterJustifyTableText(directionIcon.c_str());
             ImGui::PopStyleColor();
 
 
@@ -1374,12 +1607,12 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
-            SetTextColourOnHover(false);
+            setTextColourOnHover(false);
 
             ImGui::SetNextItemWidth(digitWidth);
             if (ImGui::InputInt("##Mix Rating", &rating, 0.25f, 0, 5))
             {
-                Mix editedMix = item.ToMix();
+                Mix editedMix = item.toMix();
                 editedMix.rating = rating;
                 manager.editMix(editedMix, activeTrackId);
             }
@@ -1397,12 +1630,12 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
-            SetTextColourOnHover(false);
+            setTextColourOnHover(false);
 
             ImGui::SetNextItemWidth(ImGui::CalcTextSize((std::to_string(item.pitch) + "%").c_str()).x);
             if (ImGui::InputScalar("##Pitch Input", ImGuiDataType_S32, &pitch, nullptr, nullptr, "%d%%"))
             {
-                Mix editedMix = item.ToMix();
+                Mix editedMix = item.toMix();
                 editedMix.pitch = pitch;
                 manager.editMix(editedMix, activeTrackId);
             }
@@ -1415,7 +1648,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::TableSetColumnIndex(3);
 
             //std::string artistAndTitle = item.artistAndTitle;
-            if (DrawTableButton(item.artistAndTitle, false))
+            if (drawTableButton(item.artistAndTitle, false))
             {
                 activeTrackId = item.id;
                 mainPage = MainPage::ACTIVE_TRACK;
@@ -1427,7 +1660,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::TableSetColumnIndex(4);
             std::string label = item.label;
 
-            if (DrawTableButton(label))
+            if (drawTableButton(label))
             {
                 activeLabel = label;
                 mainPage = MainPage::LABEL;
@@ -1438,7 +1671,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             ImGui::TableSetColumnIndex(5);
             std::string release = item.release;
 
-            if (DrawTableButton(release))
+            if (drawTableButton(release))
             {
                 activeRelease = release;
                 mainPage = MainPage::RELEASE;
@@ -1448,9 +1681,9 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             // Mix Note
             ImGui::TableSetColumnIndex(6);
 
-            if (DrawTableButton(item.mixNote, true, true))
+            if (drawTableButton(item.mixNote, true, true))
             {
-                inputMixData = item.ToMix();
+                inputMixData = item.toMix();
                 editMixNoteButtonPressed = true;
             }
 
@@ -1460,7 +1693,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             float colWidth = ImGui::GetContentRegionAvail().x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ratingSize);
 
-            int newRating = StarRating(item.trackRating);
+            int newRating = starRating(item.trackRating);
 
             if (newRating > -1)
             {
@@ -1473,13 +1706,13 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
             // Remove
             ImGui::TableSetColumnIndex(8);
 
-            if (DrawTableButton(Ui::Text::ICON_CLOSE))
+            if (drawTableButton(Ui::Text::ICON_CLOSE))
             {
                 //deleteMixData.trackId = activeTrackId;
                 //deleteMixData.mixId = mixTrack->id;
                 //deleteMixData.label = artistAndTitle;
 
-                deleteMixData = item.ToMix();
+                deleteMixData = item.toMix();
                 deleteMixButtonPressed = true;
             }
 
@@ -1688,7 +1921,7 @@ void MixMatchApp::DisplayMixTable(const std::vector<Mix>& mixList)
         }
         */
 
-        DrawTableBorderInnerV(table, drawList, mixList.size(), rowPos);
+        drawTableBorderInnerV(table, drawList, mixList.size(), rowPos);
 
         ImGui::PopStyleVar();
         ImGui::EndTable();
@@ -1796,7 +2029,7 @@ void MixMatchApp::rebakeTrackMap(const std::vector<Track>& tracks)
         TrackMap::Node n{
             t.id,
             TrackMap::Vec{0.0, 0.0},
-            ColourUtil::RgbToU32(t.colour)
+            //ColourUtil::RgbToU32(t.colour)
         };
 
         newNodes.emplace_back(n);

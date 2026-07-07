@@ -858,6 +858,365 @@
             "rating": 0,
             "release": "",
             "title": "Lone"
+        },
+        {
+            "artist": "test",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 43,
+            "label": "",
+            "mix": [],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "A"
+        },
+        {
+            "artist": "Single",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 44,
+            "label": "",
+            "mix": [],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Man"
+        },
+        {
+            "artist": "One",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 45,
+            "label": "",
+            "mix": [],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Track"
+        },
+        {
+            "artist": "random",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 46,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 47,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "crap"
+        },
+        {
+            "artist": "rubbish",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 47,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 46,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 53,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 49,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 51,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "tune"
+        },
+        {
+            "artist": "Worst",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 48,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 51,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Song"
+        },
+        {
+            "artist": "A",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 49,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 53,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 47,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Load of shit"
+        },
+        {
+            "artist": "Total",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 50,
+            "label": "",
+            "mix": [],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Rubbish"
+        },
+        {
+            "artist": "Crap",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 51,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 48,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 53,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 47,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Crap"
+        },
+        {
+            "artist": "Nothing",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 52,
+            "label": "",
+            "mix": [],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Tune"
+        },
+        {
+            "artist": "Ass",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 53,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 49,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 47,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 51,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "Stuff"
+        },
+        {
+            "artist": "line",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 54,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 55,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "1"
+        },
+        {
+            "artist": "line",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 55,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 56,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 54,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "2"
+        },
+        {
+            "artist": "line",
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 56,
+            "label": "",
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 55,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
+            "position": "",
+            "rating": 0,
+            "release": "",
+            "title": "3"
         }
     ]
 }

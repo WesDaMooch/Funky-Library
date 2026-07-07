@@ -18,7 +18,8 @@ struct MixMatchApp
 {
 public:
     MixMatchApp();
-    void RunFrame();
+    void runFrame();
+    void runFrame2();
 
 private:
     bool open = true;
@@ -96,7 +97,7 @@ private:
     InputData addTrackData;
     InputData editTrackData;
 
-    void InputTrackDataPopup(InputData& data, TrackInputMode mode);
+    void inputTrackDataPopup(InputData& data, TrackInputMode mode);
 
     // Mix Data
     Mix inputMixData;
@@ -118,12 +119,12 @@ private:
     };
 
     DeleteData deleteTrackData; // TODO: <- not used
-    void DeleteConformationPopup(DeleteData& data, DeleteConformationMode mode);
+    void deleteConformationPopup(DeleteData& data, DeleteConformationMode mode);
 
-    void TrackSearchTable(const std::vector<Track>& ibrary, float x, float width);
+    void trackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 
-    void DisplayLabelTable(std::vector<const Track*> trackList);
-    void DisplayReleaseTable(std::vector<const Track*> trackList);
+    void displayLabelTable(std::vector<const Track*> trackList);
+    void displayReleaseTable(std::vector<const Track*> trackList);
 
 
     enum class MixTableColumn
@@ -156,7 +157,7 @@ private:
         int trackRating = 0;
         std::array<uint8_t, 3> colour = Ui::Colour::RGB_DEFAULT;
 
-        Mix ToMix() const
+        Mix toMix() const
         {
             return {
                 id, 
@@ -168,10 +169,43 @@ private:
         }
     };
 
-    void DisplayMixTable(const std::vector<Mix>& mixList);
+    void displayMixTable(const std::vector<Mix>& mixList);
+
+    struct Camera
+    {
+        ImVec2 pos;
+
+        float zoom = 1.0f;
+        float zoomVelocity = 0.0f;
+
+        void setZoom(float z, float dt)
+        {
+            zoomVelocity += z;
+            zoomVelocity = std::clamp(zoomVelocity, -4.5f, 4.5f); // Max velocity
+            zoom *= std::exp(zoomVelocity * dt);
+            zoom = std::clamp(zoom, 0.1f, 15.0f); // Max & min zoom
+            zoomVelocity *= 0.85f; // Dampening
+        }
+
+        ImVec2 toScreenPos(double x, double y)
+        {
+            return ImVec2(
+                (float)(x * zoom + pos.x),
+                (float)(y * zoom + pos.y)
+            );
+        }
+    };
 
 
-    inline int StarRating(const int rating)
+    const float nodeBaseRadius = 8.0f;
+
+    Camera camera;
+    ImVec2 mousePosOnLeftClick;
+    ImVec2 cameraPosOnLeftClick;
+
+
+    //
+    inline int starRating(const int rating)
     {
         int newRating = -1;
         int hoverIndex = -1;
@@ -216,7 +250,7 @@ private:
         return newRating;
     }
 
-    inline void SetClearSelectableStyle()
+    inline void setClearSelectableStyle()
     {
         // IMPORTANT: Requires PopStyleColor(3)
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0, 0, 0));
@@ -224,7 +258,7 @@ private:
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0, 0, 0, 0));
     }
 
-    inline void SetTextColourOnHover(bool hover)
+    inline void setTextColourOnHover(bool hover)
     {
         // IMPORTANT: Requires PopStyleColor(1)
         if (hover)
@@ -233,7 +267,7 @@ private:
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.66f, 0.66f, 0.66f, 1.f));
     }
 
-    inline void SetModalPopupPosAndSize(const char* headerText)
+    inline void setModalPopupPosAndSize(const char* headerText)
     {
         float closeButtonSize = 70.f;
         float headerTextWidth = ImGui::CalcTextSize(headerText).x;
@@ -245,7 +279,7 @@ private:
     }
 
     // Input data helpers
-    inline void InputDataSaveButton(InputData& data, TrackInputMode mode)
+    inline void inputDataSaveButton(InputData& data, TrackInputMode mode)
     {
         if (ImGui::Button(Ui::Text::ICON_SAVE))
         {
@@ -315,7 +349,7 @@ private:
 
 
     // Table helpers
-    inline bool DrawTableBg(ImDrawList* drawList, 
+    inline bool drawTableBg(ImDrawList* drawList, 
         float width, float height, 
         std::array<uint8_t, 3> colour,
         float bpm = 0)
@@ -421,7 +455,7 @@ private:
         
     }
 
-    inline void DrawTableDividerLine(ImGuiTable* table, int colIndex, 
+    inline void drawTableDividerLine(ImGuiTable* table, int colIndex, 
         ImDrawList* drawList, float rowHeight)
     {
         ImGuiTableColumn* column = &table->Columns[colIndex];
@@ -434,7 +468,7 @@ private:
             IM_COL32(85, 85, 85, 128));
     }
 
-    inline void DrawTableBorderInnerV(ImGuiTable* table, ImDrawList* drawList, 
+    inline void drawTableBorderInnerV(ImGuiTable* table, ImDrawList* drawList, 
         const int rowCount, std::vector<float>& rowPos)
     {
         if (table == nullptr || table->ColumnsCount == 0)
@@ -487,7 +521,7 @@ private:
         }
     }
 
-    inline void DrawCenterJustifyTableText(const std::string& text)
+    inline void drawCenterJustifyTableText(const std::string& text)
     {
         float columnWidth = ImGui::GetColumnWidth();
         float textWidth = ImGui::CalcTextSize(text.c_str()).x;
@@ -498,14 +532,14 @@ private:
         ImGui::TextUnformatted(text.c_str());
     }
 
-    inline std::string PadTableText(const std::string& s, int frontSpaces = 1, int backSpaces = 1)
+    inline std::string padTableText(const std::string& s, int frontSpaces = 1, int backSpaces = 1)
     {
         frontSpaces = (std::max)(frontSpaces, 0);
         backSpaces = (std::max)(backSpaces, 0);
         return std::string(frontSpaces, ' ') + s + std::string(backSpaces, ' ');
     }
 
-    inline std::string FormatTableText(const std::string& text, float maxWidth)
+    inline std::string formatTableText(const std::string& text, float maxWidth)
     {
         // Truncates text that is wider than maxWidth, appending an ellipsis.
         // Pads with one space either side of text.
@@ -513,7 +547,7 @@ private:
         float width = ImGui::CalcTextSize(text.c_str()).x;
 
         if (width <= maxWidth)
-            return PadTableText(text);
+            return padTableText(text);
         
         // Truncated
         std::string clipped = text;
@@ -524,28 +558,28 @@ private:
         
         clipped += "...";
 
-        return PadTableText(clipped);
+        return padTableText(clipped);
     }
 
 
-    inline bool DrawTableButton(const std::string& text, 
+    inline bool drawTableButton(const std::string& text, 
         bool highlightTextOnHover = true, bool forceTextlessButton = false)
     {
         if (text.empty() && !forceTextlessButton)
         {
-            ImGui::TextUnformatted(PadTableText("", 8, 8).c_str());
+            ImGui::TextUnformatted(padTableText("", 8, 8).c_str());
             return false;
         }
 
         float maxWidth = ImGui::GetContentRegionAvail().x;
 
-        std::string textToDraw = FormatTableText(text, maxWidth);
+        std::string textToDraw = formatTableText(text, maxWidth);
 
         // Select
         bool clicked = false;
         ImVec2 pos = ImGui::GetCursorPos();
 
-        SetClearSelectableStyle();
+        setClearSelectableStyle();
         ImGui::PushID(text.c_str());
 
         if (ImGui::Selectable("##TableSelect", false))
@@ -560,9 +594,9 @@ private:
         bool hovered = ImGui::IsItemHovered();
      
         if (highlightTextOnHover)       
-            SetTextColourOnHover(hovered);
+            setTextColourOnHover(hovered);
 
-        DrawCenterJustifyTableText(textToDraw);
+        drawCenterJustifyTableText(textToDraw);
 
         if (highlightTextOnHover)
             ImGui::PopStyleColor();
