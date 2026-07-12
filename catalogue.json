@@ -1,4 +1,14 @@
 {
+    "artists": [
+        {
+            "id": 3,
+            "name": "John B"
+        },
+        {
+            "id": 4,
+            "name": "Ed Rush"
+        }
+    ],
     "labels": [
         {
             "id": 1,
@@ -7,13 +17,70 @@
         {
             "id": 2,
             "name": "Formation Records"
+        },
+        {
+            "id": 9,
+            "name": "Prototype Records"
         }
     ],
     "releases": [
         {
             "id": 0,
             "name": "In Order To Dance - Drum-n-Bass"
+        },
+        {
+            "id": 7,
+            "name": "Up All Night / Take Control"
         }
     ],
-    "tracks": []
+    "tracks": [
+        {
+            "artistId": 4,
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 6,
+            "labelId": -1,
+            "mix": [],
+            "position": "",
+            "rating": 0,
+            "releaseId": -1,
+            "title": "Wormhole"
+        },
+        {
+            "artistId": 3,
+            "bpm": 0.0,
+            "colour": [
+                157,
+                22,
+                22
+            ],
+            "id": 8,
+            "labelId": 1,
+            "mix": [],
+            "position": "A",
+            "rating": 3,
+            "releaseId": 7,
+            "title": "Up All Night"
+        },
+        {
+            "artistId": 3,
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 10,
+            "labelId": 1,
+            "mix": [],
+            "position": "AA",
+            "rating": 3,
+            "releaseId": 7,
+            "title": "Take Control"
+        }
+    ]
 }

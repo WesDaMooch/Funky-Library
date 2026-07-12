@@ -64,8 +64,9 @@ private:
     struct InputData
     {
         int64_t trackId = -1;
+        int64_t artistId = -1;
         char artistBuffer[256]{};
-        char titleBuffer[256]{};
+        char trackBuffer[256]{};
         int64_t labelId = -1;
         char labelBuffer[256]{};
         int64_t releaseId = -1;
@@ -74,7 +75,7 @@ private:
         float bpm = 0.f;
         int rating = 0;
         ImVec4 colour = Colour::VEC4_DEFAULT;
-        Library::ValidationResult result = Library::ValidationResult::None;
+        bool trackValid = false;
     };
 
 
@@ -275,16 +276,17 @@ private:
     }
 
     // Input data helpers
+    /*
     inline void inputDataSaveButton(InputData& data, TrackInputMode mode)
     {
         if (ImGui::Button(Text::ICON_SAVE))
         {
             Track t;
-            t.artist = data.artist;
-            t.title = data.title;
+            //t.artist = data.artist;
+            //t.title = data.title;
             //t.label = data.label;
             //t.release = data.release;
-            t.position = data.position;
+            //t.position = data.position;
             t.bpm = data.bpm;
             t.rating = data.rating;
             t.colour = ColourUtil::Vec4ToRgb(data.colour);
@@ -342,7 +344,7 @@ private:
             ImGui::PopStyleColor();
         }
     }
-
+    */
 
     // Table helpers
     inline bool drawTableBg(ImDrawList* drawList, 

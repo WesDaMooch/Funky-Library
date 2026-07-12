@@ -62,7 +62,6 @@ enum class Format
 struct Track
 {
     int64_t id = -1;
-    //std::string artist;
     int64_t artistId = -1;
     std::string title;
     int64_t labelId = -1;
@@ -120,29 +119,35 @@ public:
     void save() const;
     void refresh();
 
-    ValidationResult addTrack(const Track& newTrack);
+    void addTrack(Track& newTrack);
     ValidationResult editTrack(const Track& editedTrack);
     void removeTrack(int id);
     void addMix(int mixId, int parentTrackId);
     void editMix(Mix mix, int parentTrackId);
     void removeMix(int trackId, int mixId);
 
+    int64_t addArtist(std::string name);
     int64_t addLabel(std::string name);
     int64_t addRelease(std::string name);
 
     const Track* getTrackForDisplay(int id);
 
     std::vector<const Track*> getLabel(const std::string& labelString) const;
-    std::vector<const Track*> getRelease(const std::string& releaseString) const;
+    std::vector<const Track*> getTracksInRelease(int64_t id) const;
     const std::vector<Release>& getReleases();
-    std::vector<const Track*> getTag(const std::string& tagString) const;
+    const std::vector<Track>& getTracks();
 
-    Track* getTrack(int id);
+    Track* getTrack(int id); // TODO: rename findTrackById
     const std::vector<Track>& getCatalogueForDisplay() const;
     std::vector<int> getIdLibrary() const;
 
     std::vector<Track> searchAndSort(const std::string& search, TrackSort sort); // TODO: use imgui text filtering?
+
+    const Artist* findArtistById(int64_t id) const;
+    const Artist* findArtistByName(std::string name) const;
     const Label* findLabelByName(std::string name) const;
+
+    const Release* findReleaseById(int64_t id) const;
     const Release* findReleaseByName(std::string name) const;
 
 protected:

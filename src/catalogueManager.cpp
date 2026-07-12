@@ -79,10 +79,10 @@ void to_json(json& j, const Track& t)
 {
     j = {
         {"id", t.id},
-        {"artist", t.artistId},
+        {"artistId", t.artistId},
         {"title", t.title},
-        {"label", t.labelId},
-        {"release", t.releaseId},
+        {"labelId", t.labelId},
+        {"releaseId", t.releaseId},
         {"position", t.position},
         {"bpm", t.bpm},
         {"rating", t.rating},
@@ -148,9 +148,10 @@ void Library::load()
 void Library::save() const
 {
     json j;
-    j["tracks"] = tracks;
-    j["releases"] = releases;
+    j["artists"] = artists;
     j["labels"] = labels;
+    j["releases"] = releases;
+    j["tracks"] = tracks;
 
     std::ofstream file("catalogue.json");
     file << j.dump(4);
@@ -164,8 +165,14 @@ void Library::refresh()
     load();
 }
 
-Library::ValidationResult Library::addTrack(const Track& newTrack)
+void Library::addTrack(Track& newTrack)
 {
+    newTrack.id = generateId();
+    newTrack.title = TextUtil::Trim(newTrack.title);
+    newTrack.position = TextUtil::Trim(newTrack.position);
+    tracks.emplace_back(newTrack);
+    
+    /*
     Track track = newTrack;
 
     ValidationResult result = ValidateTrack(track);
@@ -181,6 +188,7 @@ Library::ValidationResult Library::addTrack(const Track& newTrack)
     refresh();
 
     return result;
+    */
 }
 
 Library::ValidationResult Library::editTrack(const Track& editedTrack)
@@ -411,6 +419,12 @@ void Library::removeMix(int trackId, int mixId)
         refresh();
 }
 
+int64_t Library::addArtist(std::string name)
+{
+    artists.push_back({ generateId(), TextUtil::Trim(name) });
+    return artists.back().id;
+}
+
 int64_t Library::addLabel(std::string name)
 {
     labels.push_back({ generateId(), TextUtil::Trim(name) });
@@ -457,21 +471,24 @@ std::vector<const Track*> Library::getLabel(const std::string& labelString) cons
     return tracksInLabel;
 }
 
-std::vector<const Track*> Library::getRelease(const std::string& releaseString) const
+std::vector<const Track*> Library::getTracksInRelease(int64_t id) const
 {
     std::vector<const Track*> tracksInRelease{};
+
+    for (const auto& track : tracks)
+    {
+        if (track.releaseId == id)
+            tracksInRelease.push_back(&track);
+    }
 
     return tracksInRelease;
 }
 
+
 const std::vector<Release>& Library::getReleases() { return releases; }
 
-std::vector<const Track*> Library::getTag(const std::string& tagString) const
-{
-    // Find all tracks that share a tag.
-    std::vector<const Track*> tracksInTag{};
-    return tracksInTag;
-}
+const std::vector<Track>& Library::getTracks() { return tracks; }
+
 
 
 
@@ -539,14 +556,15 @@ std::vector<Track> Library::searchAndSort(const std::string& search, TrackSort s
     // Sort
     switch (sort)
     {
+        /*
     case TrackSort::Artist:
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
-                //return TextUtil::ToLower(a.artist) < TextUtil::ToLower(b.artist);
+                return TextUtil::ToLower(a.artist) < TextUtil::ToLower(b.artist);
             });
         break;
-
+        */
     case TrackSort::Title:
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
@@ -575,6 +593,29 @@ std::vector<Track> Library::searchAndSort(const std::string& search, TrackSort s
     return outputLibrary;
 }
 
+const Artist* Library::findArtistById(int64_t id) const
+{
+    for (const auto& artist : artists)
+    {
+        if (id == artist.id)
+            return &artist;
+    }
+
+    return nullptr;
+}
+
+const Artist* Library::findArtistByName(std::string name) const
+{
+    name = TextUtil::ToLower(TextUtil::Trim(name));
+    // TODO: create map for idx and names
+    for (const auto& artist : artists)
+    {
+        if (name == TextUtil::ToLower(artist.name))
+            return &artist;
+    }
+
+    return nullptr;
+}
 
 const Label* Library::findLabelByName(std::string name) const
 {
@@ -584,6 +625,18 @@ const Label* Library::findLabelByName(std::string name) const
     {
         if (name == TextUtil::ToLower(label.name))
             return &label;
+    }
+
+    return nullptr;
+}
+
+
+const Release* Library::findReleaseById(int64_t id) const
+{
+    for (const auto& release : releases)
+    {
+        if (id == release.id)
+            return &release;
     }
 
     return nullptr;

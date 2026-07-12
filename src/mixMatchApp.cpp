@@ -81,11 +81,16 @@ void MixMatchApp::runFrame2()
 
                 ImGui::BeginChild("Search Track List", ImVec2(0, 0));
 
-                for (const auto& t : searchTrackList)
+                for (const auto& track : searchTrackList)
                 {
-                    ImGui::PushID(t.id);
-                    if (ImGui::Selectable(TextUtil::FormartTitle(t.artist, t.title).c_str()))
-                        activeTrackId = t.id;
+                    const auto* artist = library.findArtistById(track.artistId);
+                    
+                    if (artist == nullptr)
+                        continue;
+                    
+                    ImGui::PushID(track.id);
+                    if (ImGui::Selectable(TextUtil::FormartTitle(artist->name, track.title).c_str()))
+                        activeTrackId = track.id;
                     
                     ImGui::PopID();
                 }
@@ -103,20 +108,26 @@ void MixMatchApp::runFrame2()
                     ImVec2(0,0)
                 );
 
-                std::string name;
-
                 const auto* track = library.getTrack(activeTrackId);
                 bool trackIsNull = (track == nullptr);
 
-                std::vector<const Track*> releaseLabelTrackList;
+                std::string titleToDisplay;
+                std::vector<const Track*> tracksToDisplay;
 
-                if (ImGui::BeginTabBar("Release And Label Tab"))
+                if (ImGui::BeginTabBar("Release Label Artist Tab"))
                 {
                     if (ImGui::BeginTabItem("Release"))
                     {
                         if (!trackIsNull)
                         {
-          
+                            const auto* release = library.findReleaseById(track->releaseId);
+
+                            if (release != nullptr)
+                            {
+                                tracksToDisplay = library.getTracksInRelease(release->id);
+
+                                titleToDisplay = release->name;
+                            }
                         }
                         ImGui::EndTabItem();
                     }
@@ -128,28 +139,48 @@ void MixMatchApp::runFrame2()
                         }
                         ImGui::EndTabItem();
                     }
+                    if (ImGui::BeginTabItem("Artist"))
+                    {
+                        if (!trackIsNull)
+                        {
+
+                        }
+                        ImGui::EndTabItem();
+                    }
                     ImGui::EndTabBar();
                 }
 
-                if(!name.empty())
-                    ImGui::Text(name.c_str());
-
                 ImGui::BeginChild("Release Or Label Track List", ImVec2(0, 0));
 
-                if (!releaseLabelTrackList.empty())
+                if (!tracksToDisplay.empty())
                 {
-                    for (const auto& t : releaseLabelTrackList)
+                    ImGui::Text(titleToDisplay.c_str());
+
+                    ImGui::Separator();
+
+                    for (const auto* track : tracksToDisplay)
                     {
-                        if (t == nullptr)
+                        if (track == nullptr)
                             continue;
 
-                        if (t->id == activeTrackId)
+                        if (track->id == activeTrackId)
                             continue;
-                        
-                        ImGui::PushID(t->id);
 
-                        if (ImGui::Selectable(TextUtil::FormartTitle(t->artist, t->title).c_str()))
-                            activeTrackId = t->id;
+                        const auto* artist = library.findArtistById(track->artistId);
+
+                        if (artist == nullptr)
+                            continue;
+
+                        ImGui::PushID(track->id);
+
+                        if (!track->position.empty())
+                        {
+                            ImGui::Text((track->position + ": ").c_str());
+                            ImGui::SameLine();
+                        }
+
+                        if (ImGui::Selectable(TextUtil::FormartTitle(artist->name, track->title).c_str()))
+                            activeTrackId = track->id;
 
                         ImGui::PopID();
                     }
@@ -176,7 +207,8 @@ void MixMatchApp::runFrame2()
 
             if (track != nullptr)
             {
-                ImGui::Text(TextUtil::FormartTitle(track->artist, track->title).c_str());
+                const auto* artist = library.findArtistById(track->artistId);
+                ImGui::Text(TextUtil::FormartTitle(artist->name, track->title).c_str());
 
             }
 
@@ -197,19 +229,80 @@ void MixMatchApp::drawAddTrackPopup(InputData& data)
     {
         if (ImGui::BeginTabBar("Add Track Tab Bar"))
         {
+            
             if (ImGui::BeginTabItem("Track"))
             {
                 // Artist input
                 ImGui::InputText("Artist", data.artistBuffer, sizeof(data.artistBuffer));
+                    
+                const auto* artist = library.findArtistByName(data.artistBuffer);
+                bool artistInLibrary = (artist != nullptr);
+
+                data.artistId = artistInLibrary ? artist->id : -1;
+
+                ImGui::SameLine();
+
+                std::string icon = artistInLibrary ? Text::ICON_CHECK : Text::ICON_ADD;
+
+                if (ImGui::SmallButton((icon + "##Artist Status Button").c_str()))
+                {
+                    if (!artistInLibrary && data.artistBuffer[0] != '\0')
+                        library.addArtist(data.artistBuffer);
+                }
+
+                ImGui::SetItemTooltip(artistInLibrary ? "Artist found" : "Add artist");
 
 
-
-                // Title input
-                ImGui::InputText("Title", data.titleBuffer, sizeof(data.titleBuffer));
-
+                // Track name input
+                ImGui::InputText("Title", data.trackBuffer, sizeof(data.trackBuffer));
                 
+                // Must have valid track and artist name
+                bool noArtistName = (data.artistBuffer[0] == '\0');
+                bool noTrackName = (data.trackBuffer[0] == '\0');
+                bool trackDuplicate = false;
 
+                if (!noArtistName && !noTrackName && artistInLibrary)
+                {
+                    // Must not share artist and track name with existing entry
+                    const std::string trackName = TextUtil::ToLower(TextUtil::Trim(data.trackBuffer));
 
+                    for (const auto& track : library.getTracks())
+                    {
+                        const std::string existingTitle = TextUtil::ToLower(track.title);
+
+                        if (trackName == existingTitle && artist->id == track.artistId)
+                        {
+                            trackDuplicate = true;
+                            break;
+                        }
+                    }
+                }
+
+                data.trackValid = !noArtistName && !noTrackName && !trackDuplicate;
+
+                ImGui::SameLine();
+
+                icon = data.trackValid ? Text::ICON_CHECK : Text::ICON_CLOSE;
+                ImGui::Text(icon.c_str());
+
+                std::string trackTooltipText;
+
+                if (noArtistName)
+                {
+                    trackTooltipText = "Add artist";
+                }
+                else if (noTrackName)
+                {
+                    trackTooltipText = "Add title";
+                }
+                else if (trackDuplicate)
+                {
+                    trackTooltipText = "Duplicate track";
+                }
+
+                if (!trackTooltipText.empty())
+                    ImGui::SetItemTooltip(trackTooltipText.c_str());
+                
                 // Colour input
                 if (ImGui::ColorButton(
                     "Colour",
@@ -242,18 +335,50 @@ void MixMatchApp::drawAddTrackPopup(InputData& data)
             }
             if (ImGui::BeginTabItem("Release"))
             {
+                // Label input
+                ImGui::InputText("Label", data.labelBuffer, sizeof(data.labelBuffer));
+
+                const auto* label = library.findLabelByName(data.labelBuffer);
+                bool labelBufferEmpty = (data.labelBuffer[0] == '\0');
+                bool labelInLibrary = (label != nullptr);
+
+                data.labelId = labelInLibrary ? label->id : -1;
+
+                ImGui::SameLine();
+
+                std::string icon = labelInLibrary ? Text::ICON_CHECK : Text::ICON_ADD;
+
+                if (labelInLibrary)
+                {
+                    ImGui::Text(icon.c_str());
+                }
+                else
+                {
+                    ImGui::BeginDisabled(labelBufferEmpty);
+                    if (ImGui::SmallButton((icon + "##Label Status Button").c_str()))
+                    {
+                        if (!labelInLibrary && !labelBufferEmpty)
+                            library.addLabel(data.labelBuffer);
+                    }
+                    ImGui::EndDisabled();
+                }
+
+                if(!labelBufferEmpty)
+                    ImGui::SetItemTooltip(labelInLibrary ? "Label found" : "Add label");
+
+
                 // Release search input               
                 ImGui::InputText("Release", data.releaseBuffer, sizeof(data.releaseBuffer));
                 
                 const auto* release = library.findReleaseByName(data.releaseBuffer);
                 bool releaseInLibrary = (release != nullptr);
 
-                if (releaseInLibrary)
-                    data.releaseId = release->id;
+                data.releaseId = releaseInLibrary ? release->id : -1;
 
                 ImGui::SameLine();
 
-                std::string icon = releaseInLibrary ? Text::ICON_CHECK : Text::ICON_ADD;
+                icon = releaseInLibrary ? Text::ICON_CHECK : Text::ICON_ADD;
+
                 if (ImGui::SmallButton((icon + "##Release Status Button").c_str()))
                 {
                     if (!releaseInLibrary && data.releaseBuffer[0] != '\0')
@@ -261,27 +386,10 @@ void MixMatchApp::drawAddTrackPopup(InputData& data)
                 }
 
                 ImGui::SetItemTooltip(releaseInLibrary ? "Release found" : "Add release");
- 
 
-                // Label input
-                ImGui::InputText("Label", data.labelBuffer, sizeof(data.labelBuffer));
-                
-                const auto* label = library.findLabelByName(data.labelBuffer);
-                bool labelInLibrary = (label != nullptr);
 
-                if (labelInLibrary)
-                    data.labelId = label->id;
-
-                ImGui::SameLine();
-
-                icon = labelInLibrary ? Text::ICON_CHECK : Text::ICON_ADD;
-                if (ImGui::SmallButton((icon + "##Label Status Button").c_str()))
-                {
-                    if (!labelInLibrary && data.labelBuffer[0] != '\0')
-                        library.addLabel(data.labelBuffer);
-                }
-
-                ImGui::SetItemTooltip(labelInLibrary ? "Label found" : "Add label");
+                // Position input
+                ImGui::InputText("Position", data.positionBuffer, sizeof(data.positionBuffer));
 
                 ImGui::EndTabItem();
             }
@@ -289,13 +397,29 @@ void MixMatchApp::drawAddTrackPopup(InputData& data)
         }
 
         // Save
+        ImGui::BeginDisabled(!data.trackValid);
         if (ImGui::Button("Add"))
         {
-           
+            bool artistValid = false;
+            if (data.artistId >= 0)
+            {
+                // Existing label
+                artistValid = true;
+            }
+            else if (data.artistBuffer[0] == '\0')
+            {
+                // No label
+                artistValid = true;
+            }
+            else
+            {
+                // Create new label
+                data.artistId = library.addArtist(data.artistBuffer);
+                artistValid = (data.artistId >= 0);
+            }
 
 
             bool labelValid = false;
-
             if (data.labelId >= 0)
             {
                 // Existing label
@@ -313,9 +437,7 @@ void MixMatchApp::drawAddTrackPopup(InputData& data)
                 labelValid = (data.labelId >= 0);
             }
 
-
             bool releaseValid = false;
-
             if (data.releaseId >= 0)
             {
                 // Existing label
@@ -333,16 +455,30 @@ void MixMatchApp::drawAddTrackPopup(InputData& data)
                 releaseValid = (data.releaseId >= 0);
             }
 
-            if (labelValid && releaseValid)
+            if (artistValid && labelValid && releaseValid && data.trackValid)
             {
+                Track newTrack;
+                newTrack.artistId   = data.artistId;
+                newTrack.title      = data.trackBuffer;
+                newTrack.labelId    = data.labelId;
+                newTrack.releaseId  = data.releaseId;
+                newTrack.position   = data.positionBuffer;
+                newTrack.bpm        = data.bpm;
+                newTrack.rating     = data.rating;
+                newTrack.colour     = ColourUtil::Vec4ToRgb(data.colour);
+                library.addTrack(newTrack);
                 ImGui::CloseCurrentPopup();
             }               
         }
+        ImGui::EndDisabled();
 
         ImGui::SameLine();
 
         if (ImGui::Button("Discard"))
+        {
+            data = {};
             ImGui::CloseCurrentPopup();
+        }
         
         ImGui::EndPopup();
     }
