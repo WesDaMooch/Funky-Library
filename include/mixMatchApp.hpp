@@ -3,7 +3,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#include "UiConstants.hpp"
+#include "constants.hpp"
 #include "StringUtils.hpp"
 #include "catalogueManager.hpp"
 #include "trackMap.hpp"
@@ -18,29 +18,27 @@ struct MixMatchApp
 {
 public:
     MixMatchApp();
-    void runFrame();
+    ~MixMatchApp();
+    //void runFrame();
     void runFrame2();
 
 private:
     bool open = true;
 
-	LibraryManager manager;
-    int activeTrackId = -1;
-    std::string activeLabel;
-    std::string activeRelease;
+	Library library;
+    int64_t activeTrackId = -1;
 
     TrackMap map;
 
     // Main search bar and result window
-    LibraryManager::TrackSort mainSearchSort = LibraryManager::TrackSort::Artist;
-    char mainSearchBuffer[64]{};
-    bool showMainLibary = false;
+    Library::TrackSort mainSearchSort = Library::TrackSort::Artist;
+    char trackSearchBuffer[64]{};
 
     // Track map
     bool showTrackMap = false;
 
     // Add new track window
-    bool showAddTrackPopup = false;
+    //bool showAddTrackPopup = true;
 
     // Track view / edit
     bool showEditTrackPopup = false;
@@ -51,53 +49,51 @@ private:
     bool showEditMixNotePopup = false;
     bool showDeleteMixPopup = false;
 
-    char mixSearchBuffer[64]{};
+    char mixSearchBuffer[256]{};
 
     // Table drawing
     const float minTableColumnWidth = 120;
     const float tablePaddingX = 6;
-    float tablePaddingY = Ui::Text::fontSizeBase / 2.0f; // 16
+    float tablePaddingY = Text::FONT_BASE_SIZE / 2.0f; // 16
 
-    float bgRectGap = Ui::Text::fontSizeBase / 12.0f; // 3
+    float bgRectGap = Text::FONT_BASE_SIZE / 12.0f; // 3
     const float bgPaddingY = tablePaddingY - bgRectGap;
 
-    enum class MainPage
-    {
-        NONE,
-        ACTIVE_TRACK,
-        LABEL,
-        RELEASE,
-        TAG,
-        MAP
-    };
-    MainPage mainPage = MainPage::NONE;
 
-    // Input Data Window //
-    enum class TrackInputMode 
-    { 
-        ADD, 
-        EDIT 
-    };
 
     struct InputData
     {
-        int id = -1;
-        char artist[64]{};
-        char title[64]{};
-        char label[64]{};
-        char release[64]{};
-        char position[64]{};
+        int64_t trackId = -1;
+        char artistBuffer[256]{};
+        char titleBuffer[256]{};
+        int64_t labelId = -1;
+        char labelBuffer[256]{};
+        int64_t releaseId = -1;
+        char releaseBuffer[256]{};
+        char positionBuffer[64]{};
         float bpm = 0.f;
         int rating = 0;
-        ImVec4 colour = Ui::Colour::VEC4_DEFAULT;
+        ImVec4 colour = Colour::VEC4_DEFAULT;
+        Library::ValidationResult result = Library::ValidationResult::None;
+    };
 
-        LibraryManager::ValidationResult result = LibraryManager::ValidationResult::None;
+
+    void drawAddTrackPopup(InputData& data);
+
+
+    
+
+
+    enum class TrackInputMode
+    {
+        ADD,
+        EDIT
     };
 
     InputData addTrackData;
     InputData editTrackData;
 
-    void inputTrackDataPopup(InputData& data, TrackInputMode mode);
+    //void inputTrackDataPopup(InputData& data, TrackInputMode mode);
 
     // Mix Data
     Mix inputMixData;
@@ -119,12 +115,12 @@ private:
     };
 
     DeleteData deleteTrackData; // TODO: <- not used
-    void deleteConformationPopup(DeleteData& data, DeleteConformationMode mode);
+    //void deleteConformationPopup(DeleteData& data, DeleteConformationMode mode);
 
-    void trackSearchTable(const std::vector<Track>& ibrary, float x, float width);
+    //void trackSearchTable(const std::vector<Track>& ibrary, float x, float width);
 
-    void displayLabelTable(std::vector<const Track*> trackList);
-    void displayReleaseTable(std::vector<const Track*> trackList);
+    //void displayLabelTable(std::vector<const Track*> trackList);
+    //void displayReleaseTable(std::vector<const Track*> trackList);
 
 
     enum class MixTableColumn
@@ -155,7 +151,7 @@ private:
         std::string release;
         float bpm = 0;
         int trackRating = 0;
-        std::array<uint8_t, 3> colour = Ui::Colour::RGB_DEFAULT;
+        std::array<uint8_t, 3> colour = Colour::RGB_DEFAULT;
 
         Mix toMix() const
         {
@@ -169,7 +165,7 @@ private:
         }
     };
 
-    void displayMixTable(const std::vector<Mix>& mixList);
+    //void displayMixTable(const std::vector<Mix>& mixList);
 
     struct Camera
     {
@@ -210,7 +206,7 @@ private:
         int newRating = -1;
         int hoverIndex = -1;
 
-        ImVec2 starSize = ImGui::CalcTextSize(Ui::Text::ICON_STAR);
+        ImVec2 starSize = ImGui::CalcTextSize(Text::ICON_STAR);
         ImVec2 startPos = ImGui::GetCursorPos();
 
         for (int i = 1; i <= 5; i++)
@@ -234,12 +230,12 @@ private:
         {
             if ((hoverIndex != -1 && hoverIndex > i) || (hoverIndex == -1 && rating > i))
             {
-                ImGui::Text(Ui::Text::ICON_STAR);
+                ImGui::Text(Text::ICON_STAR);
             }
             else
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, ColourUtil::RgbToU32(Ui::Colour::RGB_DEFAULT, 128));
-                ImGui::Text(Ui::Text::ICON_STAR);
+                ImGui::PushStyleColor(ImGuiCol_Text, ColourUtil::RgbToU32(Colour::RGB_DEFAULT, 128));
+                ImGui::Text(Text::ICON_STAR);
                 ImGui::PopStyleColor();
             }
 
@@ -281,13 +277,13 @@ private:
     // Input data helpers
     inline void inputDataSaveButton(InputData& data, TrackInputMode mode)
     {
-        if (ImGui::Button(Ui::Text::ICON_SAVE))
+        if (ImGui::Button(Text::ICON_SAVE))
         {
             Track t;
             t.artist = data.artist;
             t.title = data.title;
-            t.label = data.label;
-            t.release = data.release;
+            //t.label = data.label;
+            //t.release = data.release;
             t.position = data.position;
             t.bpm = data.bpm;
             t.rating = data.rating;
@@ -295,31 +291,31 @@ private:
 
             if (mode == TrackInputMode::ADD)
             {
-                data.result = manager.addTrack(t);
+                data.result = library.addTrack(t);
 
-                if (data.result == LibraryManager::ValidationResult::ValidTrack)
+                if (data.result == Library::ValidationResult::ValidTrack)
                 {
-                    if (!manager.getCatalogueForDisplay().empty())
+                    if (!library.getCatalogueForDisplay().empty())
                     {
-                        activeTrackId = manager.getCatalogueForDisplay().back().id;
-                        mainPage = MainPage::ACTIVE_TRACK;
+                        activeTrackId = library.getCatalogueForDisplay().back().id;
+                      //  mainPage = MainPage::ACTIVE_TRACK;
                     }
                 }
             }
             else if (mode == TrackInputMode::EDIT)
             {
                 t.id = activeTrackId;
-                data.result = manager.editTrack(t);
+                data.result = library.editTrack(t);
             }
 
-            if (data.result == LibraryManager::ValidationResult::ValidTrack)
+            if (data.result == Library::ValidationResult::ValidTrack)
             {
                 data = {};
                 ImGui::CloseCurrentPopup();
             }
         }
 
-        if (data.result != LibraryManager::ValidationResult::None || LibraryManager::ValidationResult::ValidTrack)
+        if (data.result != Library::ValidationResult::None || Library::ValidationResult::ValidTrack)
         {
             ImGui::SameLine();
 
@@ -327,21 +323,21 @@ private:
 
             switch (data.result)
             {
-            case LibraryManager::ValidationResult::MissingArtist:
+            case Library::ValidationResult::MissingArtist:
                 waringText = "Missing Artist Entry";
                 break;
-            case LibraryManager::ValidationResult::MissingTitle:
+            case Library::ValidationResult::MissingTitle:
                 waringText = "Missing Title Entry";
                 break;
-            case LibraryManager::ValidationResult::TrackNotFound:
+            case Library::ValidationResult::TrackNotFound:
                 waringText = "Track Not In Library";
                 break;
-            case LibraryManager::ValidationResult::DuplicateTrack:
+            case Library::ValidationResult::DuplicateTrack:
                 waringText = "Track Already In Library";
                 break;
             }
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.f, 0.f, Ui::Colour::ALPHA_ACTIVE));
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.f, 0.f, Colour::ALPHA_ACTIVE));
             ImGui::Text(waringText.c_str());
             ImGui::PopStyleColor();
         }
@@ -615,5 +611,5 @@ private:
     }
     
     // Track map glue
-    void rebakeTrackMap(const std::vector<Track>& tracks);
+    //void rebakeTrackMap(const std::vector<Track>& tracks);
 };

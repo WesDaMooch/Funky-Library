@@ -51,7 +51,7 @@
     <ClInclude Include="include\mixMatchApp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\UiConstants.hpp">
+    <ClInclude Include="include\constants.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\StringUtils.hpp">

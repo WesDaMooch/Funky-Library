@@ -171,7 +171,7 @@ $(ProjectDir)external\imgui\backends;$(ProjectDir)external\json</AdditionalInclu
     <ClInclude Include="include\trackMap.hpp" />
     <ClInclude Include="include\StringUtils.hpp" />
     <ClInclude Include="include\tags.h" />
-    <ClInclude Include="include\UiConstants.hpp" />
+    <ClInclude Include="include\constants.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="external\imgui\backends\imgui_impl_dx11.cpp" />

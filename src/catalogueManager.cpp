@@ -4,10 +4,57 @@
 
 
 // ADL serialization
+
+// Artist
+void to_json(json& j, const Artist& a)
+{
+    j = {
+        {"id", a.id},
+        {"name", a.name}
+    };
+}
+
+void from_json(const json& j, Artist& a)
+{
+    a.id = j.at("id").get<int64_t>();
+    a.name = j.at("name").get<std::string>();
+}
+
+// Label
+void to_json(json& j, const Label& l)
+{
+    j = {
+        {"id", l.id},
+        {"name", l.name}
+    };
+}
+
+void from_json(const json& j, Label& l)
+{
+    l.id = j.at("id").get<int64_t>();
+    l.name = j.at("name").get<std::string>();
+}
+
+// Release
+void to_json(json& j, const Release& r)
+{
+    j = {
+        {"id", r.id},
+        {"name", r.name}
+    };
+}
+
+void from_json(const json& j, Release& r)
+{
+    r.id = j.at("id").get<int64_t>();
+    r.name = j.at("name").get<std::string>();
+}
+
+// Mix
 void to_json(json& j, const Mix& m)
 {
     j = {
-        {"id", m.id},
+        {"id", m.otherTrackId},
         {"direction", static_cast<int>(m.direction)},
         {"rating", m.rating},
         {"pitch", m.pitch },
@@ -17,7 +64,7 @@ void to_json(json& j, const Mix& m)
 
 void from_json(const json& j, Mix& m)
 {
-    m.id = j.at("id").get<int>();
+    m.otherTrackId = j.at("id").get<int64_t>();
 
     int Jdirection = j.value("direction", static_cast<int>(MixDirection::InAndOut));
     m.direction = static_cast<MixDirection>(Jdirection);
@@ -27,14 +74,15 @@ void from_json(const json& j, Mix& m)
     m.note = j.value("note", "");
 }
 
+// Track
 void to_json(json& j, const Track& t)
 {
     j = {
         {"id", t.id},
-        {"artist", t.artist},
+        {"artist", t.artistId},
         {"title", t.title},
-        {"label", t.label},
-        {"release", t.release},
+        {"label", t.labelId},
+        {"release", t.releaseId},
         {"position", t.position},
         {"bpm", t.bpm},
         {"rating", t.rating},
@@ -48,11 +96,11 @@ void from_json(const json& j, Track& t)
 {
     try
     {               
-        t.id        = j.at("id").get<int>();
-        t.artist    = j.at("artist").get<std::string>();
+        t.id        = j.at("id").get<int64_t>();
+        t.artistId  = j.at("artistId").get<int64_t>();
         t.title     = j.at("title").get<std::string>();
-        t.label     = j.at("label").get<std::string>();
-        t.release   = j.at("release").get<std::string>();
+        t.labelId   = j.at("labelId").get<int64_t>();
+        t.releaseId = j.at("releaseId").get<int64_t>();
         t.position  = j.at("position").get<std::string>();
         t.bpm       = j.at("bpm").get<float>();
         t.rating    = j.at("rating").get<int>();
@@ -66,7 +114,7 @@ void from_json(const json& j, Track& t)
 }
 
 // Manager
-void LibraryManager::load()
+void Library::load()
 {
     std::ifstream file("catalogue.json");
 
@@ -78,20 +126,31 @@ void LibraryManager::load()
 
     file.close();
 
-    library = j.value("tracks", std::vector<Track>{});
+    artists = j.value("artists", std::vector<Artist>{});
+    labels = j.value("labels", std::vector<Label>{});
+    releases = j.value("releases", std::vector<Release>{});
+    tracks = j.value("tracks", std::vector<Track>{});
 
-    // Update id
-    for (const auto& track : library)
-    {
-        if (track.id >= lastTrackId)
-            lastTrackId = track.id + 1;
-    }
+    // Scan library and update id
+    for (const auto& artist : artists)
+        lastId = std::max(lastId, artist.id + 1);
+
+    for (const auto& label : labels)
+        lastId = std::max(lastId, label.id + 1);
+
+    for (const auto& release : releases)
+        lastId = std::max(lastId, release.id + 1);
+
+    for (const auto& track : tracks)
+        lastId = std::max(lastId, track.id + 1);
 }
 
-void LibraryManager::save() const
+void Library::save() const
 {
     json j;
-    j["tracks"] = library;
+    j["tracks"] = tracks;
+    j["releases"] = releases;
+    j["labels"] = labels;
 
     std::ofstream file("catalogue.json");
     file << j.dump(4);
@@ -99,13 +158,13 @@ void LibraryManager::save() const
     file.close();
 }
 
-void LibraryManager::refresh()
+void Library::refresh()
 {
     save();
     load();
 }
 
-LibraryManager::ValidationResult LibraryManager::addTrack(const Track& newTrack)
+Library::ValidationResult Library::addTrack(const Track& newTrack)
 {
     Track track = newTrack;
 
@@ -114,17 +173,17 @@ LibraryManager::ValidationResult LibraryManager::addTrack(const Track& newTrack)
     if (result != ValidationResult::ValidTrack)
         return result;
 
-    track.id = lastTrackId++;
+    track.id = generateId();
     track.mix.clear();
 
     // TODO: use std::move? catalogue.emplace_back(std::move(t));
-    library.emplace_back(track);
+    tracks.emplace_back(track);
     refresh();
 
     return result;
 }
 
-LibraryManager::ValidationResult LibraryManager::editTrack(const Track& editedTrack)
+Library::ValidationResult Library::editTrack(const Track& editedTrack)
 { 
     // TODO: could just use a non const edited track?
     Track track = editedTrack;
@@ -139,10 +198,10 @@ LibraryManager::ValidationResult LibraryManager::editTrack(const Track& editedTr
     if (foundTrack == nullptr)
         return ValidationResult::TrackNotFound;
 
-    foundTrack->artist = track.artist;
+    //foundTrack->artist = track.artist;
     foundTrack->title = track.title;
-    foundTrack->label = track.label;
-    foundTrack->release = track.release;
+    foundTrack->labelId = track.labelId;
+    foundTrack->releaseId = track.releaseId;
     foundTrack->position = track.position;
     foundTrack->bpm = track.bpm;
     foundTrack->rating = track.rating;
@@ -152,7 +211,7 @@ LibraryManager::ValidationResult LibraryManager::editTrack(const Track& editedTr
     return result;
 }
 
-void LibraryManager::addMix(int mixId, int parentTrackId)
+void Library::addMix(int mixId, int parentTrackId)
 {
     if (mixId == parentTrackId)
         return;
@@ -169,7 +228,7 @@ void LibraryManager::addMix(int mixId, int parentTrackId)
     bool parentFound = false;
     for (const Mix& m : parentTrack->mix)
     {
-        if (m.id == mixId)
+        if (m.otherTrackId == mixId)
         {
             parentFound = true;
             break;
@@ -186,7 +245,7 @@ void LibraryManager::addMix(int mixId, int parentTrackId)
     bool childFound = false;
     for (const Mix& m : childTrack->mix)
     {
-        if (m.id == parentTrackId)
+        if (m.otherTrackId == parentTrackId)
         {
             childFound = true;
             break;
@@ -204,7 +263,7 @@ void LibraryManager::addMix(int mixId, int parentTrackId)
 }
 
 
-void LibraryManager::editMix(Mix mix, int parentTrackId)
+void Library::editMix(Mix mix, int parentTrackId)
 {
     ValidationResult result = ValidateMix(mix, parentTrackId);
 
@@ -212,7 +271,7 @@ void LibraryManager::editMix(Mix mix, int parentTrackId)
         return;
 
     Track* parentTrack = getTrack(parentTrackId);
-    Track* childTrack = getTrack(mix.id);
+    Track* childTrack = getTrack(mix.otherTrackId);
 
     if ((parentTrack == nullptr) || (childTrack == nullptr))
         return;
@@ -223,7 +282,7 @@ void LibraryManager::editMix(Mix mix, int parentTrackId)
     bool parentFound = false;
     for (Mix& m : parentTrack->mix)
     {
-        if (m.id == mix.id)
+        if (m.otherTrackId == mix.otherTrackId)
         {
             m.direction = mix.direction;
             m.rating = mix.rating;
@@ -245,7 +304,7 @@ void LibraryManager::editMix(Mix mix, int parentTrackId)
     bool childFound = false;
     for (Mix& m : childTrack->mix)
     {
-        if (m.id == parentTrackId)
+        if (m.otherTrackId == parentTrackId)
         {
             m.direction = InvertMixDirection(mix.direction);
 
@@ -276,10 +335,10 @@ void LibraryManager::editMix(Mix mix, int parentTrackId)
         save();
 }
 
-void LibraryManager::removeTrack(int id)
+void Library::removeTrack(int id)
 {
     // Remove any refernce of ID.
-    for (Track& track : library)
+    for (Track& track : tracks)
     {
         if (track.id == id)
             continue;
@@ -290,25 +349,25 @@ void LibraryManager::removeTrack(int id)
                 track.mix.end(),
                 [&](const Mix& m)
                 {
-                    return m.id == id;
+                    return m.otherTrackId == id;
                 }),
             track.mix.end()
         );
     }
 
     // Remove track.
-    library.erase(
-        std::remove_if(library.begin(), library.end(),
+    tracks.erase(
+        std::remove_if(tracks.begin(), tracks.end(),
             [&](const Track& track)
             {
                 return track.id == id;
             }),
-        library.end()
+        tracks.end()
     );
     refresh();
 }
 
-void LibraryManager::removeMix(int trackId, int mixId)
+void Library::removeMix(int trackId, int mixId)
 {
    if (trackId == mixId)
         return;
@@ -321,7 +380,7 @@ void LibraryManager::removeMix(int trackId, int mixId)
                 track.mix.end(),
                 [&](const Mix& m)
                 {
-                    return m.id == idToRemove;
+                    return m.otherTrackId == idToRemove;
                 }),
             track.mix.end()
         );
@@ -330,7 +389,7 @@ void LibraryManager::removeMix(int trackId, int mixId)
     bool trackFound = false;
     bool mixFound = false;
 
-    for (Track& track : library)
+    for (Track& track : tracks)
     {
         if (track.id == trackId)
         {
@@ -352,9 +411,22 @@ void LibraryManager::removeMix(int trackId, int mixId)
         refresh();
 }
 
-const Track* LibraryManager::getTrackForDisplay(int id)
+int64_t Library::addLabel(std::string name)
 {
-    for (const Track& t : library)
+    labels.push_back({ generateId(), TextUtil::Trim(name) });
+    return labels.back().id;
+}
+
+int64_t Library::addRelease(std::string name)
+{
+    releases.push_back({ generateId(), TextUtil::Trim(name) });
+    return releases.back().id;
+}
+
+
+const Track* Library::getTrackForDisplay(int id)
+{
+    for (const Track& t : tracks)
     {
         if (t.id == id)
             return &t;
@@ -364,10 +436,10 @@ const Track* LibraryManager::getTrackForDisplay(int id)
 }
 
 
-Track* LibraryManager::getTrack(int id)
+Track* Library::getTrack(int id)
 {
     // TODO: Use find or find_if?
-    for (Track& t : library)
+    for (Track& t : tracks)
     {
         if (t.id == id)
             return &t;
@@ -377,40 +449,24 @@ Track* LibraryManager::getTrack(int id)
 }
 
 
-std::vector<const Track*> LibraryManager::getLabel(const std::string& labelString) const
+std::vector<const Track*> Library::getLabel(const std::string& labelString) const
 {
-    // Find all tracks that share a label (case non-sensative).
-    std::vector<const Track*> tracksInLabel{};
-    std::string labelName = TextUtil::ToLower(labelString);
 
-    for (const Track& t : library)
-    {
-        if (labelName == TextUtil::ToLower(t.label))
-            tracksInLabel.emplace_back(&t);
-    }
+    std::vector<const Track*> tracksInLabel{};
 
     return tracksInLabel;
 }
 
-std::vector<const Track*> LibraryManager::getRelease(const std::string& releaseString) const
+std::vector<const Track*> Library::getRelease(const std::string& releaseString) const
 {
-    // Find all tracks that share a release (case non-sensative).
     std::vector<const Track*> tracksInRelease{};
-    std::string releaseName = TextUtil::ToLower(releaseString);
-
-    for (const Track& t : library)
-    {
-        if (releaseName == TextUtil::ToLower(t.release))
-            tracksInRelease.emplace_back(&t);
-    }
-
-    // TODO: Sort release by position (if it has one)
-    //std::sort(tracksInRelease.begin(), tracksInRelease.end());
 
     return tracksInRelease;
 }
 
-std::vector<const Track*> LibraryManager::getTag(const std::string& tagString) const
+const std::vector<Release>& Library::getReleases() { return releases; }
+
+std::vector<const Track*> Library::getTag(const std::string& tagString) const
 {
     // Find all tracks that share a tag.
     std::vector<const Track*> tracksInTag{};
@@ -419,17 +475,17 @@ std::vector<const Track*> LibraryManager::getTag(const std::string& tagString) c
 
 
 
-const std::vector<Track>& LibraryManager::getCatalogueForDisplay() const
+const std::vector<Track>& Library::getCatalogueForDisplay() const
 {
-    return library;
+    return tracks;
 }
 
-std::vector<int> LibraryManager::getIdLibrary() const
+std::vector<int> Library::getIdLibrary() const
 {
     std::vector<int> idLibrary;
-    idLibrary.reserve(library.size());
+    idLibrary.reserve(tracks.size());
 
-    for (const Track& track : library)
+    for (const Track& track : tracks)
         idLibrary.emplace_back(track.id);
 
     return idLibrary;
@@ -437,18 +493,20 @@ std::vector<int> LibraryManager::getIdLibrary() const
 
 
 // Returns a sorted and searched libary
-std::vector<Track> LibraryManager::searchAndSort(const std::string& search, TrackSort sort)
+// TODO: use imgui text filtering?
+std::vector<Track> Library::searchAndSort(const std::string& search, TrackSort sort)
 {
     // TODO: Add bpm search
+    // Add release and label search
 
     std::vector<Track> outputLibrary;
-    outputLibrary.reserve(library.size());
+    outputLibrary.reserve(tracks.size());
 
     bool doSeach = true;
 
     if (search.empty())
     {
-        outputLibrary = library;
+        outputLibrary = tracks;
         doSeach = false;
     }
 
@@ -457,19 +515,19 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
     {
         std::vector<std::string> searchWords = TextUtil::Split(TextUtil::ToLower(search));
 
-        for (const Track& t : library)
+        for (const Track& t : tracks)
         {
-            std::string artist = TextUtil::ToLower(t.artist);
+            //std::string artist = TextUtil::ToLower(t.artist);
+            std::string artist = "";
+
             std::string title = TextUtil::ToLower(t.title);
-            std::string label = TextUtil::ToLower(t.label);
 
             bool match = false;
 
             for (const auto& word : searchWords)
             {
                 if (artist.find(word) != std::string::npos ||
-                    title.find(word) != std::string::npos ||
-                    label.find(word) != std::string::npos)
+                    title.find(word) != std::string::npos)
                 {
                     outputLibrary.emplace_back(t);
                     break;
@@ -485,7 +543,7 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
         std::sort(outputLibrary.begin(), outputLibrary.end(),
             [](const Track& a, const Track& b)
             {
-                return TextUtil::ToLower(a.artist) < TextUtil::ToLower(b.artist);
+                //return TextUtil::ToLower(a.artist) < TextUtil::ToLower(b.artist);
             });
         break;
 
@@ -494,14 +552,6 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
             [](const Track& a, const Track& b)
             {
                 return TextUtil::ToLower(a.title) < TextUtil::ToLower(b.title);
-            });
-        break;
-
-    case TrackSort::Label:
-        std::sort(outputLibrary.begin(), outputLibrary.end(),
-            [](const Track& a, const Track& b)
-            {
-                return TextUtil::ToLower(a.label) < TextUtil::ToLower(b.label);
             });
         break;
 
@@ -526,18 +576,45 @@ std::vector<Track> LibraryManager::searchAndSort(const std::string& search, Trac
 }
 
 
-LibraryManager::ValidationResult LibraryManager::ValidateMix(Mix& m, int parentTrackId)
+const Label* Library::findLabelByName(std::string name) const
+{
+    name = TextUtil::ToLower(TextUtil::Trim(name));
+    // TODO: create map for idx and names
+    for (const auto& label : labels)
+    {
+        if (name == TextUtil::ToLower(label.name))
+            return &label;
+    }
+
+    return nullptr;
+}
+
+const Release* Library::findReleaseByName(std::string name) const
+{
+    name = TextUtil::ToLower(TextUtil::Trim(name));
+    // TODO: create map for idx and names
+    for (const auto& release : releases)
+    {
+        if (name == TextUtil::ToLower(release.name))
+            return &release;
+    }
+
+    return nullptr;
+}
+
+
+Library::ValidationResult Library::ValidateMix(Mix& m, int parentTrackId)
 {
     // Mix ID is the same as the parent track.
-    if (m.id == parentTrackId)
+    if (m.otherTrackId == parentTrackId)
         return ValidationResult::InvalidMix;
 
     // No track found with given mix ID.
     bool matchingTrackFound = false;
 
-    for (const Track& t : library)
+    for (const Track& t : tracks)
     {
-        if (m.id == t.id)
+        if (m.otherTrackId == t.id)
         {
             matchingTrackFound = true;
             break;
@@ -564,35 +641,34 @@ LibraryManager::ValidationResult LibraryManager::ValidateMix(Mix& m, int parentT
 }
 
 
-LibraryManager::ValidationResult LibraryManager::ValidateTrack(Track& track)
+Library::ValidationResult Library::ValidateTrack(Track& track)
 {
     // Remove white spaces from text.
-    track.artist = TextUtil::Trim(track.artist);
+    //track.artist = TextUtil::Trim(track.artist);
     track.title = TextUtil::Trim(track.title);
-    track.label = TextUtil::Trim(track.label);
-    track.release = TextUtil::Trim(track.release);
     track.position = TextUtil::Trim(track.position);
 
     // Ensure artist and title fields are filled.
-    if (track.artist.empty())
-        return ValidationResult::MissingArtist;
-    else if(track.title.empty())
-        return ValidationResult::MissingTitle;
+    //if (track.artist.empty())
+    //    return ValidationResult::MissingArtist;
+    //else if(track.title.empty())
+    //    return ValidationResult::MissingTitle;
 
     // Don't allow duplicate names (case-insensitive).
-    std::string artist = TextUtil::ToLower(track.artist);
+    //std::string artist = TextUtil::ToLower(track.artist);
     std::string title = TextUtil::ToLower(track.title);
 
-    for (const Track& t : library)
+    for (const Track& t : tracks)
     {
         if (t.id == track.id)
             continue;
-
+        /*
         if (TextUtil::ToLower(t.artist) == artist &&
             TextUtil::ToLower(t.title) == title)
         {
             return ValidationResult::DuplicateTrack;
         }
+        */
     }
 
     // Ensure bpm is not negative.
@@ -606,7 +682,7 @@ LibraryManager::ValidationResult LibraryManager::ValidateTrack(Track& track)
     for (Mix& mix : track.mix)
     { 
         // Duplicate mix
-        if (!uniqueMixIds.insert(mix.id).second)
+        if (!uniqueMixIds.insert(mix.otherTrackId).second)
             return ValidationResult::InvalidMix;
 
         ValidationResult mixValidationResult = ValidateMix(mix, track.id);

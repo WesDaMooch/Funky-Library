@@ -100,7 +100,7 @@ int main(int, char**)
     MixMatchApp app;
 
     // Setup font
-    style.FontSizeBase = Ui::Text::fontSizeBase;
+    style.FontSizeBase = Text::FONT_BASE_SIZE;
 
     // Default font
     ImFontConfig defaultFontConfig;
@@ -109,7 +109,7 @@ int main(int, char**)
     defaultFontConfig.RasterizerMultiply = 1.1f;
     defaultFontConfig.OversampleH = 2;
     defaultFontConfig.OversampleV = 2;
-    Ui::Text::DefaultFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), Ui::Text::fontSizeBase, &defaultFontConfig);
+    Text::defaultFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), Text::FONT_BASE_SIZE, &defaultFontConfig);
 
     // Merge icon font into main font atlas
     ImFontConfig iconFontConfig;
@@ -121,7 +121,7 @@ int main(int, char**)
     iconFontConfig.GlyphOffset = ImVec2(-1.5f, 6.f);//ImVec2(0.f, Ui::Text::GLYPH_OFFSET);
 
     static const ImWchar icon_ranges[] = { 0xE000, 0xF8FF, 0 };
-    ImFont* iconFont = io.Fonts->AddFontFromMemoryTTF(materialIconsRegular, sizeof(materialIconsRegular), Ui::Text::fontSizeBase, &iconFontConfig, icon_ranges);
+    ImFont* iconFont = io.Fonts->AddFontFromMemoryTTF(materialIconsRegular, sizeof(materialIconsRegular), Text::FONT_BASE_SIZE, &iconFontConfig, icon_ranges);
     
     // Small font
     ImFontConfig smallFontConfig;
@@ -129,7 +129,7 @@ int main(int, char**)
     smallFontConfig.MergeMode = false;
     smallFontConfig.OversampleH = 2;
     smallFontConfig.OversampleV = 2;
-    Ui::Text::SmallFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 15.f, &smallFontConfig);
+    Text::smallFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 15.f, &smallFontConfig);
 
     // Big font
     ImFontConfig bigFontConfig;
@@ -137,7 +137,7 @@ int main(int, char**)
     bigFontConfig.MergeMode = false;
     bigFontConfig.OversampleH = 2;
     bigFontConfig.OversampleV = 2;
-    Ui::Text::BigFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 60.f, &bigFontConfig);
+    Text::largeFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 60.f, &bigFontConfig);
 
     IM_ASSERT(Ui::Text::DefaultFont != nullptr);
     IM_ASSERT(Ui::Text::SmallFont != nullptr);
@@ -150,22 +150,22 @@ int main(int, char**)
     //style.Colors[ImGuiCol_WindowBg] = ImVec4(15 / 255.f, 15 / 255.f, 15 / 255.f, 1.f); // youtube
     style.Colors[ImGuiCol_WindowBg] = ImVec4(18 / 255.f, 18 / 255.f, 18 / 255.f, 1.f); // discogs
 
-    style.Colors[ImGuiCol_TitleBg] = ColourUtil::RgbToVec4(Ui::Colour::RGB_DEFAULT, 1.f);
-    style.Colors[ImGuiCol_TitleBgActive] = ColourUtil::RgbToVec4(Ui::Colour::RGB_DEFAULT, 1.f);
-    style.Colors[ImGuiCol_TitleBgCollapsed] = ColourUtil::RgbToVec4(Ui::Colour::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBg] = ColourUtil::RgbToVec4(Colour::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBgActive] = ColourUtil::RgbToVec4(Colour::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = ColourUtil::RgbToVec4(Colour::RGB_DEFAULT, 1.f);
 
     // Button style
     style.Colors[ImGuiCol_Button] = ImVec4(0.f, 0.f, 0.f, 0.0f);
-    style.Colors[ImGuiCol_ButtonHovered] = ColourUtil::RgbToVec4(Ui::Colour::RGB_DEFAULT, Ui::Colour::ALPHA_HOVER);
-    style.Colors[ImGuiCol_ButtonActive] = ColourUtil::RgbToVec4(Ui::Colour::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_ButtonHovered] = ColourUtil::RgbToVec4(Colour::RGB_DEFAULT, Colour::ALPHA_HOVER);
+    style.Colors[ImGuiCol_ButtonActive] = ColourUtil::RgbToVec4(Colour::RGB_DEFAULT, 1.f);
 
     // Frame style
-    style.Colors[ImGuiCol_FrameBg] = ColourUtil::RgbToVec4(Ui::Colour::RGB_DEFAULT, Ui::Colour::ALPHA_HOVER);
+    style.Colors[ImGuiCol_FrameBg] = ColourUtil::RgbToVec4(Colour::RGB_DEFAULT, Colour::ALPHA_HOVER);
     //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.22f, 0.22f, 0.28f, 1.0f);
     //style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.28f, 0.28f, 0.34f, 1.0f);
 
     // Navigation
-    style.Colors[ImGuiCol_NavHighlight] = ColourUtil::RgbToVec4(Ui::Colour::RGB_DEFAULT, 1.f);
+    style.Colors[ImGuiCol_NavHighlight] = ColourUtil::RgbToVec4(Colour::RGB_DEFAULT, 1.f);
         
     style.FrameRounding = 0.f;
     style.WindowRounding = 0.f;
@@ -174,7 +174,7 @@ int main(int, char**)
     style.ScrollbarSize = 18.f;
 
     // Main loop
-    LibraryManager manager;
+    Library manager;
     manager.load();
 
     bool done = false;
@@ -215,7 +215,7 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::PushFont(Ui::Text::DefaultFont);
+        ImGui::PushFont(Text::defaultFont);
         ImGui::PopFont();
         
        //ImGui::ShowDemoWindow();
