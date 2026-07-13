@@ -170,25 +170,9 @@ void Library::addTrack(Track& newTrack)
     newTrack.id = generateId();
     newTrack.title = TextUtil::Trim(newTrack.title);
     newTrack.position = TextUtil::Trim(newTrack.position);
+    newTrack.bpm = std::clamp(newTrack.bpm, 0.0f, 999.0f);
+    newTrack.rating = std::clamp(newTrack.rating, 0, 5);
     tracks.emplace_back(newTrack);
-    
-    /*
-    Track track = newTrack;
-
-    ValidationResult result = ValidateTrack(track);
-    
-    if (result != ValidationResult::ValidTrack)
-        return result;
-
-    track.id = generateId();
-    track.mix.clear();
-
-    // TODO: use std::move? catalogue.emplace_back(std::move(t));
-    tracks.emplace_back(track);
-    refresh();
-
-    return result;
-    */
 }
 
 Library::ValidationResult Library::editTrack(const Track& editedTrack)
@@ -201,7 +185,7 @@ Library::ValidationResult Library::editTrack(const Track& editedTrack)
     if (result != ValidationResult::ValidTrack)
         return result;
     
-    Track* foundTrack = getTrack(editedTrack.id);
+    Track* foundTrack = findTrackById(editedTrack.id);
 
     if (foundTrack == nullptr)
         return ValidationResult::TrackNotFound;
@@ -219,13 +203,66 @@ Library::ValidationResult Library::editTrack(const Track& editedTrack)
     return result;
 }
 
-void Library::addMix(int mixId, int parentTrackId)
+void Library::addMix(Mix& newMix, int parentTrackId)
 {
+    // Prevent self mixing
+    if (parentTrackId = newMix.otherTrackId)
+        return;
+
+    auto* parentTrack = findTrackById(parentTrackId);
+    auto* otherTrack = findTrackById(newMix.otherTrackId);
+
+    if ((parentTrack == nullptr) || (otherTrack == nullptr))
+        return;
+
+    bool changed = false;
+
+    // Add other track to parent mix list
+    bool parentFound = false;
+    for (const Mix& mix : parentTrack->mix)
+    {
+        if (mix.otherTrackId == newMix.otherTrackId)
+        {
+            parentFound = true;
+            break;
+        }
+    }
+
+    if (!parentFound)
+    {
+        parentTrack->mix.emplace_back(newMix);
+        changed = true;
+    }
+
+    // Add parent track to child mix list
+    bool otherTrackFound = false;
+    for (const Mix& m : otherTrack->mix)
+    {
+        if (m.otherTrackId == parentTrackId)
+        {
+            otherTrackFound = true;
+            break;
+        }
+    }
+
+    if (!otherTrackFound)
+    {
+        otherTrack->mix.emplace_back(newMix);
+        changed = true;
+    }
+
+    if (changed)
+        save();
+
+
+
+    ///
+    /*
     if (mixId == parentTrackId)
         return;
 
-    Track* parentTrack = getTrack(parentTrackId);
-    Track* childTrack = getTrack(mixId);
+    Track* parentTrack = findTrackById(parentTrackId);
+    Track* childTrack = findTrackById(mixId);
 
     if ((parentTrack == nullptr) || (childTrack == nullptr))
         return;
@@ -268,6 +305,7 @@ void Library::addMix(int mixId, int parentTrackId)
 
     if (changed)
         save();
+        */
 }
 
 
@@ -278,8 +316,8 @@ void Library::editMix(Mix mix, int parentTrackId)
     if (result != ValidationResult::ValidMix)
         return;
 
-    Track* parentTrack = getTrack(parentTrackId);
-    Track* childTrack = getTrack(mix.otherTrackId);
+    Track* parentTrack = findTrackById(parentTrackId);
+    Track* childTrack = findTrackById(mix.otherTrackId);
 
     if ((parentTrack == nullptr) || (childTrack == nullptr))
         return;
@@ -450,7 +488,7 @@ const Track* Library::getTrackForDisplay(int id)
 }
 
 
-Track* Library::getTrack(int id)
+Track* Library::findTrackById(int64_t id)
 {
     // TODO: Use find or find_if?
     for (Track& t : tracks)
@@ -462,26 +500,44 @@ Track* Library::getTrack(int id)
     return nullptr;
 }
 
-
-std::vector<const Track*> Library::getLabel(const std::string& labelString) const
+std::vector<const Track*> Library::getTracksByArtist(int64_t id) const
 {
+    std::vector<const Track*> tracksByArtist{};
 
-    std::vector<const Track*> tracksInLabel{};
+    for (const auto& track : tracks)
+    {
+        if (track.artistId == id)
+            tracksByArtist.push_back(&track);
+    }
 
-    return tracksInLabel;
+    return tracksByArtist;
 }
 
-std::vector<const Track*> Library::getTracksInRelease(int64_t id) const
+
+std::vector<const Track*> Library::getTracksByLabel(int64_t id) const
 {
-    std::vector<const Track*> tracksInRelease{};
+    std::vector<const Track*> tracksByLabel{};
+
+    for (const auto& track : tracks)
+    {
+        if (track.labelId == id)
+            tracksByLabel.push_back(&track);
+    }
+
+    return tracksByLabel;
+}
+
+std::vector<const Track*> Library::getTracksByRelease(int64_t id) const
+{
+    std::vector<const Track*> tracksByRelease{};
 
     for (const auto& track : tracks)
     {
         if (track.releaseId == id)
-            tracksInRelease.push_back(&track);
+            tracksByRelease.push_back(&track);
     }
 
-    return tracksInRelease;
+    return tracksByRelease;
 }
 
 
@@ -511,19 +567,21 @@ std::vector<int> Library::getIdLibrary() const
 
 // Returns a sorted and searched libary
 // TODO: use imgui text filtering?
-std::vector<Track> Library::searchAndSort(const std::string& search, TrackSort sort)
+std::vector<const Track*> Library::searchAndSort(const std::string& search, TrackSort sort)
 {
     // TODO: Add bpm search
     // Add release and label search
 
-    std::vector<Track> outputLibrary;
+    std::vector<const Track*> outputLibrary;
     outputLibrary.reserve(tracks.size());
 
     bool doSeach = true;
 
     if (search.empty())
     {
-        outputLibrary = tracks;
+        for (const auto& t : tracks)
+            outputLibrary.push_back(&t);
+        
         doSeach = false;
     }
 
@@ -539,14 +597,12 @@ std::vector<Track> Library::searchAndSort(const std::string& search, TrackSort s
 
             std::string title = TextUtil::ToLower(t.title);
 
-            bool match = false;
-
             for (const auto& word : searchWords)
             {
                 if (artist.find(word) != std::string::npos ||
                     title.find(word) != std::string::npos)
                 {
-                    outputLibrary.emplace_back(t);
+                    outputLibrary.emplace_back(&t);
                     break;
                 }
             }
@@ -567,25 +623,25 @@ std::vector<Track> Library::searchAndSort(const std::string& search, TrackSort s
         */
     case TrackSort::Title:
         std::sort(outputLibrary.begin(), outputLibrary.end(),
-            [](const Track& a, const Track& b)
+            [](const Track* a, const Track* b)
             {
-                return TextUtil::ToLower(a.title) < TextUtil::ToLower(b.title);
+                return TextUtil::ToLower(a->title) < TextUtil::ToLower(b->title);
             });
         break;
 
     case TrackSort::BPM: 
         std::sort(outputLibrary.begin(), outputLibrary.end(),
-            [](const Track& a, const Track& b)
+            [](const Track* a, const Track* b)
             {
-                return a.bpm < b.bpm;
+                return a->bpm < b->bpm;
             });
         break;
 
     case TrackSort::Rating:
         std::sort(outputLibrary.begin(), outputLibrary.end(),
-            [](const Track& a, const Track& b)
+            [](const Track* a, const Track* b)
             {
-                return a.rating < b.rating;
+                return a->rating < b->rating;
             });
         break;
     }
@@ -630,6 +686,16 @@ const Label* Library::findLabelByName(std::string name) const
     return nullptr;
 }
 
+const Label* Library::findLabelById(int64_t id) const
+{
+    for (const auto& label : labels)
+    {
+        if (id == label.id)
+            return &label;
+    }
+
+    return nullptr;
+}
 
 const Release* Library::findReleaseById(int64_t id) const
 {

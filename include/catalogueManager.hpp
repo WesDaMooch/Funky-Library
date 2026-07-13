@@ -94,7 +94,7 @@ void from_json(const json& j, Track& t);
 class Library
 {
 public:
-    enum ValidationResult
+    enum ValidationResult // remove?
     {
         None,
         ValidTrack,
@@ -106,7 +106,7 @@ public:
         InvalidMix
     };
 
-    enum class TrackSort
+    enum class TrackSort // remove?
     {
         Artist,
         Title,
@@ -117,38 +117,44 @@ public:
 
     void load();
     void save() const;
-    void refresh();
+    void refresh(); //old, used?
 
-    void addTrack(Track& newTrack);
-    ValidationResult editTrack(const Track& editedTrack);
-    void removeTrack(int id);
-    void addMix(int mixId, int parentTrackId);
-    void editMix(Mix mix, int parentTrackId);
-    void removeMix(int trackId, int mixId);
+    void addTrack(Track& newTrack); //Old
+    ValidationResult editTrack(const Track& editedTrack); //Old
+    void removeTrack(int id); //Old
+    void addMix(Mix& newMix, int parentTrackId); //new
+    void editMix(Mix mix, int parentTrackId); //Old
+    void removeMix(int trackId, int mixId); //Old
 
-    int64_t addArtist(std::string name);
-    int64_t addLabel(std::string name);
-    int64_t addRelease(std::string name);
+    int64_t addArtist(std::string name); //New
+    int64_t addLabel(std::string name); //New
+    int64_t addRelease(std::string name); //New
 
-    const Track* getTrackForDisplay(int id);
+    const Track* getTrackForDisplay(int id); //Old
 
-    std::vector<const Track*> getLabel(const std::string& labelString) const;
-    std::vector<const Track*> getTracksInRelease(int64_t id) const;
-    const std::vector<Release>& getReleases();
-    const std::vector<Track>& getTracks();
+    const std::vector<Release>& getReleases(); //Not used, will use in release mananger
+    const std::vector<Track>& getTracks(); //New? In use
 
-    Track* getTrack(int id); // TODO: rename findTrackById
-    const std::vector<Track>& getCatalogueForDisplay() const;
-    std::vector<int> getIdLibrary() const;
+    std::vector<const Track*> getTracksByArtist(int64_t id) const; //New - good
+    std::vector<const Track*> getTracksByLabel(int64_t id) const; //New - good
+    std::vector<const Track*> getTracksByRelease(int64_t id) const; //New - good
 
-    std::vector<Track> searchAndSort(const std::string& search, TrackSort sort); // TODO: use imgui text filtering?
 
-    const Artist* findArtistById(int64_t id) const;
-    const Artist* findArtistByName(std::string name) const;
-    const Label* findLabelByName(std::string name) const;
 
-    const Release* findReleaseById(int64_t id) const;
-    const Release* findReleaseByName(std::string name) const;
+    const std::vector<Track>& getCatalogueForDisplay() const; //Old remove
+    std::vector<int> getIdLibrary() const;  //Old, remove?
+
+    std::vector<const Track*> searchAndSort(const std::string& search, TrackSort sort); //Old, needs update?
+
+
+    Track* findTrackById(int64_t id);                           //Old/new
+
+    const Artist* findArtistById(int64_t id) const;             //New
+    const Artist* findArtistByName(std::string name) const;     //New
+    const Label* findLabelById(int64_t id) const;               //New
+    const Label* findLabelByName(std::string name) const;       //New
+    const Release* findReleaseById(int64_t id) const;           //New
+    const Release* findReleaseByName(std::string name) const;   //New
 
 protected:
     int64_t lastId = 0;
@@ -157,16 +163,13 @@ protected:
     std::vector<Release> releases;
     std::vector<Track> tracks;
 
-    ValidationResult ValidateMix(Mix& m, int parentTrackId);
+    ValidationResult ValidateMix(Mix& m, int parentTrackId); //Old news update
 
-    ValidationResult ValidateTrack(Track& t);
+    ValidationResult ValidateTrack(Track& t);   //Old might be useless now
 
 
 
-    inline int64_t generateId()
-    {
-        return lastId++;
-    }
+    inline int64_t generateId() { return lastId++; }
 
     inline MixDirection InvertMixDirection(MixDirection direction)
     {

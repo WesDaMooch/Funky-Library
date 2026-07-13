@@ -23,6 +23,17 @@ public:
     void runFrame2();
 
 private:
+
+    struct MixInputData
+    {
+        char searchBuffer[256]{};
+        int64_t otherTrackId = -1;
+        MixDirection direction = MixDirection::InAndOut;
+        int rating = 0;
+        int pitch = 0;
+        char noteBuffer[256]{};
+    };
+
     bool open = true;
 
 	Library library;
@@ -31,25 +42,28 @@ private:
     TrackMap map;
 
     // Main search bar and result window
-    Library::TrackSort mainSearchSort = Library::TrackSort::Artist;
+    Library::TrackSort mainSearchSort = Library::TrackSort::Artist; // remove
     char trackSearchBuffer[64]{};
 
     // Track map
     bool showTrackMap = false;
 
-    // Add new track window
-    //bool showAddTrackPopup = true;
+    // Add track
+    bool addTrackPopup = false;
 
     // Track view / edit
     bool showEditTrackPopup = false;
     bool showDeleteTrackPopup = false;
     bool showAddMixWindow = false;
 
-    // Mix
-    bool showEditMixNotePopup = false;
-    bool showDeleteMixPopup = false;
+    // Add mix
+    bool addMixPopup = false;
+    MixInputData mixInputData;
 
-    char mixSearchBuffer[256]{};
+    bool showEditMixNotePopup = false; //remove?
+    bool showDeleteMixPopup = false;    //remove?
+
+
 
     // Table drawing
     const float minTableColumnWidth = 120;
@@ -59,14 +73,12 @@ private:
     float bgRectGap = Text::FONT_BASE_SIZE / 12.0f; // 3
     const float bgPaddingY = tablePaddingY - bgRectGap;
 
-
-
-    struct InputData
+    struct TrackInputData
     {
         int64_t trackId = -1;
+        char trackBuffer[256]{};
         int64_t artistId = -1;
         char artistBuffer[256]{};
-        char trackBuffer[256]{};
         int64_t labelId = -1;
         char labelBuffer[256]{};
         int64_t releaseId = -1;
@@ -79,11 +91,6 @@ private:
     };
 
 
-    void drawAddTrackPopup(InputData& data);
-
-
-    
-
 
     enum class TrackInputMode
     {
@@ -91,8 +98,19 @@ private:
         EDIT
     };
 
-    InputData addTrackData;
-    InputData editTrackData;
+    TrackInputData addTrackData;
+    TrackInputData editTrackData;
+    
+
+    int64_t drawTrackList(const std::vector<const Track*>& trackList, bool omitActiveTrack);
+    void drawMixes();
+
+    // Popups
+
+    void drawAddTrackPopup(TrackInputData& data);
+    void drawAddMixPopup(MixInputData& data);
+ 
+
 
     //void inputTrackDataPopup(InputData& data, TrackInputMode mode);
 

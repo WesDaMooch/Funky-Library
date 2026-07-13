@@ -10,7 +10,7 @@ namespace Text
     inline ImFont* largeFont = nullptr;
     inline ImFont* smallFont = nullptr;
 
-    constexpr float FONT_BASE_SIZE = 30.f;
+    constexpr float FONT_BASE_SIZE = 24.f; //30
     constexpr float GLYPH_OFFSET = 5.f; // TODO: Remove not used?
 
     constexpr const char* ICON_ERROR = u8"\uE000";
