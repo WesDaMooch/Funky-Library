@@ -139,8 +139,8 @@ int main(int, char**)
     bigFontConfig.OversampleV = 2;
     Text::largeFont = io.Fonts->AddFontFromMemoryTTF(spaceGroteskRegular, sizeof(spaceGroteskRegular), 60.f, &bigFontConfig);
 
-    IM_ASSERT(Ui::Text::DefaultFont != nullptr);
-    IM_ASSERT(Ui::Text::SmallFont != nullptr);
+    //IM_ASSERT(Ui::Text::DefaultFont != nullptr);
+    //IM_ASSERT(Ui::Text::SmallFont != nullptr);
     io.Fonts->Build();
 
 

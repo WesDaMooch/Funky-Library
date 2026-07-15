@@ -102,7 +102,7 @@ private:
     TrackInputData editTrackData;
     
 
-    int64_t drawTrackList(const std::vector<const Track*>& trackList, bool omitActiveTrack);
+    int64_t drawTrackList(const std::vector<const Track*>& trackList, bool omitActiveTrack = false, bool omitMixedTrack = false);
     void drawMixes();
 
     // Popups

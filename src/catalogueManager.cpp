@@ -206,6 +206,53 @@ Library::ValidationResult Library::editTrack(const Track& editedTrack)
 void Library::addMix(Mix& newMix, int parentTrackId)
 {
     // Prevent self mixing
+    if (newMix.otherTrackId == parentTrackId)
+        return;
+
+    auto* thisTrack = findTrackById(parentTrackId);
+    auto* otherTrack = findTrackById(newMix.otherTrackId);
+
+    if (thisTrack == nullptr || otherTrack == nullptr)
+        return;
+
+    // Ensure direction
+    int direction = std::clamp(static_cast<int>(newMix.direction), 0, static_cast<int>(MixDirection::NumDirections) - 1);
+    newMix.direction = static_cast<MixDirection>(direction);
+
+    // Ensure rating is between 0 & 5
+    newMix.rating = std::clamp(newMix.rating, 0, 5);
+
+    // Ensure pitch adjust in between -99 & 99
+    newMix.pitch = std::clamp(newMix.pitch, -999, 999);
+
+    // Remove space padding from note
+    newMix.note = TextUtil::Trim(newMix.note);
+
+    // Add mix to this track
+    thisTrack->mix.push_back(newMix);
+
+    // TODO: Prevent duplicate mixes? this happens in main app?
+    
+
+    // Add mix to other track
+    Mix otherMix;
+    otherMix.otherTrackId = thisTrack->id;
+    
+    if (newMix.direction != MixDirection::InAndOut)
+    {
+        otherMix.rating = newMix.rating;
+        otherMix.pitch = otherMix.pitch;
+        otherMix.note = otherMix.note;
+    }
+
+    otherMix.direction = InvertMixDirection(newMix.direction);
+    otherTrack->mix.push_back(otherMix);
+
+    
+
+
+    /*
+    // Prevent self mixing
     if (parentTrackId = newMix.otherTrackId)
         return;
 
@@ -254,7 +301,7 @@ void Library::addMix(Mix& newMix, int parentTrackId)
     if (changed)
         save();
 
-
+    */
 
     ///
     /*

@@ -48,7 +48,22 @@
             ],
             "id": 6,
             "labelId": -1,
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 8,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 1,
+                    "id": 10,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 0,
             "releaseId": -1,
@@ -64,7 +79,22 @@
             ],
             "id": 8,
             "labelId": 1,
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 10,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 2,
+                    "id": 6,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "A",
             "rating": 3,
             "releaseId": 7,
@@ -80,7 +110,22 @@
             ],
             "id": 10,
             "labelId": 1,
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 8,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                },
+                {
+                    "direction": 0,
+                    "id": 6,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "AA",
             "rating": 3,
             "releaseId": 7,

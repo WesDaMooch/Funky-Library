@@ -82,7 +82,7 @@ void MixMatchApp::runFrame2()
 
                 ImGui::BeginChild("Main Search Track List", ImVec2(0, 0));
 
-                int64_t mainSearchTrackSelectedId = drawTrackList(mainSearchTrackList, false);
+                int64_t mainSearchTrackSelectedId = drawTrackList(mainSearchTrackList);
                 
                 if (mainSearchTrackSelectedId >= 0)
                     activeTrackId = mainSearchTrackSelectedId;
@@ -160,7 +160,7 @@ void MixMatchApp::runFrame2()
                 {
                     ImGui::Text(titleToDisplay.c_str());
 
-                    int64_t detailsTrackSelectedId =  drawTrackList(tracksToDisplay, false);
+                    int64_t detailsTrackSelectedId =  drawTrackList(tracksToDisplay);
 
                     if (detailsTrackSelectedId >= 0)
                         activeTrackId = detailsTrackSelectedId;
@@ -205,7 +205,7 @@ void MixMatchApp::runFrame2()
 
 
 
-int64_t MixMatchApp::drawTrackList(const std::vector<const Track*>& trackList, bool omitActiveTrack)
+int64_t MixMatchApp::drawTrackList(const std::vector<const Track*>& trackList, bool omitActiveTrack, bool omitMixedTrack)
 {
     ImGui::Separator();
 
@@ -219,9 +219,29 @@ int64_t MixMatchApp::drawTrackList(const std::vector<const Track*>& trackList, b
         if (track == nullptr)
             continue;
 
+        // Omit active track
         if (omitActiveTrack && track->id == activeTrackId)
             continue;
 
+        // Omit mixed tracks
+        if (omitMixedTrack)
+        {
+            bool mixTrackFound = false;
+
+            for (const auto& m : track->mix)
+            {
+                if (m.otherTrackId == activeTrackId)
+                {
+                    mixTrackFound = true;
+                    break;
+                }
+            }
+
+            if (mixTrackFound)
+                continue;
+        }
+        
+        // Display track
         const auto* artist = library.findArtistById(track->artistId);
 
         if (artist == nullptr)
@@ -296,18 +316,16 @@ void MixMatchApp::drawAddTrackPopup(TrackInputData& data)
 
                 ImGui::SameLine();
 
-                std::string icon = artistInLibrary ? Text::ICON_CHECK : Text::ICON_ADD;
-
-
+                std::string statusIcon = artistInLibrary ? Text::ICON_CHECK : Text::ICON_ADD;
 
                 if (artistInLibrary)
                 {
-                    ImGui::Text(icon.c_str());
+                    ImGui::Text(statusIcon.c_str());
                 }
                 else
                 {
                     ImGui::BeginDisabled(artistBufferEmpty);
-                    if (ImGui::SmallButton((icon + "##Artist Status Button").c_str()))
+                    if (ImGui::SmallButton((statusIcon + "##Artist Status Button").c_str()))
                     {
                         if (!artistInLibrary && !artistBufferEmpty)
                             library.addArtist(data.artistBuffer);
@@ -347,8 +365,8 @@ void MixMatchApp::drawAddTrackPopup(TrackInputData& data)
 
                 ImGui::SameLine();
 
-                icon = data.trackValid ? Text::ICON_CHECK : Text::ICON_ERROR;
-                ImGui::Text(icon.c_str());
+                statusIcon = data.trackValid ? Text::ICON_CHECK : Text::ICON_ERROR;
+                ImGui::Text(statusIcon.c_str());
 
                 if (artistBufferEmpty)
                 {
@@ -592,22 +610,22 @@ void MixMatchApp::drawAddMixPopup(MixInputData& data)
 
                         ImGui::Separator();
 
-                        std::string icon;
+                        std::string directionIcon;
                         switch (data.direction) {
                         case MixDirection::In:
-                            icon = Text::ICON_ARROWFORWARD;
+                            directionIcon = Text::ICON_ARROWFORWARD;
                             break;
                         case MixDirection::Out:
-                            icon = Text::ICON_ARROWBACK;
+                            directionIcon = Text::ICON_ARROWBACK;
                             break;
                         case MixDirection::InAndOut:
-                            icon = Text::ICON_SYNCALT;
+                            directionIcon = Text::ICON_SYNCALT;
                             break;
                         default:
-                            icon = Text::ICON_SYNCALT;
+                            directionIcon = Text::ICON_SYNCALT;
                         }
 
-                        if (ImGui::Button(icon.c_str()))
+                        if (ImGui::Button(directionIcon.c_str()))
                         {
                             data.direction = static_cast<MixDirection>(
                                 (static_cast<int>(data.direction) + 1) %
@@ -631,7 +649,7 @@ void MixMatchApp::drawAddMixPopup(MixInputData& data)
 
                     ImGui::BeginChild("Search Mix List", ImVec2(0, 200));
 
-                    int64_t tempMixTrackSelectedId = drawTrackList(searchMixList, true);
+                    int64_t tempMixTrackSelectedId = drawTrackList(searchMixList, true, true);
 
                     if (tempMixTrackSelectedId >= 0)
                         data.otherTrackId = tempMixTrackSelectedId;
