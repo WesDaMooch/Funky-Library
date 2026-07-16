@@ -50,6 +50,8 @@ private:
 
     // Add track
     bool addTrackPopup = false;
+    bool editTrackPopup = false;
+
 
     // Track view / edit
     bool showEditTrackPopup = false;
@@ -73,6 +75,13 @@ private:
     float bgRectGap = Text::FONT_BASE_SIZE / 12.0f; // 3
     const float bgPaddingY = tablePaddingY - bgRectGap;
 
+
+    enum class TrackInputMode
+    {
+        Add,
+        Edit
+    };
+
     struct TrackInputData
     {
         int64_t trackId = -1;
@@ -87,15 +96,65 @@ private:
         float bpm = 0.f;
         int rating = 0;
         ImVec4 colour = Colour::VEC4_DEFAULT;
+
         bool trackValid = false;
-    };
 
+        void clear()
+        {
+            *this = TrackInputData{};
+        };
 
+        void parseTrack(const Track* track, const Library& library)
+        {
+            if (track == nullptr)
+                return;
 
-    enum class TrackInputMode
-    {
-        ADD,
-        EDIT
+            clear();
+
+            trackId = track->id;
+            std::snprintf(trackBuffer, sizeof(trackBuffer), "%s", track->title.c_str());
+
+            const auto* artist = library.findArtistById(track->artistId);
+            if (artist != nullptr)
+            {
+                artistId = artist->id;
+                std::snprintf(artistBuffer, sizeof(artistBuffer), "%s", artist->name.c_str());
+            }
+
+            const auto* label = library.findLabelById(track->labelId);
+            if (label != nullptr)
+            {
+                labelId = label->id;
+                std::snprintf(labelBuffer, sizeof(labelBuffer), "%s", label->name.c_str());
+            }
+  
+            const auto* release = library.findReleaseById(track->releaseId);
+            if (release != nullptr)
+            {
+                releaseId = release->id;
+                std::snprintf(releaseBuffer, sizeof(releaseBuffer), "%s", release->name.c_str());
+            }
+            
+            std::snprintf(positionBuffer, sizeof(positionBuffer), "%s", track->position.c_str());
+            bpm = track->bpm;
+            rating = track->rating;
+            colour = ColourUtil::RgbToVec4(track->colour);
+        };
+
+        Track createTrack(TrackInputMode mode)
+        {
+            Track track;
+            track.id = (mode == TrackInputMode::Edit) ? trackId : -1;
+            track.title = trackBuffer;
+            track.artistId = artistId;
+            track.labelId = labelId;
+            track.releaseId = releaseId;
+            track.position = positionBuffer;
+            track.bpm = bpm;
+            track.rating = rating;
+            track.colour = ColourUtil::Vec4ToRgb(colour);
+            return track;
+        };
     };
 
     TrackInputData addTrackData;
@@ -103,11 +162,11 @@ private:
     
 
     int64_t drawTrackList(const std::vector<const Track*>& trackList, bool omitActiveTrack = false, bool omitMixedTrack = false);
-    void drawMixes();
+    void drawMixes(const Track* thisTrack);
 
     // Popups
 
-    void drawAddTrackPopup(TrackInputData& data);
+    void drawInputTrackDataPopup(TrackInputData& data, TrackInputMode mode);
     void drawAddMixPopup(MixInputData& data);
  
 

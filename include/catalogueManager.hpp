@@ -119,8 +119,8 @@ public:
     void save() const;
     void refresh(); //old, used?
 
-    void addTrack(Track& newTrack); //Old
-    ValidationResult editTrack(const Track& editedTrack); //Old
+    void addTrack(Track& inputTrack); //New
+    void editTrack(Track& inputTrack); //New
     void removeTrack(int id); //Old
     void addMix(Mix& newMix, int parentTrackId); //new
     void editMix(Mix mix, int parentTrackId); //Old

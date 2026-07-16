@@ -165,18 +165,36 @@ void Library::refresh()
     load();
 }
 
-void Library::addTrack(Track& newTrack)
+void Library::addTrack(Track& inputTrack)
 {
-    newTrack.id = generateId();
-    newTrack.title = TextUtil::Trim(newTrack.title);
-    newTrack.position = TextUtil::Trim(newTrack.position);
-    newTrack.bpm = std::clamp(newTrack.bpm, 0.0f, 999.0f);
-    newTrack.rating = std::clamp(newTrack.rating, 0, 5);
-    tracks.emplace_back(newTrack);
+    inputTrack.id = generateId();
+    inputTrack.title = TextUtil::Trim(inputTrack.title);
+    inputTrack.position = TextUtil::Trim(inputTrack.position);
+    inputTrack.bpm = std::clamp(inputTrack.bpm, 0.0f, 999.0f);
+    inputTrack.rating = std::clamp(inputTrack.rating, 0, 5);
+    tracks.emplace_back(inputTrack);
+
+    save();
 }
 
-Library::ValidationResult Library::editTrack(const Track& editedTrack)
+void Library::editTrack(Track& inputTrack)
 { 
+    auto* trackToEdit = findTrackById(inputTrack.id);
+
+    if (trackToEdit == nullptr)
+        return;
+
+    trackToEdit->artistId = inputTrack.artistId;
+    trackToEdit->title = TextUtil::Trim(inputTrack.title);
+    trackToEdit->labelId = inputTrack.labelId;
+    trackToEdit->releaseId = inputTrack.releaseId;
+    trackToEdit->position = TextUtil::Trim(inputTrack.position);
+    trackToEdit->bpm = std::clamp(inputTrack.bpm, 0.0f, 999.0f);
+    trackToEdit->rating = std::clamp(inputTrack.rating, 0, 5);
+    trackToEdit->colour = inputTrack.colour;
+
+    save();
+    /*
     // TODO: could just use a non const edited track?
     Track track = editedTrack;
 
@@ -201,6 +219,7 @@ Library::ValidationResult Library::editTrack(const Track& editedTrack)
     
     save();
     return result;
+    */
 }
 
 void Library::addMix(Mix& newMix, int parentTrackId)

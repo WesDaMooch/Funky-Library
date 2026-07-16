@@ -11,6 +11,10 @@
         {
             "id": 11,
             "name": "Invaderz"
+        },
+        {
+            "id": 13,
+            "name": "Future Forces Inc"
         }
     ],
     "labels": [
@@ -39,37 +43,6 @@
     ],
     "tracks": [
         {
-            "artistId": 4,
-            "bpm": 0.0,
-            "colour": [
-                75,
-                75,
-                75
-            ],
-            "id": 6,
-            "labelId": -1,
-            "mix": [
-                {
-                    "direction": 2,
-                    "id": 8,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 0
-                },
-                {
-                    "direction": 1,
-                    "id": 10,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 0
-                }
-            ],
-            "position": "",
-            "rating": 0,
-            "releaseId": -1,
-            "title": "Wormhole"
-        },
-        {
             "artistId": 3,
             "bpm": 0.0,
             "colour": [
@@ -89,7 +62,7 @@
                 },
                 {
                     "direction": 2,
-                    "id": 6,
+                    "id": 12,
                     "note": "",
                     "pitch": 0,
                     "rating": 0
@@ -117,13 +90,6 @@
                     "note": "",
                     "pitch": 0,
                     "rating": 0
-                },
-                {
-                    "direction": 0,
-                    "id": 6,
-                    "note": "",
-                    "pitch": 0,
-                    "rating": 0
                 }
             ],
             "position": "AA",
@@ -141,11 +107,51 @@
             ],
             "id": 12,
             "labelId": 1,
-            "mix": [],
+            "mix": [
+                {
+                    "direction": 2,
+                    "id": 8,
+                    "note": "",
+                    "pitch": 0,
+                    "rating": 0
+                }
+            ],
             "position": "",
             "rating": 0,
             "releaseId": -1,
             "title": "Wintersun"
+        },
+        {
+            "artistId": 13,
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 14,
+            "labelId": -1,
+            "mix": [],
+            "position": "",
+            "rating": 3,
+            "releaseId": -1,
+            "title": "The Killer"
+        },
+        {
+            "artistId": 4,
+            "bpm": 0.0,
+            "colour": [
+                75,
+                75,
+                75
+            ],
+            "id": 15,
+            "labelId": -1,
+            "mix": [],
+            "position": "",
+            "rating": 2,
+            "releaseId": -1,
+            "title": "Wormhole"
         }
     ]
 }
