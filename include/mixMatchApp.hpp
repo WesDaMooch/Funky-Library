@@ -48,10 +48,10 @@ private:
     // Track map
     bool showTrackMap = false;
 
-    // Add track
+    // Track input popup
     bool addTrackPopup = false;
     bool editTrackPopup = false;
-
+    std::string trackInputSaveTooltip;
 
     // Track view / edit
     bool showEditTrackPopup = false;
@@ -65,7 +65,8 @@ private:
     bool showEditMixNotePopup = false; //remove?
     bool showDeleteMixPopup = false;    //remove?
 
-
+    // Mananger
+    bool managerPopup = false;
 
     // Table drawing
     const float minTableColumnWidth = 120;
@@ -160,15 +161,22 @@ private:
     TrackInputData addTrackData;
     TrackInputData editTrackData;
     
+    struct ManagerInputData
+    {
+        int64_t selectedId = -1;
+        std::unordered_map<int64_t, bool> checked;
+    };
+
+    ManagerInputData releaseManagerData;
+
 
     int64_t drawTrackList(const std::vector<const Track*>& trackList, bool omitActiveTrack = false, bool omitMixedTrack = false);
     void drawMixes(const Track* thisTrack);
 
     // Popups
-
     void drawInputTrackDataPopup(TrackInputData& data, TrackInputMode mode);
     void drawAddMixPopup(MixInputData& data);
- 
+    void drawManagerPopup();
 
 
     //void inputTrackDataPopup(InputData& data, TrackInputMode mode);

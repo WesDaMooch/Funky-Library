@@ -13,7 +13,7 @@ namespace Text
     constexpr float FONT_BASE_SIZE = 24.f; //30
     constexpr float GLYPH_OFFSET = 5.f; // TODO: Remove not used?
 
-    constexpr const char* ICON_ERROR = u8"\uE000";
+    constexpr const char* ICON_ERROR = u8"\uE002"; //u8"\uE000" u8"\uE002"
     constexpr const char* ICON_CHECK = u8"\uE5CA";
     constexpr const char* ICON_ADD = u8"\uE145";
     constexpr const char* ICON_CLOSE = u8"\uE5CD";
