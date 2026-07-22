@@ -827,10 +827,11 @@ void MixMatchApp::drawAddMixPopup(MixInputData& data)
 
 void MixMatchApp::drawManagerPopup()
 {
+    // TODO: totally redo the merge release stuff
+    // TODO: add label info to release?
     if (!managerPopup)
         return;
     
-
     if (ImGui::BeginPopupModal("Library Manager", &managerPopup))
     {
         if (ImGui::BeginTabBar("Manager Tab Bar"))
@@ -853,7 +854,7 @@ void MixMatchApp::drawManagerPopup()
                 float rightPanelWidth = 400.0f;
                 float leftPanelWidth = windowWidth - rightPanelWidth - ImGui::GetStyle().ItemSpacing.x;
 
-                // Left: release list
+                // Left panel - releases
                 ImGui::BeginChild("Releases", ImVec2(leftPanelWidth, 0), ImGuiChildFlags_ResizeX);
 
                 const auto& releases = library.getReleases();
@@ -884,8 +885,6 @@ void MixMatchApp::drawManagerPopup()
 
                     ImGui::PopID();
                 }
-                
-
                 ImGui::EndChild();
 
                 
@@ -896,31 +895,41 @@ void MixMatchApp::drawManagerPopup()
 
                 if (releaseManagerData.selectedId >= 0)
                 {
-                    const auto* release = library.findReleaseById(releaseManagerData.selectedId);
+                    const auto* selectedRelease = library.findReleaseById(releaseManagerData.selectedId);
 
-                    if (release)
+                    if (selectedRelease)
                     {
-                        ImGui::SeparatorText("Tracks");
+                        ImGui::PushID(selectedRelease->id);
+                        ImGui::SeparatorText("Release Details");
+                        
+                        // Selected release name
+                        ImGui::Text(selectedRelease->name.c_str());
 
-                        // Tracks in this release
-                        for (const auto& track : library.getTracks())
+                        bool anyChecked = false;
+                        for (const auto& [checkedReleaseId, checked] : releaseManagerData.checked)
                         {
-                            if (track.releaseId == release->id)
-                                ImGui::Text(track.title.c_str());
+                            if (checked)
+                            {
+                                if (checkedReleaseId == selectedRelease->id)
+                                    continue;
+
+                                anyChecked = true;
+                                break;
+                            }
                         }
 
-                        ImGui::Separator();
+                        if(anyChecked)
+                            ImGui::Text(Text::ICON_ARROW_UPWARD);
 
-                        if (ImGui::Button("Merge"))
-                        {
-
-                        }
-
-                        for (auto& [releaseId, check] : releaseManagerData.checked)
+                        // Display checked track to merge
+                        for (const auto& [checkedReleaseId, check] : releaseManagerData.checked)
                         {
                             if (check)
                             {
-                                const auto* checkedRelease = library.findReleaseById(releaseId);
+                                if (checkedReleaseId == selectedRelease->id)
+                                    continue;
+
+                                const auto* checkedRelease = library.findReleaseById(checkedReleaseId);
 
                                 if (checkedRelease == nullptr)
                                     continue;
@@ -929,20 +938,47 @@ void MixMatchApp::drawManagerPopup()
                             }
                         }
 
+                        ImGui::SeparatorText("Tracks");
+
+                        // Tracks in this release
+                        for (const auto& track : library.getTracks())
+                        {
+                            if (track.releaseId == selectedRelease->id)
+                                ImGui::Text(track.title.c_str());
+                        }
+
+                        // Tracks to merge
+                        for (const auto& [checkedReleaseId, check] : releaseManagerData.checked)
+                        {
+                            if (check)
+                            {
+                                if (checkedReleaseId == selectedRelease->id)
+                                    continue;
+
+                                for (const auto& track : library.getTracks())
+                                {
+                                    if (track.releaseId == checkedReleaseId)
+                                        ImGui::Text((Text::ICON_ARROW_UPWARD + track.title).c_str());
+                                }
+                            }
+                        }
+
+                        ImGui::Separator();
+
                         if (ImGui::Button("Delete"))
                         {
-
+                            library.removeRelease(releaseManagerData.selectedId);
+                            releaseManagerData.selectedId = -1;
                         }
+
+                        ImGui::PopID();
                     }
                 }
-
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
-
             ImGui::EndTabBar();
         }
-
         ImGui::EndPopup();
     }
 }

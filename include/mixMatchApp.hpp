@@ -164,7 +164,7 @@ private:
     struct ManagerInputData
     {
         int64_t selectedId = -1;
-        std::unordered_map<int64_t, bool> checked;
+        std::unordered_map<int64_t, bool> checked; // not used yet
     };
 
     ManagerInputData releaseManagerData;

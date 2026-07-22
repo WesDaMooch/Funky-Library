@@ -29,16 +29,28 @@
         {
             "id": 9,
             "name": "Prototype Records"
+        },
+        {
+            "id": 16,
+            "name": "Renagarde Hardware"
+        },
+        {
+            "id": 19,
+            "name": "Virus Recordings"
         }
     ],
     "releases": [
         {
-            "id": 0,
-            "name": "In Order To Dance - Drum-n-Bass"
-        },
-        {
             "id": 7,
             "name": "Up All Night / Take Control"
+        },
+        {
+            "id": 18,
+            "name": "Hard Nukeattack"
+        },
+        {
+            "id": 20,
+            "name": "Wormhole"
         }
     ],
     "tracks": [
@@ -130,11 +142,11 @@
                 75
             ],
             "id": 14,
-            "labelId": -1,
+            "labelId": 16,
             "mix": [],
             "position": "",
             "rating": 3,
-            "releaseId": -1,
+            "releaseId": 18,
             "title": "The Killer"
         },
         {
@@ -146,11 +158,11 @@
                 75
             ],
             "id": 15,
-            "labelId": -1,
+            "labelId": 19,
             "mix": [],
             "position": "",
             "rating": 2,
-            "releaseId": -1,
+            "releaseId": 20,
             "title": "Wormhole"
         }
     ]

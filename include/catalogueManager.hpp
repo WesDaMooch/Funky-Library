@@ -130,6 +130,8 @@ public:
     int64_t addLabel(std::string name); //New
     int64_t addRelease(std::string name); //New
 
+    void removeRelease(int64_t id); //New
+
     const Track* getTrackForDisplay(int id); //Old
 
     const std::vector<Release>& getReleases(); //Not used, will use in release mananger

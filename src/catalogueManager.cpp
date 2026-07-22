@@ -192,34 +192,7 @@ void Library::editTrack(Track& inputTrack)
     trackToEdit->bpm = std::clamp(inputTrack.bpm, 0.0f, 999.0f);
     trackToEdit->rating = std::clamp(inputTrack.rating, 0, 5);
     trackToEdit->colour = inputTrack.colour;
-
     save();
-    /*
-    // TODO: could just use a non const edited track?
-    Track track = editedTrack;
-
-    ValidationResult result = ValidateTrack(track);
-
-    if (result != ValidationResult::ValidTrack)
-        return result;
-    
-    Track* foundTrack = findTrackById(editedTrack.id);
-
-    if (foundTrack == nullptr)
-        return ValidationResult::TrackNotFound;
-
-    //foundTrack->artist = track.artist;
-    foundTrack->title = track.title;
-    foundTrack->labelId = track.labelId;
-    foundTrack->releaseId = track.releaseId;
-    foundTrack->position = track.position;
-    foundTrack->bpm = track.bpm;
-    foundTrack->rating = track.rating;
-    foundTrack->colour = track.colour;
-    
-    save();
-    return result;
-    */
 }
 
 void Library::addMix(Mix& newMix, int parentTrackId)
@@ -266,112 +239,7 @@ void Library::addMix(Mix& newMix, int parentTrackId)
 
     otherMix.direction = InvertMixDirection(newMix.direction);
     otherTrack->mix.push_back(otherMix);
-
-    
-
-
-    /*
-    // Prevent self mixing
-    if (parentTrackId = newMix.otherTrackId)
-        return;
-
-    auto* parentTrack = findTrackById(parentTrackId);
-    auto* otherTrack = findTrackById(newMix.otherTrackId);
-
-    if ((parentTrack == nullptr) || (otherTrack == nullptr))
-        return;
-
-    bool changed = false;
-
-    // Add other track to parent mix list
-    bool parentFound = false;
-    for (const Mix& mix : parentTrack->mix)
-    {
-        if (mix.otherTrackId == newMix.otherTrackId)
-        {
-            parentFound = true;
-            break;
-        }
-    }
-
-    if (!parentFound)
-    {
-        parentTrack->mix.emplace_back(newMix);
-        changed = true;
-    }
-
-    // Add parent track to child mix list
-    bool otherTrackFound = false;
-    for (const Mix& m : otherTrack->mix)
-    {
-        if (m.otherTrackId == parentTrackId)
-        {
-            otherTrackFound = true;
-            break;
-        }
-    }
-
-    if (!otherTrackFound)
-    {
-        otherTrack->mix.emplace_back(newMix);
-        changed = true;
-    }
-
-    if (changed)
-        save();
-
-    */
-
-    ///
-    /*
-    if (mixId == parentTrackId)
-        return;
-
-    Track* parentTrack = findTrackById(parentTrackId);
-    Track* childTrack = findTrackById(mixId);
-
-    if ((parentTrack == nullptr) || (childTrack == nullptr))
-        return;
-
-    bool changed = false;
-
-    // Add child track to parent mix list
-    bool parentFound = false;
-    for (const Mix& m : parentTrack->mix)
-    {
-        if (m.otherTrackId == mixId)
-        {
-            parentFound = true;
-            break;
-        }
-    }
-
-    if (!parentFound)
-    {
-        parentTrack->mix.emplace_back(Mix{ mixId, MixDirection::InAndOut, 0 });
-        changed = true;
-    }
-
-    // Add parent track to child mix list
-    bool childFound = false;
-    for (const Mix& m : childTrack->mix)
-    {
-        if (m.otherTrackId == parentTrackId)
-        {
-            childFound = true;
-            break;
-        }
-    }
-
-    if (!childFound)
-    {
-        childTrack->mix.emplace_back(Mix{ parentTrackId, MixDirection::InAndOut, 0 });
-        changed = true;
-    }
-
-    if (changed)
-        save();
-        */
+    save();
 }
 
 
@@ -539,6 +407,30 @@ int64_t Library::addRelease(std::string name)
 {
     releases.push_back({ generateId(), TextUtil::Trim(name) });
     return releases.back().id;
+}
+
+void Library::removeRelease(int64_t id)
+{
+    auto it = std::find_if(
+        releases.begin(),
+        releases.end(),
+        [id](const auto& release)
+        {
+            return release.id == id;
+        });
+
+    if (it == releases.end())
+        return;
+
+    // Remove release id from tracks
+    for (auto& track : tracks)
+    {
+        if (track.releaseId == id)
+            track.releaseId = -1;
+    }
+
+    // Remove release from vector
+    releases.erase(it);
 }
 
 
